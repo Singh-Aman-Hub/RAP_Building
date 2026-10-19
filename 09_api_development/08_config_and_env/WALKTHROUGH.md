@@ -1,5 +1,14 @@
 # Step 08 — Environment variables and configuration
 
+## The story so far
+Step 07 showed that workers, ports and model paths change between a laptop and a server. Hard-coding them means editing code, and code is exactly what we want to keep identical.
+
+## The pain point
+A password or model path baked into the source ends up in git. A different value for staging needs a different build, and nobody remembers which one is running.
+
+## The spark
+Keep settings outside the code in environment variables, read them in one settings object, convert types explicitly, and fail fast when something required is missing.
+
 ## Goal
 Keep settings (model path, versions, secrets, limits) **outside the code** so the same code runs on a laptop, in Docker (module 11) and in production.
 
@@ -64,5 +73,8 @@ Experiment 5: shell variable `MODEL_VERSION=from-shell` exists → `load_dotenv(
 - [ ] Read an int and a bool from the environment safely.
 - [ ] Explain precedence of env vs `.env`.
 
+## The new problem (cliffhanger)
+Now we can change behaviour without touching code, which is great until a change quietly breaks the API. We need automatic checks. Next: [09_testing_and_docs](../09_testing_and_docs/).
+
 ## Say it aloud
-"Configuration lives in environment variables so one build artifact works everywhere; secrets stay out of the repo. I read them in one settings object, convert types explicitly because everything is a string, and fail fast if something required is missing. Trade-off: env vars are untyped and invisible — so I document them in `.env.example` and validate them."
+> **Say it aloud (interview box):** Configuration lives in environment variables so one build works everywhere and secrets stay out of the repo. I read them in a single settings object, convert types explicitly because everything is a string, and fail fast when something required is missing. The catch is that env vars are invisible and untyped, so I document them in `.env.example` and validate them.

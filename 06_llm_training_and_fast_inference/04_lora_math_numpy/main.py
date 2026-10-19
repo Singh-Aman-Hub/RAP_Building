@@ -27,41 +27,41 @@ print(f"LoRA   parameters (r={r}): {lora:,}   -> {100 * lora / full:.2f}% of ful
 # ---- 2. The forward pass: y = W x + (alpha / r) * B (A x) --------------------
 # Use a smaller size for the learning demo so it runs instantly.
 d, r = 64, 4
-W = rng.normal(size=(d, d))                 # pretend: a frozen pretrained weight matrix
-A = rng.normal(size=(r, d)) * 0.01          # LoRA "down-projection": random small init
-B = np.zeros((d, r))                        # LoRA "up-projection": ZERO init  => update starts at exactly 0
+W = rng.normal(size=(d, d))                 # shape: (d_out, d_in) = (64, 64); pretend: a frozen pretrained weight matrix
+A = rng.normal(size=(r, d)) * 0.01          # shape: (r, d_in) = (4, 64); LoRA "down-projection": random small init
+B = np.zeros((d, r))                        # shape: (d_out, r) = (64, 4); LoRA "up-projection": ZERO init  => update starts at exactly 0
 alpha = 8                                   # scaling constant; the update is multiplied by alpha / r
 scale = alpha / r
 
-x = rng.normal(size=(d, 10))                # 10 example input vectors (columns)
-base_out = W @ x                            # @ is matrix multiplication in Python
-lora_out = W @ x + scale * (B @ (A @ x))    # note the order: A @ x first keeps everything small (r x 10)
+x = rng.normal(size=(d, 10))                # shape: (d_in, n_examples) = (64, 10); 10 example input vectors (columns)
+base_out = W @ x                            # shape: (d_out, n_examples) = (64, 10); @ is matrix multiplication in Python
+lora_out = W @ x + scale * (B @ (A @ x))    # shape: (64, 10); A @ x is (r, 10), B @ that is (64, 10); note the order: A @ x first keeps everything small (r x 10)
 print("\nat init  max |LoRA output - base output| =", np.abs(lora_out - base_out).max())
 # Because B = 0, a fresh LoRA adapter changes nothing: training starts from the pretrained behaviour.
 
 # ---- 3. Train ONLY A and B so the layer imitates a new target ----------------
 # Pretend fine-tuning wants W_target = W + (a rank-r change). Real fine-tuning updates are
 # empirically low-rank too, which is why LoRA works.
-true_delta = rng.normal(size=(d, r)) @ rng.normal(size=(r, d)) * 0.1   # a rank-4 change
-y_target = (W + true_delta) @ x
+true_delta = rng.normal(size=(d, r)) @ rng.normal(size=(r, d)) * 0.1   # shape: (64, 64), a rank-4 change
+y_target = (W + true_delta) @ x                        # shape: (64, 10)
 
 lr = 0.05                                               # learning rate for this toy problem
 print()
 for step in range(301):
-    y_pred = W @ x + scale * (B @ (A @ x))              # forward
-    err = y_pred - y_target                              # (d x 10)
+    y_pred = W @ x + scale * (B @ (A @ x))              # forward; shape: (64, 10)
+    err = y_pred - y_target                              # shape: (d, 10) = (64, 10)
     loss = (err ** 2).mean()
     # Gradients derived by hand with the chain rule (PyTorch autograd does this for you):
-    grad_B = scale * (err @ (A @ x).T) / err.size * 2
-    grad_A = scale * (B.T @ err @ x.T) / err.size * 2
+    grad_B = scale * (err @ (A @ x).T) / err.size * 2   # shape: (64, 4) same as B
+    grad_A = scale * (B.T @ err @ x.T) / err.size * 2   # shape: (4, 64) same as A
     B -= lr * grad_B                                # W is NEVER touched: it stays frozen
     A -= lr * grad_A
     if step % 100 == 0:
         print(f"step {step:4d} error {loss:.4f}")
 
 # ---- 4. Merge: fold the adapter back into W for zero-overhead inference -------
-W_merged = W + scale * (B @ A)
-merged_out = W_merged @ x
+W_merged = W + scale * (B @ A)                          # shape: (64, 64); (64,4) @ (4,64) -> (64,64)
+merged_out = W_merged @ x                               # shape: (64, 10)
 print("\nmerged vs unmerged max difference:", np.abs(merged_out - (W @ x + scale * (B @ (A @ x)))).max())
 print("=> after merging, inference costs the same as the original model (no extra layers).")
 

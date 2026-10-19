@@ -1,5 +1,14 @@
 # Step 02 - Model loading, forms, session state and file upload
 
+## The story so far
+[Step 01](../01_streamlit_basics/WALKTHROUGH.md) showed that Streamlit reruns the script on every interaction. Now we put a real model behind the button.
+
+## The pain point
+Load the model at the top of the script and it reloads on every click, so each prediction costs seconds. A history list resets on every rerun, so the user never sees past results.
+
+## The spark
+Cache the model with `st.cache_resource` so it loads once per server, and keep per-user data in `st.session_state`. Use a form to batch inputs so typing does not trigger a rerun, and `st.file_uploader` for batch files.
+
 ## Goal
 Show model predictions in the UI without reloading the model each rerun, remember a history, and batch-predict an uploaded file.
 
@@ -51,5 +60,8 @@ Remove `.strip()` check in `predict` usage and upload a file with an empty line 
 - [ ] Add a counter in session_state with a button.
 - [ ] Explain cache_resource vs cache_data vs session_state.
 
+## The new problem (cliffhanger)
+The model lives inside the UI process. In production the model lives in the API (module 09, in a container), and the UI should only call it. Next: [step 03, Streamlit as an API client](../03_streamlit_api_client/WALKTHROUGH.md).
+
 ## Say it aloud
-"Because Streamlit reruns the script, I cache the model with cache_resource so it loads once, and I store per-user data like history in session_state. Forms avoid reruns on each keystroke. Trade-off: cache_resource objects are shared across users, so they must be thread-safe/read-only; session_state is lost when the server restarts."
+> **Say it aloud (interview box):** Because Streamlit reruns the script, I cache the model with cache_resource so it loads once, and I keep per-user data like history in session_state. Forms avoid a rerun on every keystroke, and the file uploader lets users run batches. The trade-off is that cache_resource objects are shared across users, so they must be read-only or thread-safe, and session_state is lost when the server restarts.

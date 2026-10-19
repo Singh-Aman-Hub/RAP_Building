@@ -209,7 +209,7 @@ text: str = Field(min_length=1, description="Text to classify")
 **Seen in:** `api/Dockerfile`, `ui/Dockerfile`
 
 ## requirements.txt for api and ui `(file)`
-**1. Definition:** Lists of the Python packages each image installs; the API needs `fastapi`, `uvicorn`, `pydantic`, `joblib`, `scikit-learn` and `numpy`, the UI lists `streamlit` and `httpx`.
+**1. Definition:** Lists of the Python packages each image installs; the API needs `fastapi`, `uvicorn`, `pydantic`, `joblib`, `scikit-learn` and `numpy`, the UI lists `streamlit` and `requests`.
 **2. In plain words:** An image contains only what its requirements list. A package that the code imports but the list omits fails at start-up inside the container, even though it works on your laptop.
 **3. Example to quote:** > "If the code imports a library that's missing from `requirements.txt`, the container exits with a ModuleNotFoundError."
 **Seen in:** `api/requirements.txt`, `ui/requirements.txt`

@@ -1,5 +1,14 @@
 # Step 09 — Testing and documenting APIs
 
+## The story so far
+Step 08 let us change behaviour through configuration. Every such change can silently break an endpoint, and a person with curl does not scale.
+
+## The pain point
+Checking the API by hand after each change is slow and you forget cases (bad input, missing field, unknown id). Bugs reach users before you do.
+
+## The spark
+Write tests that call the API like a client: fast in-process tests with the framework's test client, one smoke test against a real server, curl and `/docs` for quick looks.
+
 ## Goal
 Three levels of API checking: (1) **unit tests** in-process with pytest, (2) a **smoke test** against a real server with httpx, (3) manual probing with **curl** and the generated docs.
 
@@ -71,5 +80,8 @@ FastAPI builds an **OpenAPI** schema from your code: `/openapi.json` (machine-re
 - [ ] A curl command that POSTs JSON and prints only the status code.
 - [ ] Find `/docs` and call `/predict` from the browser.
 
+## The new problem (cliffhanger)
+All tests pass, but every endpoint so far returns the answer only when it is complete. A chat model needs several seconds, and the user stares at a blank screen. Next: [10_streaming_sse](../10_streaming_sse/).
+
 ## Say it aloud
-"I test at three levels: fast in-process unit tests with the framework's test client, a smoke test against a really running server, and manual curl or the `/docs` page. Tests assert status codes and response shape for good and bad input. Trade-off: in-process tests skip the real server, networking and worker behaviour, so I still need a smoke and load test."
+> **Say it aloud (interview box):** I test an API at three levels: fast in-process tests with the framework's test client, a smoke test against a really running server, and manual curl or the `/docs` page. The tests assert status codes and response shape for both good and bad input. In-process tests skip the real server and its workers, so I still need a smoke test and a load test.

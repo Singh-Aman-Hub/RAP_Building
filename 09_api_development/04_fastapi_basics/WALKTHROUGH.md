@@ -1,5 +1,14 @@
 # Step 04 — FastAPI fundamentals
 
+## The story so far
+Flask made routes easy but left validation and documentation to us. Step 03's items API is the same API we rebuild here, so the only difference is what the framework gives for free.
+
+## The pain point
+In Flask, bad input means writing `try/except`, choosing a status code, and keeping separate docs in sync with the code. Forgetting one check lets junk reach the model.
+
+## The spark
+Read the type hints. A parameter typed `float` must be a float, a Pydantic class is a JSON body, and FastAPI returns 422 and generates `/docs` from the same declarations.
+
 ## Goal
 Rebuild step 03's API with FastAPI and notice what the type hints give you for free: parsing, validation (422), docs.
 
@@ -60,5 +69,8 @@ POST `{"name": 5}` — Pydantic v2 rejects an int for `str` (`Input should be a 
 - [ ] Raise a 404 with `HTTPException`.
 - [ ] Open `/docs` and call an endpoint from the browser.
 
+## The new problem (cliffhanger)
+Type hints give us 422 automatically, but which errors deserve 400, 404, 422 or 500, and how do we make messages useful? Next: [05_validation_and_errors](../05_validation_and_errors/).
+
 ## Say it aloud
-"FastAPI is an ASGI framework built on Starlette and Pydantic. Type hints tell it where each parameter comes from and how to validate it, bad input returns 422 automatically, and it generates OpenAPI docs at `/docs`. It runs on an ASGI server like Uvicorn. Trade-off: more concepts to learn (Pydantic, async vs def) and, like Flask, the framework doesn't make my model code fast."
+> **Say it aloud (interview box):** FastAPI is an ASGI framework built on Starlette and Pydantic where type hints decide where each parameter comes from and how it is validated. Bad input returns 422 automatically and the OpenAPI docs appear at `/docs`, served by an ASGI server like Uvicorn. Its limit is more concepts (Pydantic, `def` versus `async def`), and it does not make my model code any faster.

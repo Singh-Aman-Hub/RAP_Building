@@ -1,5 +1,11 @@
 # 08 — Agent Harness Design Without Frameworks (Syllabus Topic 3)
 
+## The story of this module
+**Pain point:** after module 07 the model follows instructions and answers from your documents, but it only *talks*. It cannot calculate reliably, read a file or change anything, and one wrong guess in a long task has nobody to catch it.
+**Spark:** wrap the model in a loop you own: Prompt -> LLM call -> parse tool call -> execute tool -> return observation -> iterate until final answer. The model only *chooses* an action as text; your code validates it, checks permissions, runs it and feeds the result back.
+**What you build:** step by step, the loop (02), a validated tool registry (03), history budgeting (04), memory (05), retries (06), a permission allowlist and path sandbox (07), a JSONL trace and a full 200-line agent (08), and the native tool-call API (09).
+**Cliffhanger:** the agent works in your terminal, but nobody else can call it. Next module: [09_api_development](../09_api_development/).
+
 ## Why this matters
 "Build an agent without LangChain" is a favourite interview task because it exposes whether you understand what frameworks hide: a **loop**, a **tool dispatcher**, a **message list**, and a lot of **defensive code**. If you can write this in ~100 lines, explain each part, and say where it breaks, you pass the topic.
 
@@ -7,18 +13,19 @@
 **Builds on**
 - [00_python_foundations](../00_python_foundations/) — dicts of functions, `**kwargs`, exceptions, classes, file I/O and `pathlib`.
 - [01_debugging_and_environment](../01_debugging_and_environment/) — reading tracebacks; the `broken_examples/` here are drills in that skill.
-- [04_llm_fundamentals](../04_llm_fundamentals/) and [05_llm_parameters](../05_llm_parameters/) — tokens and the **context window** explain why history must be trimmed (step 04); `max_tokens` and `temperature` are the knobs on each call (step 01).
-- [07_prompt_engineering](../07_prompt_engineering/) — the tool-call protocol is a **structured-output prompt** (07/04: JSON + validate + retry); the safety layer reuses **prompt-injection** thinking (07/06).
+- [04_llm_fundamentals](../04_llm_fundamentals/) (see [01_tokenizer](../04_llm_fundamentals/01_tokenizer/)) and [05_llm_parameters](../05_llm_parameters/) — tokens and the **context window** explain why history must be trimmed (step 04); `max_tokens` and `temperature` are the knobs on each call (step 01).
+- [07_prompt_engineering](../07_prompt_engineering/) (including [08_minimal_rag](../07_prompt_engineering/08_minimal_rag/), the step right before this module) — the tool-call protocol is a **structured-output prompt** (07/04: JSON + validate + retry); the safety layer reuses **prompt-injection** thinking (07/06).
 
 **Leads to**
-- [09_api_development](../09_api_development/) — wrap `Agent.run()` in a FastAPI endpoint; the registry's argument checks become Pydantic request models.
+- [09_api_development](../09_api_development/) — the next module: wrap `Agent.run()` in a FastAPI endpoint; the registry's argument checks become Pydantic request models.
 - [10_ml_system_architecture](../10_ml_system_architecture/) — the JSONL trace is your logging/monitoring layer; memory becomes a database; retries/timeouts are reliability patterns.
 - [11_docker](../11_docker/) — a container is the *real* sandbox that step 07 says a folder is not.
 - [13_capstone_project](../13_capstone_project/) — the capstone service reuses this harness.
 
 ## Concept map
+The whole module in one line: **Prompt -> LLM call -> parse tool call -> execute tool -> return observation -> iterate until final answer** (every step below guards one arrow).
 ```
-                       +----------------- context management (04) <----- token limits (module 04/05)
+                       +----------------- context management (04) <----- token limits (04_llm_fundamentals/01_tokenizer, module 05)
                        |                         ^
  user question --> messages list (01) --> LLM call (01) --retry/backoff (06)--> reply text
                        ^                                                          |
@@ -43,7 +50,7 @@
 | 04 | [04_history_and_context](04_history_and_context/) | token estimate, truncate, summarise | `python main.py` | 60 min |
 | 05 | [05_memory](05_memory/) | short- vs long-term memory | `python main.py` | 45 min |
 | 06 | [06_errors_and_retries](06_errors_and_retries/) | backoff, JSON repair, errors as data | `python main.py` | 75 min |
-| 07 | [07_safety_and_permissions](07_safety_and_permissions/) | least privilege, sandbox, confirmation | `python main.py` | 75 min |
+| 07 | [07_safety_and_permissions](07_safety_and_permissions/) | tool allowlist, least privilege, path confinement (with the real error trace), confirmation | `python main.py` | 75 min |
 | 08 | [08_trace_and_full_agent](08_trace_and_full_agent/) | JSONL trace + the combined `agent.py` | `python main.py && python show_trace.py` | 90 min |
 | 09 | [09_native_tool_calling](09_native_tool_calling/) | native `tool_use` API (reference) | `python main.py` | 45 min |
 | — | [broken_examples](broken_examples/) | 5 debugging drills | `python broken_*.py` | 60 min |

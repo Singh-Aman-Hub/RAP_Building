@@ -6,6 +6,10 @@ agent.py -- the FULL framework-free agent harness. Every idea from steps 01-07 i
   step 03 registry + validation        step 07 permissions, sandbox, confirmation
   step 04 history trimming             step 08 (new) JSONL TRACE of everything that happens
 
+THE LOOP (method `run`, below), in one line:
+  Prompt -> LLM call -> parse tool call -> execute tool -> return observation -> iterate until final answer
+  (everything else in this file - validation, retries, trimming, permissions, trace - guards one of those arrows).
+
 Read it top to bottom. It is ~200 lines because there is no framework hiding anything.
 """
 import json
@@ -168,12 +172,12 @@ class Agent:
         for step in range(1, self.max_steps + 1):
             started = time.time()
             try:
-                reply = self.call_llm(self.trim(messages))
+                reply = self.call_llm(self.trim(messages))        # prompt -> LLM call
             except RETRYABLE:
                 return self.finish("llm_unavailable", "Sorry, the model is unavailable right now.", step)
             self.log("llm_reply", step=step, reply=reply, ms=round((time.time() - started) * 1000))
             try:
-                decision = extract_json(reply)
+                decision = extract_json(reply)                    # parse tool call
             except ValueError:
                 repairs += 1
                 self.log("bad_json", step=step, repairs=repairs)
@@ -188,10 +192,10 @@ class Agent:
                 return self.finish("final", decision["final"], step)
             name, args = decision.get("tool"), decision.get("args", {})
             t0 = time.time()
-            result = self.execute(name, args)
+            result = self.execute(name, args)                     # execute tool (gated)
             self.log("tool_call", step=step, tool=name, args=args, result=result,
                      ok=not result.startswith("ERROR"), ms=round((time.time() - t0) * 1000, 2))
-            messages.append({"role": "user", "content": f"Observation: {result}"})
+            messages.append({"role": "user", "content": f"Observation: {result}"})   # return observation, iterate
         return self.finish("max_steps", "Stopped: step limit reached.", self.max_steps)
 
     def finish(self, status, answer, steps):

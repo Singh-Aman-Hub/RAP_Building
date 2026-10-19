@@ -1,5 +1,14 @@
 # Step 03 — Prompt templates (f-string, `str.format`, `string.Template`)
 
+## The story so far
+In [step 02](../02_few_shot/) the examples made the model smarter, but the prompt grew into a long hand-edited string.
+
+## The pain point
+Prompts pasted together ad hoc cannot be versioned or tested. A stray `{` in a JSON example crashes `str.format` with a `KeyError`, and an empty input silently produces a broken prompt.
+
+## The spark
+Treat a prompt like code: a constant string with named slots, plus one function that fills it and checks the inputs. Name versions `PROMPT_V1`, `PROMPT_V2` so changes are traceable.
+
 ## Goal
 Generate prompts from a reusable template so versions can be tracked, tested and reused.
 
@@ -50,5 +59,7 @@ Input: `labels` list and a text. Processing: three different mechanisms build eq
 ## Rebuild checklist
 - [ ] A constant template, a builder function with input validation, one deliberate failing call.
 
-## Say it aloud
-"A prompt template is a constant string with named slots, filled by a builder function that validates input. It makes prompts versionable and testable. Use `str.format` for simple prompts, double the braces — or use `string.Template` — when the prompt contains JSON. Never silently allow a missing slot."
+## The new problem (cliffhanger)
+Now the prompt is clean, but the *reply* is still free text. The next line of your program needs `reply["label"]`, not a sentence. We must force a machine-readable format and refuse anything else. Next: [04_structured_json](../04_structured_json/).
+
+> **Say it aloud (interview box):** A prompt template is a constant string with named slots plus a function that fills it and validates the inputs. I use f-strings for one-offs, `str.format` for reusable constants, and `string.Template` when the text contains many braces such as JSON. Versioned templates let me change one thing at a time and test the result.

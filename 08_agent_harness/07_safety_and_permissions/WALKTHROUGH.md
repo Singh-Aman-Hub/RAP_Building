@@ -1,5 +1,14 @@
 # Step 07 — Tool safety and permissions
 
+## The story so far
+In [step 06](../06_errors_and_retries/) the agent recovers from errors. But the model controls the tool *arguments*, and the model reads untrusted text (see [07/06](../../07_prompt_engineering/06_prompt_injection/)).
+
+## The pain point
+A hijacked or confused model can ask for `../../.env`, `/etc/passwd`, or `delete_file`. If your tools do exactly what they are told, the agent can leak or destroy things.
+
+## The spark
+Enforce policy in the harness, never in the prompt: a tool allowlist (unknown tools do not exist), read-only vs write modes, path confinement to a sandbox folder, a file-type allowlist, capped output, and human confirmation for destructive tools.
+
 ## Goal
 Limit what an agent can do: least privilege, read-only vs write, sandboxed paths, human confirmation.
 
@@ -9,7 +18,7 @@ cd 08_agent_harness/07_safety_and_permissions && ../../.venv/bin/python main.py
 ```
 Real output (the agent's final text is shown after each case):
 ```
-read inside sandbox        [read_only ] Result: Shopping list: ...
+read inside sandbox        [read_only ] Result: Shopping list: (3 lines, trimmed)
 path traversal  ../        [read_only ] Sorry, the tool failed: ERROR: permission denied: path '../../.env' is outside the sandbox
 absolute path              [read_only ] Sorry, the tool failed: ERROR: permission denied: path '/etc/passwd' is outside the sandbox
 wrong file type            [read_only ] Sorry, the tool failed: ERROR: permission denied: file type '.json' not allowed
@@ -17,6 +26,8 @@ write in read_only mode    [read_only ] Sorry, the tool failed: ERROR: permissio
 write in read_write mode   [read_write] Result: wrote 5 characters to out.txt
 delete, not confirmed      [read_write] Sorry, the tool failed: ERROR: permission denied: delete_file({'path': 'out.txt'}) needs confirmation and was not approved
 delete, confirmed          [read_write] Result: deleted out.txt
+
+unknown tool 'run_shell'  : ERROR: tool 'run_shell' not available
 ```
 
 ## Syntax explained
@@ -50,5 +61,7 @@ Run [`broken_path_escape.py`](../broken_examples/broken_path_escape.py): a file 
 ## Rebuild checklist
 - [ ] `safe_path`. [ ] tool metadata (`read_only`, `needs_confirmation`). [ ] one `guarded_execute` gate. [ ] a swappable `confirm` hook.
 
-## Say it aloud
-"The model is an untrusted component: it only proposes actions. My harness enforces least privilege — only needed tools, read-only by default, file access confined to a sandbox with resolved paths, allow-listed file types, size caps and human confirmation for destructive actions — and logs everything. A sandbox folder is not a security boundary against malicious code; for that I need containers or VMs."
+## The new problem (cliffhanger)
+With guardrails the agent is safe to run, and with logging in hand we can see why it did what it did. But when it misbehaves at 2 a.m., what exactly happened? We need a record of every step. Next: [08_trace_and_full_agent](../08_trace_and_full_agent/).
+
+> **Say it aloud (interview box):** I treat every model-chosen argument as hostile input and enforce policy in the harness: a tool allowlist, read-only versus write modes, path confinement to a sandbox folder, and confirmation for destructive actions. Prompt rules are only hints, so the checks live in code. A sandbox folder is not a real security boundary, so for untrusted code I would use a container.

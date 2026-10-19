@@ -3,7 +3,7 @@
 Folder: `08_agent_harness/07_safety_and_permissions` · Files covered: `main.py`, `WALKTHROUGH.md` (uses `../sandbox_files/notes.txt` and `../fake_llm.py`)
 Back to module: [08 Agent harness README](../README.md)
 
-**Terms in this folder:** [Least privilege](#least-privilege) · [Untrusted model (the harness enforces)](#untrusted-model-the-harness-enforces) · [Path sandboxing](#path-sandboxing) · [Path traversal](#path-traversal) · [Path.resolve](#pathresolve) · [Path.is_relative_to](#pathis_relative_to) · [Absolute path joining trap](#absolute-path-joining-trap) · [Allow-listed file types](#allow-listed-file-types) · [Path.suffix](#pathsuffix) · [Output size cap (MAX_READ_CHARS)](#output-size-cap-max_read_chars) · [Custom exception (PermissionDenied)](#custom-exception-permissiondenied) · [Read-only vs write tool](#read-only-vs-write-tool) · [Tool metadata (read_only, needs_confirmation)](#tool-metadata-read_only-needs_confirmation) · [Permission gate (guarded_execute)](#permission-gate-guarded_execute) · [Human confirmation hook](#human-confirmation-hook) · [Functions as arguments](#functions-as-arguments) · [input](#input) · [Pathlib file operations (read_text, write_text, unlink)](#pathlib-file-operations-read_text-write_text-unlink) · [try / except with several handlers](#try--except-with-several-handlers) · [Dictionary .get for the registry](#dictionary-get-for-the-registry) · [Defence in depth](#defence-in-depth) · [Sandbox is not a security boundary](#sandbox-is-not-a-security-boundary) · [Table-driven test cases](#table-driven-test-cases) · [Fake agent LLM (fake_llm.py)](#fake-agent-llm-fake_llmpy)
+**Terms in this folder:** [Tool allowlist](#tool-allowlist) · [Least privilege](#least-privilege) · [Untrusted model (the harness enforces)](#untrusted-model-the-harness-enforces) · [Path sandboxing](#path-sandboxing) · [Path traversal](#path-traversal) · [Path.resolve](#pathresolve) · [Path.is_relative_to](#pathis_relative_to) · [Absolute path joining trap](#absolute-path-joining-trap) · [Allow-listed file types](#allow-listed-file-types) · [Path.suffix](#pathsuffix) · [Output size cap (MAX_READ_CHARS)](#output-size-cap-max_read_chars) · [Custom exception (PermissionDenied)](#custom-exception-permissiondenied) · [Read-only vs write tool](#read-only-vs-write-tool) · [Tool metadata (read_only, needs_confirmation)](#tool-metadata-read_only-needs_confirmation) · [Permission gate (guarded_execute)](#permission-gate-guarded_execute) · [Human confirmation hook](#human-confirmation-hook) · [Functions as arguments](#functions-as-arguments) · [input](#input) · [Pathlib file operations (read_text, write_text, unlink)](#pathlib-file-operations-read_text-write_text-unlink) · [try / except with several handlers](#try--except-with-several-handlers) · [Dictionary .get for the registry](#dictionary-get-for-the-registry) · [Defence in depth](#defence-in-depth) · [Sandbox is not a security boundary](#sandbox-is-not-a-security-boundary) · [Table-driven test cases](#table-driven-test-cases) · [Fake agent LLM (fake_llm.py)](#fake-agent-llm-fake_llmpy)
 
 ---
 
@@ -255,3 +255,13 @@ Path("/a/b").is_relative_to("/a")   # True
 > "The question 'read file ../../.env' becomes a `read_file` tool call, which my gate then denies."
 
 **Seen in:** `main.py`, `LLM = make_fake_agent_llm()`; `../fake_llm.py`.
+
+## Tool allowlist
+*Type: concept / pattern*
+
+**1. Definition:** The set of tool names the agent may call; anything not in it is treated as nonexistent.
+**2. In plain words:** If the model invents `run_shell`, the harness answers `ERROR: tool 'run_shell' not available` and nothing runs. You grant power by adding to the list, never by removing blocks from an open list.
+**3. Example to quote:**
+> "`TOOLS` is my allowlist; an unknown tool name returns an error observation instead of executing."
+
+**Seen in:** `main.py`, `guarded_execute` and the `run_shell` demo.

@@ -1,5 +1,14 @@
 # Step 05 — Memory: short-term vs long-term
 
+## The story so far
+In [step 04](../04_history_and_context/) history stays inside the budget, but it dies when the program ends and trimming loses old facts.
+
+## The pain point
+Short-term memory (the message list) is temporary and capped. An assistant that forgets your preferences every run is not useful.
+
+## The spark
+Long-term memory is just storage the agent reaches through tools: `remember(key, value)` and `recall(key)` backed by a JSON file. The model decides what to save; your code persists it.
+
 ## Goal
 Give the agent facts that survive between runs using a JSON file and `remember` / `recall` tools.
 
@@ -61,5 +70,7 @@ Delete `data/` then store: if `FileNotFoundError` appears, the `mkdir` line is m
 ## Rebuild checklist
 - [ ] load/save helpers. [ ] 3 memory tools. [ ] fresh `messages` per run.
 
-## Say it aloud
-"Short-term memory is the message list of the current run; long-term memory is persisted outside the model — here a JSON file, in production a database or vector store — accessed through tools. I cap size, never store secrets, and remember that stored text from untrusted sources can inject instructions later."
+## The new problem (cliffhanger)
+Real tools fail: the network times out, the model returns broken JSON, a tool raises. One failure in a long loop should not crash the agent, and endless retries should not burn money. Next: [06_errors_and_retries](../06_errors_and_retries/).
+
+> **Say it aloud (interview box):** Short-term memory is the message list, which is capped and lost when the program ends. Long-term memory is persistent storage, here a JSON file, exposed to the model as remember and recall tools. The model chooses what to store, and my code is responsible for persisting and validating it.

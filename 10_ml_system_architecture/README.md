@@ -2,6 +2,12 @@
 
 *(Syllabus topic 5.)*
 
+## The story of this module
+**Pain point.** Module 09's API answers requests correctly today. But the model came from a notebook, training and serving are separate programs, files get overwritten, nobody records what was predicted, and the world keeps changing under the model.
+**Spark.** Treat the model as a system: one pipeline, one artifact handed from training to serving, versions with aliases, a prediction log, batch versus real-time on purpose, monitoring, a scaling ladder, and a drift check that rings before users complain.
+**What you build.** A pipeline, a train/inference split, safe serialization, a registry, a SQLite prediction log, a batch versus real-time comparison, JSON logs and percentiles, a load test, and a numpy drift monitor (PSI and KS) that reads the log.
+**Cliffhanger.** It all works on this machine only. Shipping it elsewhere needs the same Python, libraries and files everywhere. Next: [11_docker](../11_docker/).
+
 ## 1. Why this matters
 Interviewers for ML Engineer roles rarely stop at "I trained a model". They ask: *how does user input reach the model and come back? Where is the model stored? How do you know it still works? What if traffic doubles?* This module turns those questions into small runnable code and diagrams, and ends with a template for answering "design an ML service" questions.
 
@@ -26,7 +32,7 @@ Interviewers for ML Engineer roles rarely stop at "I trained a model". They ask:
  user ─► API (module 09) ─► validate ─► [preprocess+features+model] ─► postprocess ─► response
             │                (same code as training: avoid skew, 02)          │
             ▼ log every prediction (05)                                       ▼
-        DB / logs ─► metrics + drift (07) ─► alert ─► retrain ─► new version (04)
+        DB / logs ─► metrics + drift (07, 09) ─► alert ─► retrain ─► new version (04)
             │
         batch (06) vs real-time (06)      scale: cache · workers · replicas · queue · timeouts (08)
 ```
@@ -42,9 +48,10 @@ Interviewers for ML Engineer roles rarely stop at "I trained a model". They ask:
 | 06 | [06_batch_vs_realtime](06_batch_vs_realtime/) | batch vs real-time, generators, throughput vs latency | `python main.py` | 60 min |
 | 07 | [07_logging_and_monitoring](07_logging_and_monitoring/) | JSON logs, percentiles, PSI drift | `python main.py` | 90 min |
 | 08 | [08_scalability_and_reliability](08_scalability_and_reliability/) | cache, retries, queues, Little's Law, load test | `python main.py`, `python load_test.py` | 90 min |
+| 09 | [09_drift_monitoring](09_drift_monitoring/) | PSI and KS drift from the prediction log, alert threshold, drift vs train/serve skew | `python main.py` | 75 min |
 | — | [diagrams/](diagrams/) | 5 diagrams + design answer template | read | 45 min |
 
-Total ≈ **10–11 hours** + [exercises](exercises.md). Step 01 first; steps 02–04 share the same data/pipeline; 05–08 reuse step 02's artifact.
+Total ≈ **11–12 hours** + [exercises](exercises.md). Step 01 first; steps 02–04 share the same data/pipeline; 05–08 reuse step 02's artifact; step 09 reads step 05's prediction log.
 
 ## 5. The syllabus topics in plain English
 
@@ -52,7 +59,7 @@ Total ≈ **10–11 hours** + [exercises](exercises.md). Step 01 first; steps 02
 
 **Data collection and preprocessing.** Models are only as good as the data's relevance and cleanliness; apply identical preprocessing at serving time. *Trade-off:* aggressive cleaning can remove signal (e.g. emoji, casing).
 
-**Feature engineering.** Turn raw input into numbers: TF-IDF for text, embeddings (module 04), scaling for numbers. Fit feature extractors on training data only (leakage otherwise).
+**Feature engineering.** Turn raw input into numbers: TF-IDF for text, embeddings (module 04 step 03), scaling for numbers. Fit feature extractors on training data only (leakage otherwise).
 
 **Model training and evaluation.** Fit on training data, evaluate on held-out data with a metric that matches the business need (accuracy can mislead on imbalanced classes — module 03). A tiny test set gives noisy estimates.
 
@@ -91,6 +98,7 @@ Total ≈ **10–11 hours** + [exercises](exercises.md). Step 01 first; steps 02
 - [ ] I can log predictions to a database with parameterized SQL.
 - [ ] I can choose batch vs real-time and justify it.
 - [ ] I can compute p50/p95 and explain a drift score.
+- [ ] I can compute PSI and KS between a reference and a live window read from the prediction log, and name the alert threshold.
 - [ ] I can answer "traffic doubled / latency rose — what do you do?" with an ordered list.
 - [ ] I can use the design template to answer an open design question in ≤ 8 minutes.
 
@@ -102,7 +110,7 @@ Total ≈ **10–11 hours** + [exercises](exercises.md). Step 01 first; steps 02
 5. **How do you version models?** Immutable `vN` artifacts with metadata (metrics, params, data fingerprint, library versions); alias `production`; pin versions in deploys; log `model_version` with every prediction.
 6. **Batch or real-time?** Real-time if a user waits; batch if not (cheaper, retry-able); micro-batch for GPU efficiency. Latency vs throughput.
 7. **What do you monitor in production?** Latency percentiles, error rate, throughput, resource use, input/prediction drift, and true performance once labels arrive.
-8. **What's drift and what do you do about it?** Data distribution change (data drift) or changed input→label relation (concept drift). Detect with stats like PSI; investigate, relabel, retrain, canary, promote, rollback if needed.
+8. **What's drift and what do you do about it?** Data distribution change (data drift) or changed input→label relation (concept drift). Detect with stats like PSI and KS (step 09: reference vs live window from the prediction log, alert above PSI 0.25); investigate, relabel, retrain, canary, promote, rollback if needed.
 9. **Traffic doubles — what do you do?** Measure; cache/batch/optimise model; add workers/replicas + autoscaling; bounded queue + load shedding + timeouts; capacity via Little's Law.
 10. **Why do average latencies mislead?** Tail latency (p95/p99) is what users feel and what causes timeouts; averages hide it.
 11. **Where does the model live and how is it loaded?** Artifact in object storage/registry; loaded once per worker at startup; memory scales with workers.

@@ -1,5 +1,14 @@
 # Step 03 — Serialization: pickle, joblib, safetensors (and why pickle is dangerous)
 
+## The story so far
+Step 02 made the artifact the only handoff between training and serving, so the file format has to be trustworthy.
+
+## The pain point
+Pickle writes the whole Python object, which is convenient. But loading a pickle runs code from the file, and a pickle made with one library version may fail or misbehave with another.
+
+## The spark
+Choose the format on purpose: joblib or pickle only for files you made yourself, data-only formats (safetensors, ONNX) for sharing weights, and always record library versions beside the file.
+
 ## Goal
 Know how a fitted model becomes a file and back, which format to choose, and the security and compatibility traps.
 
@@ -68,5 +77,8 @@ Security demo: `pickle.dumps(Innocent())` records "to rebuild this, call `print(
 - [ ] Explain in one sentence why pickle is unsafe.
 - [ ] Name two safer alternatives.
 
+## The new problem (cliffhanger)
+Now we can save a model safely, but `model.joblib` gets overwritten on every training run. Which one is in production, and how do we go back? Next: [04_model_registry_versioning](../04_model_registry_versioning/).
+
 ## Say it aloud
-"Pickle and joblib serialize the whole Python object, which is convenient but unsafe because loading executes code, so I only load files I trust. For sharing model weights I'd use safetensors or ONNX, which hold data only. I also record the library versions, because a pickled model may not load under a different version. Trade-off: safe formats usually need the model code to be re-created separately."
+> **Say it aloud (interview box):** Pickle and joblib serialize the whole Python object, which is convenient but unsafe, because loading executes code, so I load only files I trust. For sharing weights I use safetensors or ONNX, which hold data only. I also record library versions, because a pickled model may not load under a different version.

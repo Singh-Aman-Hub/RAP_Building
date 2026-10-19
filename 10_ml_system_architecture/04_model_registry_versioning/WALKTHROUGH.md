@@ -1,5 +1,14 @@
 # Step 04 — Model registry and versioning
 
+## The story so far
+Step 03 saved models safely, but a single file name means each retrain destroys the previous model.
+
+## The pain point
+When a new model is worse, you cannot roll back because the old file is gone. Nobody can say which model answered last Tuesday's complaint.
+
+## The spark
+Store every model as an immutable numbered version with metadata (metrics, parameters, data fingerprint, library versions), and let an alias like `production` point at one version.
+
 ## Goal
 Treat every trained model as an immutable, numbered, documented artifact; move a `production` label between versions; roll back instantly.
 
@@ -65,5 +74,8 @@ Real registries: MLflow Model Registry, Weights & Biases, SageMaker, Hugging Fac
 - [ ] Implement `resolve` for `latest`, an alias and a pinned version.
 - [ ] Explain why artifacts are immutable.
 
+## The new problem (cliffhanger)
+We can now name and roll back models, but we still cannot see what each version actually answered for real users. Next: [05_storage_and_prediction_log](../05_storage_and_prediction_log/).
+
 ## Say it aloud
-"I store each trained model as an immutable numbered version with metadata — metrics, parameters, data fingerprint, library versions. Serving loads a pinned version or an alias like `production`, so promotion and rollback are label changes. Trade-off: more process and storage, and I must also version the code and data, not just the weights."
+> **Say it aloud (interview box):** I store each trained model as an immutable numbered version with metadata such as metrics, parameters, data fingerprint and library versions. Serving loads a pinned version or an alias like `production`, so promotion and rollback are just label changes. The cost is extra process and storage, and I must version the code and data too, not only the weights.

@@ -11,10 +11,10 @@ NEEDS: numpy
 import numpy as np
 
 rng = np.random.default_rng(1)
-x = rng.uniform(-1, 1, 30)
+x = rng.uniform(-1, 1, 30)                               # shape: (30,)
 y = np.sin(3 * x) + rng.normal(0, 0.2, 30)               # true curve + noise
-x_train, y_train = x[:15], y[:15]                        # model sees these
-x_val, y_val = x[15:], y[15:]                            # model never trains on these
+x_train, y_train = x[:15], y[:15]                        # shape: (15,) each | model sees these
+x_val, y_val = x[15:], y[15:]                            # shape: (15,) each | model never trains on these
 
 print(f"{'degree':>6} {'train MSE':>10} {'val MSE':>10}")
 for degree in (1, 3, 5, 9, 12):                          # higher degree = more flexible curve

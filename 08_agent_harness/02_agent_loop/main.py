@@ -37,23 +37,27 @@ SYSTEM_PROMPT = """You are an assistant that can use tools. Reply with ONLY one 
 Tool results are sent back to you as messages starting with 'Observation:'."""
 
 # ---------------------------------------------------------------------------
-# 3. THE LOOP
+# 3. THE LOOP  (the whole idea of an agent, in six moves)
+#    Prompt -> LLM call -> parse tool call -> execute tool -> return observation -> iterate until final answer
+#      (1) build the prompt (system protocol + messages so far)      (4) execute the tool in OUR code
+#      (2) call the LLM                                              (5) append "Observation: ..." to messages
+#      (3) parse the reply into a tool call or a final answer        (6) go back to (1), or stop on "final"/max_steps
 # ---------------------------------------------------------------------------
 def run_agent(question: str, max_steps: int = 5) -> str:
     messages = [{"role": "user", "content": question}]
     for step in range(1, max_steps + 1):                       # bounded loop = guaranteed to stop
-        reply = generate(messages, system=SYSTEM_PROMPT, mock=LLM)
+        reply = generate(messages, system=SYSTEM_PROMPT, mock=LLM)   # (1)+(2) prompt -> LLM call
         print(f"  step {step}: model said {reply}")
-        decision = extract_json(reply)                         # text -> dict
+        decision = extract_json(reply)                         # (3) parse: text -> dict
         messages.append({"role": "assistant", "content": reply})   # keep the model's own turn in history
 
         if "final" in decision:                                # STOP CONDITION 1: model is done
             return decision["final"]
 
         tool_name, args = decision["tool"], decision["args"]
-        result = TOOLS[tool_name](**args)                      # **args: unpack dict into keyword arguments
+        result = TOOLS[tool_name](**args)                      # (4) execute. **args: unpack dict into keyword arguments
         print(f"          tool {tool_name}({args}) -> {result}")
-        messages.append({"role": "user", "content": f"Observation: {result}"})   # feed result back
+        messages.append({"role": "user", "content": f"Observation: {result}"})   # (5) observation back; (6) loop
     return "STOPPED: reached max_steps without a final answer"  # STOP CONDITION 2: step budget used up
 
 for question in ["What is 6 x 7?", "Calculate 12 + 8 then * 3", "Tell me a joke"]:

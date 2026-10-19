@@ -1,16 +1,22 @@
 # 07 — Prompt Engineering (Syllabus Topic 4)
 
+## The story of this module
+**Pain point:** modules 05 and 06 gave you a model that is controlled, shrunk, tuned and fast, yet a raw model only *completes text*. Ask vaguely and you get rambling; ask for data and you get prose your code cannot read.
+**Spark:** instruct it. Roles and examples shape the answer, templates make prompts reusable, a Pydantic schema makes the output enforceable, decomposition and injection defences make it robust, and a test set makes it measurable.
+**What you build:** a tested sentiment prompt that returns validated JSON (steps 01-07), then a 20-line vector search that pastes private facts into the prompt (step 08, minimal RAG).
+**Cliffhanger:** the model now follows instructions and answers from your documents, but it still only *talks*. It cannot run a calculator, read a file or call a service. Next module: [08_agent_harness](../08_agent_harness/).
+
 ## Why this matters
 Interviewers use prompts as the "API" of an LLM. They want to see that you can (1) write a precise prompt, (2) make the output **machine-readable and validated**, (3) know the failure modes (ambiguity, injection), and (4) **test** prompts instead of guessing. Everything in module [08_agent_harness](../08_agent_harness/) depends on this: an agent's tool calls are just structured-output prompts.
 
 ## Where this fits
 **Builds on**
-- [04_llm_fundamentals](../04_llm_fundamentals/) — a prompt is turned into tokens; the model predicts the next token. That is why *wording and examples change behaviour* and why prompts cost money (tokens).
+- [04_llm_fundamentals](../04_llm_fundamentals/) — a prompt is turned into tokens ([01_tokenizer](../04_llm_fundamentals/01_tokenizer/)); the model predicts the next token. That is why *wording and examples change behaviour* and why prompts cost money (tokens).
 - [05_llm_parameters](../05_llm_parameters/) — `temperature`, `max_new_tokens` and the context window are the knobs you set on every call here (we use temperature 0 for tests; max tokens limits the reply; the context window limits how many few-shot examples fit).
 - [00_python_foundations](../00_python_foundations/) — f-strings, dicts, try/except and comprehensions are used in every step.
 
 **Leads to**
-- [08_agent_harness](../08_agent_harness/) — reuses the JSON-output + validate + retry pattern (step 04) for tool calls, and the injection defences (step 06) for tool safety.
+- [08_agent_harness](../08_agent_harness/) — the next module: gives the model hands. It reuses the JSON-output + validate + retry pattern (step 04) for tool calls, and the injection defences (step 06) for tool safety.
 - [09_api_development](../09_api_development/) — the same Pydantic model you write in step 04 becomes the request/response schema of a FastAPI endpoint.
 - [10_ml_system_architecture](../10_ml_system_architecture/) — prompt versions are "model versions": log and monitor them.
 - [13_capstone_project](../13_capstone_project/) — the capstone's LLM step uses a tested prompt.
@@ -41,10 +47,11 @@ Interviewers use prompts as the "API" of an LLM. They want to see that you can (
 | 01 | [01_roles_and_instructions](01_roles_and_instructions/) | role/task/constraints, zero-shot, system vs user | `python main.py` | 45 min |
 | 02 | [02_few_shot](02_few_shot/) | examples in text vs chat turns, biases | `python main.py` | 45 min |
 | 03 | [03_prompt_templates](03_prompt_templates/) | f-string / `format` / `Template`, brace pitfalls | `python main.py` | 45 min |
-| 04 | [04_structured_json](04_structured_json/) | JSON extraction, hand validator, pydantic, retry | `python main.py` | 90 min |
+| 04 | [04_structured_json](04_structured_json/) | JSON extraction, hand validator, Pydantic schema as the enforcer, real `ValidationError`, retry with the error | `python main.py` | 90 min |
 | 05 | [05_decomposition](05_decomposition/) | multi-stage prompts, reasoning field, voting | `python main.py` | 60 min |
 | 06 | [06_prompt_injection](06_prompt_injection/) | direct/indirect injection, layered defence | `python main.py` | 60 min |
 | 07 | [07_prompt_testing](07_prompt_testing/) | test set, versions, accuracy table | `python main.py` | 90 min |
+| 08 | [08_minimal_rag](08_minimal_rag/) | why frozen models hallucinate; NumPy vector search; inject top-k into the prompt; retrieval failure modes | `python main.py` | 60 min |
 
 Each step has `main.py` + `WALKTHROUGH.md`. Do the exercises in [exercises.md](exercises.md) before moving on. Run commands from inside the step folder with the repo venv (`../../.venv/bin/python main.py`) or activate it first (`source .venv/bin/activate`).
 
@@ -79,6 +86,9 @@ Untrusted text can carry instructions ("ignore previous instructions..."), direc
 ### Prompt testing and evaluation
 Prompts are code: a fixed test set (normal, ambiguous, missing-input, adversarial), temperature 0, a parser, per-category accuracy, results saved. Change one thing per version. *Limitation:* tiny test sets are noisy and only test what you thought of.
 
+### Retrieval-augmented generation (minimal RAG)
+A frozen model cannot know private or new facts, and it guesses instead of saying so. RAG embeds your documents, finds the top-k most similar to the question (cosine similarity), and pastes them into the prompt as context. *Limitation:* if retrieval misses or returns an irrelevant chunk, the model answers confidently from junk, so use a similarity threshold and allow "I don't know".
+
 ## Common mistakes & gotchas
 - Trusting the reply format without parsing/validating.
 - `str.format` with JSON braces -> `KeyError` (double the braces or use `Template`).
@@ -86,6 +96,7 @@ Prompts are code: a fixed test set (normal, ambiguous, missing-input, adversaria
 - Changing three things between prompt versions and not knowing which helped.
 - Judging prompts by 2-3 hand-picked examples.
 - Believing a passing mock test = a good real prompt.
+- Pasting retrieved text into a prompt without a score threshold (a miss becomes a confident wrong answer).
 
 ## Self-check
 - [ ] I can write a role + task + constraints prompt and split it into system/user.
@@ -95,6 +106,7 @@ Prompts are code: a fixed test set (normal, ambiguous, missing-input, adversaria
 - [ ] I can explain decomposition, reasoning fields and self-consistency.
 - [ ] I can demonstrate a prompt injection and list 3+ defences.
 - [ ] I can build a test set with 4 categories and compare prompt versions.
+- [ ] I can explain why a frozen model hallucinates and build a top-k retrieval + prompt-injection of context.
 - [ ] I can say what the mock backend proves and what it does not.
 
 ## Interview questions
@@ -110,3 +122,5 @@ Prompts are code: a fixed test set (normal, ambiguous, missing-input, adversaria
 10. **`str.format` raises `KeyError: '"label"'` — why?** Unescaped JSON braces; double them or use `string.Template`.
 11. **When is decomposition worse than one prompt?** Simple tasks: extra latency/cost and compounding errors.
 12. **What can a mock/simulated LLM test and not test?** It tests harness code (parsing, validation, scoring) but not real model behaviour.
+13. **Why do frozen models hallucinate about private facts, and how does RAG help?** Weights stop at training time and the model guesses the most typical answer. RAG retrieves the relevant documents by embedding similarity and puts them in the prompt. *Failure modes:* retrieval miss, irrelevant chunk; mitigate with a threshold and "I don't know".
+14. **How do you enforce a JSON schema on model output?** Declare a Pydantic model, validate every reply, retry with the validation error (bounded), then fail loudly.

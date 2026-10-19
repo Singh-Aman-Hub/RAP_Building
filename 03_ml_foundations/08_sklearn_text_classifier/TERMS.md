@@ -1,9 +1,9 @@
 # Terms — scikit-learn text classifier
 
-Folder: `03_ml_foundations/08_sklearn_text_classifier` · Files covered: `train.py`, `predict.py`, `test_predict.py`, `data.py`, `WALKTHROUGH.md` (the shared module-level `train.py`/`predict.py` are copies of the same ideas)
+Folder: `03_ml_foundations/08_sklearn_text_classifier` · Files covered: `flaw_demo.py`, `train.py`, `predict.py`, `test_predict.py`, `data.py`, `WALKTHROUGH.md` (the shared module-level `train.py`/`predict.py` are copies of the same ideas)
 Back to module: [ML foundations README](../README.md)
 
-**Terms in this folder:** [Text classification](#text-classification--concept) · [TF-IDF (TfidfVectorizer)](#tf-idf-tfidfvectorizer--third-party-scikit-learn) · [n-gram (`ngram_range=(1, 2)`)](#n-gram-ngram_range1-2--concept) · [Logistic regression](#logistic-regression--third-party-scikit-learn) · [Pipeline](#pipeline--third-party-scikit-learn) · [train_test_split()](#train_test_split--third-party-scikit-learn) · [fit()](#fit--third-party-scikit-learn) · [predict() and predict_proba()](#predict-and-predict_proba--third-party-scikit-learn) · [classification_report](#classification_report--third-party-scikit-learn) · [Stratified split](#stratified-split--concept) · [Model serialisation (joblib.dump / joblib.load)](#model-serialisation-joblibdump--joblibload--third-party-joblib) · [Model artifact and metadata.json](#model-artifact-and-metadatajson--concept) · [pathlib.Path(__file__)](#pathlibpath__file__--standard-library-pathlib) · [mkdir(exist_ok=True)](#mkdirexist_oktrue--standard-library-pathlib) · [json.dumps / json.loads](#jsondumps--jsonloads--standard-library-json) · [datetime with timezone](#datetime-with-timezone--standard-library-datetime) · [@lru_cache](#lru_cache--syntax) · [Decorator](#decorator--syntax) · [sys.argv](#sysargv--standard-library-sys) · [isinstance() and input validation](#isinstance-and-input-validation--python-built-in) · [argmax](#argmax--third-party-numpy) · [model.classes_](#modelclasses_--third-party-scikit-learn) · [pytest (assert, pytest.raises)](#pytest-assert-pytestraises--third-party-pytest) · [Confidence (probability of chosen label)](#confidence-probability-of-chosen-label--concept) · [Train/serve consistency (preprocessing must match)](#trainserve-consistency-preprocessing-must-match--concept) · [Dataset (hand-written plus template-generated)](#dataset-hand-written-plus-template-generated--concept)
+**Terms in this folder:** [Text classification](#text-classification--concept) · [TF-IDF (TfidfVectorizer)](#tf-idf-tfidfvectorizer--third-party-scikit-learn) · [n-gram (`ngram_range=(1, 2)`)](#n-gram-ngram_range1-2--concept) · [Logistic regression](#logistic-regression--third-party-scikit-learn) · [Pipeline](#pipeline--third-party-scikit-learn) · [train_test_split()](#train_test_split--third-party-scikit-learn) · [fit()](#fit--third-party-scikit-learn) · [predict() and predict_proba()](#predict-and-predict_proba--third-party-scikit-learn) · [classification_report](#classification_report--third-party-scikit-learn) · [Stratified split](#stratified-split--concept) · [Model serialisation (joblib.dump / joblib.load)](#model-serialisation-joblibdump--joblibload--third-party-joblib) · [Model artifact and metadata.json](#model-artifact-and-metadatajson--concept) · [pathlib.Path(__file__)](#pathlibpath__file__--standard-library-pathlib) · [mkdir(exist_ok=True)](#mkdirexist_oktrue--standard-library-pathlib) · [json.dumps / json.loads](#jsondumps--jsonloads--standard-library-json) · [datetime with timezone](#datetime-with-timezone--standard-library-datetime) · [@lru_cache](#lru_cache--syntax) · [Decorator](#decorator--syntax) · [sys.argv](#sysargv--standard-library-sys) · [isinstance() and input validation](#isinstance-and-input-validation--python-built-in) · [argmax](#argmax--third-party-numpy) · [model.classes_](#modelclasses_--third-party-scikit-learn) · [pytest (assert, pytest.raises)](#pytest-assert-pytestraises--third-party-pytest) · [Confidence (probability of chosen label)](#confidence-probability-of-chosen-label--concept) · [Train/serve consistency (preprocessing must match)](#trainserve-consistency-preprocessing-must-match--concept) · [Dataset (hand-written plus template-generated)](#dataset-hand-written-plus-template-generated--concept) · [Cosine similarity](#cosine-similarity--concept) · [Bag of words](#bag-of-words--concept) · [Orthogonal vectors (cosine 0.0)](#orthogonal-vectors-cosine-00--concept) · [flaw_demo.py (semantic gap and lost word order)](#flaw_demopy-semantic-gap-and-lost-word-order--concept)
 
 ---
 
@@ -214,3 +214,35 @@ Back to module: [ML foundations README](../README.md)
 > "The dataset is only 180 sentences, so the 0.80 accuracy is a demonstration, not a production result."
 
 **Seen in:** `data.py`, `train.py`
+
+## Cosine similarity  `(concept)`
+**1. Definition:** Cosine similarity is the cosine of the angle between two vectors, computed as `u @ v / (norm(u) * norm(v))`: 1.0 means same direction, 0.0 means perpendicular, -1.0 means opposite.
+**2. In plain words:** It asks "do these two lists of numbers point the same way?" ignoring their length. In `flaw_demo.py` it compares word columns and sentence vectors.
+**3. Example to quote:**
+> "Cosine of king and queen columns is 0.0, so the TF-IDF model treats them as completely unrelated."
+
+**Seen in:** `flaw_demo.py`, `cosine`
+
+## Bag of words  `(concept)`
+**1. Definition:** A bag-of-words representation describes a text only by which words it contains and how often, discarding word order.
+**2. In plain words:** Shake the sentence into a bag: you can count the words but not tell who came first. TF-IDF is a weighted bag of words.
+**3. Example to quote:**
+> "In a bag of words, 'dog bites man' and 'man bites dog' are the same vector."
+
+**Seen in:** `flaw_demo.py`, Part 3
+
+## Orthogonal vectors (cosine 0.0)  `(concept)`
+**1. Definition:** Two vectors are orthogonal when their dot product is zero, so their cosine similarity is 0.0.
+**2. In plain words:** In a TF-IDF matrix each word has its own column, so two different words never overlap and always come out orthogonal, whether they mean the same thing or not.
+**3. Example to quote:**
+> "car and automobile are orthogonal in TF-IDF, so there is no way to say they are synonyms."
+
+**Seen in:** `flaw_demo.py`, Part 2
+
+## flaw_demo.py (semantic gap and lost word order)  `(concept)`
+**1. Definition:** A runnable script that first reports the classifier's validation accuracy, then prints numeric proof of two TF-IDF limits: different words are unrelated (cosine 0.0) and word order is ignored (identical vectors, cosine 1.0).
+**2. In plain words:** It is the "yes, it works, and here is exactly where it breaks" demo that motivates tokenizers and embeddings in module 04.
+**3. Example to quote:**
+> "flaw_demo.py shows king and queen at cosine 0.0 and 'dog bites man' equal to 'man bites dog', which is why we need a new representation."
+
+**Seen in:** `flaw_demo.py`

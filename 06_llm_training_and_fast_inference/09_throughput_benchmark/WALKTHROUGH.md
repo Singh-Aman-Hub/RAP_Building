@@ -1,5 +1,14 @@
 # Step 09 — Throughput benchmark: latency vs throughput vs memory
 
+## The story so far
+[Step 07](../07_hf_inference_batching_kvcache/WALKTHROUGH.md) showed that batching and caching help. "It feels faster" is not an engineering answer.
+
+## The pain point
+Latency and throughput are different goals. A bigger batch makes the whole system produce more tokens per second but each user waits longer. Quote one number without the other and you will mislead yourself and your manager.
+
+## The spark
+Run the same generation at batch sizes 1, 2, 4, 8, time it, and compute tokens per second for the whole system and for one user. Record peak memory too.
+
 ## Goal
 Produce your own table showing that batching raises **throughput** (tokens/s for the whole system) while lowering **per-user speed** (what one request feels).
 
@@ -35,13 +44,13 @@ python main.py --device mps    # Apple GPU: noisy for such a small model
 ## Execution trace (real CPU run, 40 new tokens)
 | batch | latency (s) | tokens/s | per-user tok/s |
 |---|---|---|---|
-| 1 | 0.57 | 70.7 | 70.7 |
-| 2 | 0.75 | 106.4 | 53.2 |
-| 4 | 0.81 | 197.5 | 49.4 |
-| 8 | 0.86 | 372.6 | 46.6 |
-| 16 | 0.94 | 684.1 | 42.8 |
-- 16x more requests cost only ~1.6x the latency: throughput x9.7, per-user speed x0.6.
-- Peak RSS ~805-809 MB stays flat: weights dominate; this tiny model's KV cache is negligible (the calculator in step 08 shows when it is not).
+| 1 | 1.24 | 32.3 | 32.3 |
+| 2 | 0.98 | 81.8 | 40.9 |
+| 4 | 1.13 | 142.2 | 35.6 |
+| 8 | 1.14 | 280.8 | 35.1 |
+| 16 | 1.13 | 566.8 | 35.4 |
+- 16x more requests cost about the same latency (1.13 s vs 1.24 s): throughput x17.5 in this run. Batch 1 was the slowest row in this run (probably start-up effects), so the per-user column barely falls here; in an earlier quieter run it fell from 70.7 to 42.8 tokens/s. Expect noise: warm up and repeat.
+- Peak RSS stays flat (737 MB here, ~805 MB in earlier runs): weights dominate; this tiny model's KV cache is negligible (the calculator in step 08 shows when it is not).
 - On `--device mps` the numbers were erratic (e.g. batch 1 faster than batch 2). Small models under-use a GPU and first-time shapes cause overhead — the lesson is to **warm up, repeat, and distrust one run**.
 
 ## Experiments (change ONE thing)
@@ -57,5 +66,7 @@ python main.py --device mps    # Apple GPU: noisy for such a small model
 - [ ] throughput = batch x tokens / seconds; per-user = tokens / seconds
 - [ ] synchronise before reading the clock on GPUs
 
-## Say it aloud
-"I benchmark by warming up, then timing generation for several batch sizes with a fixed number of new tokens. Batching raises throughput a lot because the hardware does more work per forward pass, but each user's tokens-per-second drops, so serving is a trade-off between cost and latency. Memory is dominated by weights for small models and by KV cache for long contexts. Production servers like vLLM add continuous batching to keep that trade-off favourable."
+## The new problem (cliffhanger)
+Throughput rises with batch size, then something stops it: the KV cache for every request in the batch must live in GPU memory, and naive servers reserve far more than they use. How do production engines fix that? [Step 10, vLLM](../10_vllm_reference/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** Latency is how long one user waits, and throughput is the total tokens per second the system produces, and batching raises throughput while lowering each user's speed. I measure both with a warm-up run, at several batch sizes, on the same prompts. The point where the table stops improving shows what limits the system, and on a real GPU that is usually KV-cache memory.

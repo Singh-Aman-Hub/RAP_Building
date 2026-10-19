@@ -1,5 +1,14 @@
 # Step 07 — Metrics: accuracy, precision, recall, F1
 
+## The story so far
+Step 06 gave us a probability and a loss. A loss is good for training, but humans want to know "how often is it right, and what does it miss?"
+
+## The pain point
+Accuracy can lie. With 1 fraud in 100 transactions, a model that always says "not fraud" is 99% accurate and catches nothing. One headline number hides which kind of mistake you are making.
+
+## The spark
+Count four outcomes (true/false positives and negatives) and build metrics from them. Precision asks how much of what I flagged was right. Recall asks how much of the real positives I found. F1 balances the two.
+
 ## Goal
 Compute metrics by hand, verify with scikit-learn, and know when accuracy misleads.
 
@@ -40,12 +49,15 @@ precision = 2/(2+1); recall = 2/(2+2); F1 = harmonic mean = 0.571.
 3. Compute macro-F1 for both classes.
 
 ## Debugging practice
-Precision with no predicted positives divides by zero; sklearn warns and returns 0 (set `zero_division=0`). Always know what your metric does at the edges.
+Precision computed by hand with no predicted positives gives `ZeroDivisionError: division by zero` (`tp / (tp + fp)` with both 0); sklearn warns and returns 0 (set `zero_division=0`). Always know what your metric does at the edges.
 
 ## Rebuild checklist
 - [ ] Draw the 2×2 confusion matrix.
 - [ ] Precision vs recall in one sentence each.
 - [ ] Say when you'd prefer recall.
 
+## The new problem (cliffhanger)
+We can now classify numeric features and judge the result honestly. But the most valuable data is *text*, and text is not numeric. Can we put all of it together into one working pipeline? Next: [08_sklearn_text_classifier](../08_sklearn_text_classifier/).
+
 ## Say it aloud
-"Accuracy is the fraction correct, but on imbalanced data a model that always says 'no' looks great. Precision asks 'of what I flagged, how much was right', recall asks 'of the real positives, how many did I find', and F1 balances them. Which matters depends on the cost of each kind of mistake."
+> **Say it aloud (interview box):** Accuracy is the fraction correct, but on imbalanced data a model that always says no looks great while finding nothing. Precision asks how much of what I flagged was right, recall asks how many real positives I found, and F1 balances them. Which one matters depends on the cost of each kind of mistake.

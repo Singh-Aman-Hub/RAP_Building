@@ -1,5 +1,14 @@
 # Step 02 — The training loop
 
+## The story so far
+[Step 01](../01_dataset_preparation/WALKTHROUGH.md) produced batches. A batch alone changes nothing; weights only move if something computes how wrong the model was and nudges them.
+
+## The pain point
+A model straight from the hub is a generalist. It has never seen your data, so its loss on your text is high, and no amount of prompting changes the weights. Worse, an unclipped gradient can blow one update up and undo hours of progress.
+
+## The spark
+Four beats, repeated: forward (get the loss), `zero_grad`, backward (gradients), `clip_grad_norm_` then `optimizer.step()`. The loss falls as the weights adapt.
+
 ## Goal
 Write the four-beat loop yourself — forward, loss, backward, optimizer step — and see loss fall on a real model (distilgpt2, 82M parameters).
 
@@ -66,5 +75,7 @@ AttributeError: 'NoneType' object has no attribute 'backward'
 - [ ] loop: forward with labels -> `zero_grad` -> `backward` -> clip -> `step`
 - [ ] print `loss.item()` each step
 
-## Say it aloud
-"Training is a loop: run a batch forward to get the cross-entropy loss against the next tokens, backpropagate to get gradients, clip them so no single update explodes, and let AdamW nudge every weight downhill by the learning rate. I watch the loss fall and compare generations before and after. Trade-off: full fine-tuning updates all 82 million weights, so it needs memory for gradients and optimizer states too — which is exactly what LoRA avoids in step 05."
+## The new problem (cliffhanger)
+The loss on the training text falls, but falling training loss can mean memorising. Are we learning or cheating? Next: [step 03, evaluation, perplexity and checkpoints](../03_eval_perplexity_checkpoints/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** Training is a loop of four beats: forward pass for the cross-entropy loss, backward pass for gradients, clip the gradient norm, and let AdamW update the weights. The loss on next-token prediction falls as the model adapts to my data. The learning rate and gradient clipping are the two settings most likely to ruin a run.

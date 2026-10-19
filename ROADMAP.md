@@ -205,13 +205,18 @@ Needs: 03.
 
 | Step | Sub-topics it contains | Relevance |
 |------|-----------------------|-----------|
-| `01_attention_from_scratch` | queries/keys/values, attention scores, shapes | Why long context is costly (06), transformer block |
-| `02_tokenizer` | BPE intuition, token ids, special tokens, odd splits | Context window and cost (05, 07, 08), dataset prep (06) |
+| `00_what_is_an_llm` | next-token prediction, the generate loop, a counting toy | The map of the whole module |
+| `01_tokenizer` | BPE intuition, token ids, special tokens, odd splits | Context window and cost (05, 07, 08), dataset prep (06) |
+| `02_vectors_and_similarity` | TF-IDF vs dense vectors, cosine similarity, what plain vectors cannot do | Semantic search and RAG (07), why embeddings exist |
 | `03_embeddings` | `nn.Embedding`, vectors, cosine similarity, position info | How text becomes numbers; semantic search ideas |
-| `04_load_pretrained_model` | `AutoTokenizer`/`AutoModelForCausalLM`, parameter count, dtype, memory | Quantization (05), memory calculator (06), API model loading (09) |
-| `05_forward_pass_logits` | forward pass, logits → softmax → next-token distribution | **Temperature/top-k/top-p (05)** |
-| `06_generation_loop` | hand-written generation loop vs `model.generate` | Sampling parameters (05), KV cache (06) |
-| `07_pretrain_vs_finetune_vs_inference` | the three modes and what changes | Fine-tuning/LoRA (06), serving (09/10) |
+| `04_attention_from_scratch` | queries/keys/values, attention scores, sqrt(d), causal mask, shapes | Why long context is costly (06) |
+| `05_transformer_block` | multi-head attention, residual, LayerNorm, MLP, stacking | Parameter counts (06), LoRA targets (06) |
+| `06_load_pretrained_model` | `AutoTokenizer`/`AutoModelForCausalLM`, parameter count, dtype, memory | Quantization (05), memory calculator (06), API model loading (09) |
+| `07_forward_pass_logits` | forward pass, logits → softmax → next-token distribution | **Temperature/top-k/top-p (05)** |
+| `08_generation_loop` | hand-written generation loop vs `model.generate`, KV cache | Sampling parameters (05), KV cache (06) |
+| `09_pretrain_vs_finetune_vs_inference` | the three modes and what changes | Fine-tuning/LoRA (06), serving (09/10) |
+
+Read [BRIDGE_FROM_03.md](04_llm_fundamentals/BRIDGE_FROM_03.md) first; the whole path is told as one story in [MASTER_READING_GUIDE.md](MASTER_READING_GUIDE.md).
 
 #### 05 LLM parameters — P1 · [open](05_llm_parameters/)
 Needs: 03 (training params), 04 (logits).

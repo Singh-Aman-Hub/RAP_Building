@@ -15,8 +15,8 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 torch.manual_seed(0)                                     # reproducibility
 
 # --- 1. Data: y = 2*x1 - 3*x2 + 1 + noise ---------------------------------
-X = torch.randn(500, 2)                                  # 500 samples, 2 features, standard normal
-y = (X @ torch.tensor([2.0, -3.0]) + 1.0 + 0.1 * torch.randn(500)).unsqueeze(1)  # unsqueeze -> shape (500, 1)
+X = torch.randn(500, 2)                                  # shape: (500, 2) = (samples, features) | 500 samples, 2 features, standard normal
+y = (X @ torch.tensor([2.0, -3.0]) + 1.0 + 0.1 * torch.randn(500)).unsqueeze(1)  # unsqueeze -> shape: (500, 1)
 dataset = TensorDataset(X, y)                            # pairs each X row with its y
 train_set, val_set = random_split(dataset, [400, 100])   # 80/20 split
 train_loader = DataLoader(train_set, batch_size=32, shuffle=True)   # yields batches of 32, reshuffled each epoch
@@ -36,10 +36,12 @@ loss_fn = nn.MSELoss()                                   # the loss function
 optimizer = torch.optim.SGD(model.parameters(), lr=0.05) # updates the parameters. Try torch.optim.Adam too.
 
 # --- 3. Training loop ------------------------------------------------------
+# The 5 lines in the inner loop (forward, loss, zero_grad, backward, step) are the UNIVERSAL training loop:
+# they train this 3-parameter model and, unchanged, fine-tune an LLM.
 for epoch in range(1, 11):
     model.train()                                        # training mode (matters for dropout/batchnorm)
-    for xb, yb in train_loader:                          # one iteration = one batch
-        pred = model(xb)                                 # forward
+    for xb, yb in train_loader:                          # xb: (32, 2), yb: (32, 1) | one iteration = one batch
+        pred = model(xb)                                 # shape: (32, 1) | forward
         loss = loss_fn(pred, yb)                         # compare with truth
         optimizer.zero_grad()                            # clear old gradients
         loss.backward()                                  # compute new gradients

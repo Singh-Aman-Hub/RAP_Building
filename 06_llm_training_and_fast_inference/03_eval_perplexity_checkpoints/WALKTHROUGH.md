@@ -1,5 +1,14 @@
 # Step 03 — Evaluation, perplexity and checkpoints
 
+## The story so far
+[Step 02](../02_training_loop/WALKTHROUGH.md) drove the training loss down. That number only tells you how well the model knows the text it has already seen.
+
+## The pain point
+Train long enough on a small file and the model memorises it: training loss near zero, new text no better, maybe worse. Without a held-out set you will not notice, and if the run crashes at hour 9 you have nothing to resume from.
+
+## The spark
+Hold out validation data and measure its loss; perplexity is `exp(loss)`, the average number of tokens the model is torn between. Save a checkpoint with `save_pretrained`, reload it, and check the numbers match.
+
 ## Goal
 Know whether training *generalised* (validation loss / perplexity), and save + reload a model correctly.
 
@@ -58,5 +67,7 @@ Read the message: the folder exists but has no tokenizer files. `ls` the folder 
 - [ ] `perplexity = math.exp(val_loss)`
 - [ ] `save_pretrained` (model and tokenizer), reload, compare logits
 
-## Say it aloud
-"Training loss alone can be fooled by memorisation, so I hold out validation data and track validation loss; perplexity is just exp of that loss and tells you how many tokens the model is torn between. I checkpoint with save_pretrained for both model and tokenizer and verify by reloading and comparing outputs. Trade-off: a tiny validation set is noisy, and a full checkpoint is large (330 MB here, 14 GB for a 7B model in fp16)."
+## The new problem (cliffhanger)
+Everything works, but this full fine-tune rewrote all 82 million weights and saved a 330 MB copy. For a 7B model that is 107 GB of memory and a 14 GB file per task. There must be a cheaper way: [step 04, LoRA math with NumPy](../04_lora_math_numpy/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** Validation loss measures generalisation, and perplexity is the exponential of that loss, roughly how many tokens the model is choosing between. Training loss falling while validation loss rises means overfitting, so I keep the best checkpoint and stop early. I always reload a saved checkpoint and confirm it gives the same loss before trusting it.

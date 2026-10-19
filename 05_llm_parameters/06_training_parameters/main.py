@@ -26,7 +26,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # ---------------------------------------------------------------------------
 X, y = make_moons(n_samples=600, noise=0.25, random_state=0)
 X, y = torch.tensor(X, dtype=torch.float32), torch.tensor(y)       # numpy -> torch tensors
-X_train, y_train, X_val, y_val = X[:300], y[:300], X[300:], y[300:]
+X_train, y_train, X_val, y_val = X[:300], y[:300], X[300:], y[300:]   # shapes: (300, 2), (300,), (300, 2), (300,)
 
 
 def make_model(hidden=64):
@@ -109,8 +109,8 @@ tok = AutoTokenizer.from_pretrained("distilgpt2")
 tok.pad_token = tok.eos_token
 texts = ["Arrr, ye scurvy dog, hand over the treasure!", "Avast, matey! The sea be calm and the rum be plentiful.",
          "Hoist the sails, me hearties, for fortune awaits!", "Shiver me timbers, that be the finest ship afloat."]
-batch = tok(texts, return_tensors="pt", padding=True)
-labels = batch["input_ids"].clone()
+batch = tok(texts, return_tensors="pt", padding=True)   # input_ids, attention_mask: shape (n_texts, longest_text)
+labels = batch["input_ids"].clone()   # shape: (n_texts, longest_text)
 labels[batch["attention_mask"] == 0] = -100                         # ignore padding in the loss
 for lr in (1e-6, 5e-5, 5e-3):
     torch.manual_seed(0)

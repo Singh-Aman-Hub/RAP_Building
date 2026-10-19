@@ -11,8 +11,8 @@ NEEDS: numpy
 import numpy as np
 
 rng = np.random.default_rng(0)
-X = rng.uniform(-1, 1, size=200)                         # 200 random inputs between -1 and 1
-y = 2.0 * X + 1.0 + rng.normal(0, 0.1, size=200)         # true rule: y = 2x + 1, plus a little noise
+X = rng.uniform(-1, 1, size=200)                         # shape: (200,) | 200 random inputs between -1 and 1
+y = 2.0 * X + 1.0 + rng.normal(0, 0.1, size=200)         # shape: (200,) | true rule: y = 2x + 1, plus a little noise
 
 
 def train(X, y, learning_rate=0.1, epochs=50, batch_size=None, verbose=False):
@@ -30,8 +30,8 @@ def train(X, y, learning_rate=0.1, epochs=50, batch_size=None, verbose=False):
         order = rng.permutation(n)                       # shuffle every epoch
         for start in range(0, n, batch_size):            # range with step -> walk through mini-batches
             idx = order[start:start + batch_size]
-            xb, yb = X[idx], y[idx]
-            y_hat = w * xb + b                           # 1. forward pass: predict
+            xb, yb = X[idx], y[idx]                        # shape: (batch_size,) each
+            y_hat = w * xb + b                           # shape: (batch_size,) | 1. forward pass: predict
             error = y_hat - yb
             # 2. gradients: derivative of mean((y_hat - y)^2) with respect to w and b
             grad_w = 2 * np.mean(error * xb)

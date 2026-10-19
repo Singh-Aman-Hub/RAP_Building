@@ -1,5 +1,14 @@
 # Step 02 — Few-shot prompting
 
+## The story so far
+In [step 01](../01_roles_and_instructions/) a clear role, task and constraints made the reply the right *shape*. But shape is not judgement: the instructions never told the model what to do with sarcasm like "Oh great, another delay".
+
+## The pain point
+Describing a tricky rule in words is long and still ambiguous. The model reads "great" and says positive, because the instruction did not contain the exception.
+
+## The spark
+Show, do not tell. Add two or three worked input -> output examples to the prompt. The model continues the pattern, including the edge cases the examples demonstrate.
+
 ## Goal
 Give the model worked examples so it imitates the pattern (format *and* tricky decisions such as sarcasm).
 
@@ -48,5 +57,7 @@ Conversation ending with an `assistant` message: some APIs reply `400` ("last me
 - [ ] Format them as text once, as chat turns once.
 - [ ] Append the real question last.
 
-## Say it aloud
-"Few-shot prompting shows the model examples of input and desired output in the prompt, so it copies the pattern without any training. I use balanced, realistic examples including one hard case. The cost is tokens on every request, and poorly chosen or unbalanced examples bias the output."
+## The new problem (cliffhanger)
+Examples work, but they are now a block of text you copy-paste and edit by hand. Change one word and you cannot tell which version was running. We need prompts as reusable, versioned objects. Next: [03_prompt_templates](../03_prompt_templates/).
+
+> **Say it aloud (interview box):** Few-shot prompting puts a few worked examples in the prompt so the model imitates both the format and the tricky decisions. The examples can be text in one message or as alternating user and assistant chat turns. The costs are extra tokens on every call and bias, because unbalanced or reordered examples push the model toward certain labels.

@@ -1,10 +1,10 @@
 experiment,model,new_tokens,latency_s,tokens_per_s,weights_MB,peak_rss_MB,distinct_ratio,auto_note,my_notes,sample
-baseline (config.json),distilgpt2,40,0.73,54.7,328,864,0.93,varied,," not something that will be achieved without intelligent research. It requires people to develop new approaches, techniques, and solutions for the problems"
-greedy,distilgpt2,40,0.57,70.3,328,865,0.93,varied,," not yet clear. ""We are still in the early stages of a process that will be very difficult to achieve,"" said"
-temperature 0.3,distilgpt2,18,0.69,26.1,328,865,1.0,stopped early (EOS),," not just about the technology, it's also a whole lot more important than ever.<|endoftext|>"
-temperature 1.5,distilgpt2,40,0.62,64.4,328,865,1.0,varied,, not tied to history or preferences beyond paradigm research.... else we probably never measure strands of culture making story reasonable today arrives voting unemployment
-top_k 5,distilgpt2,40,0.57,70.0,328,865,0.97,varied,," not just about the technology it has developed, but also on how we can better understand people‍—and to help them"
-repetition_penalty 1.0,distilgpt2,40,0.52,77.1,328,865,0.12,repetitive,, not yet clear.                     
-max_new_tokens 10,distilgpt2,10,0.18,57.1,328,865,1.0,varied,, not something that will be achieved without intelligent research.
-max_new_tokens 100,distilgpt2,83,1.44,57.7,328,865,0.92,stopped early (EOS),," not something that will be achieved without intelligent research. It requires people to develop new approaches, techniques, and solutions for the problems"
-bigger model: gpt2,gpt2,40,0.99,40.4,498,1390,1.0,varied,," not clear, but that could change. The early progress on AI was made by scientists in the late '80s and 1990"
+baseline (config.json),distilgpt2,40,0.85,46.9,328,839,0.93,varied,," not something that will be achieved without intelligent research. It requires people to develop new approaches, techniques, and solutions for the problems"
+greedy,distilgpt2,40,0.62,64.4,328,839,0.93,varied,," not yet clear. ""We are still in the early stages of a process that will be very difficult to achieve,"" said"
+temperature 0.3,distilgpt2,18,0.79,22.8,328,839,1.0,stopped early (EOS),," not just about the technology, it's also a whole lot more important than ever.<|endoftext|>"
+temperature 1.5,distilgpt2,40,0.74,53.8,328,839,1.0,varied,, not tied to history or preferences beyond paradigm research.... else we probably never measure strands of culture making story reasonable today arrives voting unemployment
+top_k 5,distilgpt2,40,0.75,53.3,328,839,0.97,varied,," not just about the technology it has developed, but also on how we can better understand people‍—and to help them"
+repetition_penalty 1.0,distilgpt2,40,0.75,53.3,328,839,0.12,repetitive,, not yet clear.                     
+max_new_tokens 10,distilgpt2,10,0.21,46.9,328,839,1.0,varied,, not something that will be achieved without intelligent research.
+max_new_tokens 100,distilgpt2,83,1.7,48.9,328,839,0.92,stopped early (EOS),," not something that will be achieved without intelligent research. It requires people to develop new approaches, techniques, and solutions for the problems"
+bigger model: gpt2,gpt2,40,1.38,29.0,498,997,1.0,varied,," not clear, but that could change. The early progress on AI was made by scientists in the late '80s and 1990"

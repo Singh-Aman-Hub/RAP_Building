@@ -47,6 +47,12 @@ Change **one** thing at a time; predict, run, compare. Worked answers: [solution
 - **Run:** `load_test.py` with `clients=64`; explain p95.
 - **Explain aloud:** the ladder of answers to "traffic doubled".
 
+## Step 09 — Drift monitoring
+- **Modify:** set week 2's `shout_prob` back to `0.02`; predict which features stay in ALERT, then run.
+- **Break & read:** cut the PSI bins from the live data instead of the reference; explain why the drifted week now looks calm.
+- **Rebuild:** `psi(reference, live)` from the formula, then check it returns about 0 when both arrays come from the same generator.
+- **Explain aloud:** drift versus train/serve skew, and which one `broken_skew.py` (step 02) shows.
+
 ## Integration tasks (connect the modules)
 1. Train in step 02, serve the artifact with the module-09 FastAPI app via `MODEL_PATH`, send 20 requests, and store each result with `PredictionLog` (write a tiny client script).
 2. Draw (by hand) the architecture for **your** capstone from [diagram 1](diagrams/01_end_to_end_pipeline.md) and label the file/folder that implements each box.

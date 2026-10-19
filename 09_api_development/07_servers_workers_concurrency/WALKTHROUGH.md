@@ -1,5 +1,14 @@
 # Step 07 — Gunicorn, Uvicorn, workers and concurrency
 
+## The story so far
+Step 06 served one request nicely. A real product has many users at the same moment, and the framework alone cannot decide how requests overlap.
+
+## The pain point
+One worker doing a 1-second job handles one request per second. Four users arriving together wait 1, 2, 3 and 4 seconds, and a blocking call inside `async def` freezes everybody.
+
+## The spark
+Let the server manage concurrency: more worker processes for parallel CPU work, threads or async to overlap waiting. Measure with real servers, because the numbers surprise you.
+
 ## Goal
 Separate two ideas: the **framework** (Flask/FastAPI: your routes) and the **server** (Gunicorn/Uvicorn: sockets, processes, concurrency). Then measure how workers, threads and `async` change how many requests finish at once.
 
@@ -87,5 +96,8 @@ Start a second server on the same port → `OSError: [Errno 48] Address already 
 - [ ] Explain why `async def` + `time.sleep` is a bug.
 - [ ] Explain why workers multiply memory use.
 
+## The new problem (cliffhanger)
+Worker counts, ports and model paths are now scattered in commands and code. Changing them per environment must not mean editing code. Next: [08_config_and_env](../08_config_and_env/).
+
 ## Say it aloud
-"Flask and FastAPI define the app; Gunicorn and Uvicorn run it. A worker is a process with its own memory, so more workers means more parallel requests but also more copies of the model. Async lets one worker overlap waiting, which helps with network calls but not CPU-bound inference. I confirm sizing with a load test. Trade-off: more workers cost RAM; too few cause queueing and high tail latency."
+> **Say it aloud (interview box):** Flask and FastAPI define the app, while Gunicorn and Uvicorn run it, and a worker is a process with its own memory. More workers give more parallel requests but also more copies of the model, and async only overlaps waiting, not CPU-bound inference. I size by running a load test, because too few workers cause queueing and too many cost RAM.

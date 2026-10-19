@@ -3,7 +3,7 @@
 Folder: `04_llm_fundamentals/03_embeddings` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [04 LLM fundamentals README](../README.md)
 
-**Terms in this folder:** [torch (PyTorch)](#torch-pytorch) · [torch.nn as nn](#torchnn-as-nn) · [AutoModelForCausalLM](#automodelforcausallm) · [torch.manual_seed](#torchmanual_seed) · [Embedding](#embedding) · [nn.Embedding](#nnembedding) · [.weight](#weight) · [torch.tensor](#torchtensor) · [Calling a layer like a function](#calling-a-layer-like-a-function) · [Tensor indexing with indices](#tensor-indexing-with-indices) · [torch.equal](#torchequal) · [get_input_embeddings](#get_input_embeddings) · [wte (token embedding)](#wte-token-embedding) · [Function definition with assert](#function-definition-with-assert) · [.detach()](#detach) · [Cosine similarity](#cosine-similarity) · [.item()](#item) · [Tuple unpacking in a for loop](#tuple-unpacking-in-a-for-loop) · [Position embedding (wpe)](#position-embedding-wpe) · [torch.arange](#torcharange) · [Broadcasting](#broadcasting) · [Context-free embedding](#context-free-embedding) · [IndexError (out of range in self)](#indexerror-out-of-range-in-self)
+**Terms in this folder:** [torch (PyTorch)](#torch-pytorch) · [torch.nn as nn](#torchnn-as-nn) · [AutoModelForCausalLM](#automodelforcausallm) · [torch.manual_seed](#torchmanual_seed) · [Embedding](#embedding) · [nn.Embedding](#nnembedding) · [.weight](#weight) · [torch.tensor](#torchtensor) · [Calling a layer like a function](#calling-a-layer-like-a-function) · [Tensor indexing with indices](#tensor-indexing-with-indices) · [torch.equal](#torchequal) · [get_input_embeddings](#get_input_embeddings) · [wte (token embedding)](#wte-token-embedding) · [Function definition with assert](#function-definition-with-assert) · [.detach()](#detach) · [Cosine similarity](#cosine-similarity) · [.item()](#item) · [Tuple unpacking in a for loop](#tuple-unpacking-in-a-for-loop) · [Position embedding (wpe)](#position-embedding-wpe) · [torch.arange](#torcharange) · [Broadcasting](#broadcasting) · [Context-free embedding](#context-free-embedding) · [IndexError (out of range in self)](#indexerror-out-of-range-in-self) · [Order-blindness (permutation invariance)](#order-blindness-permutation-invariance)
 
 ---
 
@@ -181,3 +181,10 @@ x = wte(text_ids) + wpe(torch.arange(text_ids.shape[1]))
 **3. Example to quote:** > "`toy(torch.tensor([7]))` raised `IndexError: index out of range in self` because the table has only five rows."
 
 **Seen in:** `main.py`, BREAK IT comment.
+
+## Order-blindness (permutation invariance)  `(concept)`
+**1. Definition:** A model is order-blind if shuffling its input vectors does not change what it can compute from them.
+**2. In plain words:** Attention only compares vectors, it never counts positions. Without a position signal, `dog bites man` and `man bites dog` give the same set of token vectors. Adding a position embedding makes the same word look different at different places.
+**3. Example to quote:** > "Attention alone is order-blind, so GPT-2 adds a learned position vector to every token vector."
+
+**Seen in:** `main.py` (last section), `WALKTHROUGH.md`.

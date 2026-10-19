@@ -1,5 +1,14 @@
 # Step 06 — QLoRA (concept + reference code, not executed)
 
+## The story so far
+[Step 05](../05_lora_peft_finetune/WALKTHROUGH.md) cut the trainable parameters to a sliver, but the frozen base model is still stored at full precision.
+
+## The pain point
+A 7B model in float16 is 14 GB of frozen weights. Add activations and the adapter's optimizer state and a 16 GB GPU is out of memory before the first step, even though almost nothing is being trained.
+
+## The spark
+Apply chapter 15 inside chapter 16: keep the frozen base in 4-bit (NF4) and train a LoRA adapter in higher precision on top. The base is only read, so quantization error does not accumulate in the weights you train. This is QLoRA.
+
 ## Goal
 Understand how QLoRA lets you fine-tune a 7B model on one 16 GB GPU. The code in `qlora_reference.py` needs an NVIDIA GPU and `bitsandbytes`, so **it is not run on this Mac**. Compile-check only: `python -m py_compile qlora_reference.py`. To see it live, copy it into a free Colab GPU notebook.
 
@@ -39,5 +48,14 @@ prints training memory for a 6.7B model: **full fine-tune 107.2 GB, LoRA 13.5 GB
 - Slower per step than LoRA (de-quantisation work).
 - CUDA-only in practice; not available on Apple Silicon.
 
-## Say it aloud
-"QLoRA is LoRA on top of a base model stored in 4-bit NF4. Only the small 16-bit adapters get gradients, so memory drops from about 14 GB to about 4 GB of weights for a 7B model and it fits on a single consumer GPU. The price is a bit of quantisation error and slower steps, and it needs CUDA."
+## Experiments (read-only, or on a free Colab GPU)
+- Change `r=8` to `r=64` in the LoRA config and predict the adapter size before running on a GPU: it grows linearly with r.
+- Run `python 08_gpu_memory_calculator/main.py` and compare the full fine-tune and QLoRA training totals for the 7B preset.
+
+## Debugging practice
+Run the reference file on this Mac and read the error (confirmed): `ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1``. `import bitsandbytes` itself fails with `ModuleNotFoundError: No module named 'bitsandbytes'`. The 4-bit kernels are CUDA-only, which is why this step is read-only here.
+
+## The new problem (cliffhanger)
+The model is now tuned and, with QLoRA, tuned on one cheap GPU. But it still answers one user at a time, slowly, and the KV cache we met in the generation loop eats memory. Now we serve it: [step 07, fast inference with Hugging Face](../07_hf_inference_batching_kvcache/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** QLoRA keeps the frozen base model in 4-bit NF4 and trains a LoRA adapter in higher precision on top of it. That drops the memory for a 7B fine-tune from over a hundred gigabytes to something a single 16 GB GPU can hold. The trade-off is slower steps from dequantizing weights and a small quality loss that I measure rather than assume.

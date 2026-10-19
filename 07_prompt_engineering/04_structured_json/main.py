@@ -71,6 +71,23 @@ for name, raw in CASES.items():
     print(f"{name:20s} {hand:35s} {pyd}")
 
 # ---------------------------------------------------------------------------
+# What a REAL pydantic ValidationError looks like (read it: field path, message, offending input).
+# ---------------------------------------------------------------------------
+print("\nReal ValidationError for a reply with an illegal label AND an out-of-range confidence:")
+try:
+    Sentiment.model_validate({"label": "happy", "confidence": 7})
+except ValidationError as err:
+    print(err)                                   # str(err) lists every failing field
+    print("  -> error_count():", err.error_count(), "| first error loc:", err.errors()[0]["loc"])
+
+def feedback_from(err: Exception) -> str:
+    """Turn an error into a short, model-readable instruction (field + problem, no stack trace)."""
+    if isinstance(err, ValidationError):
+        problems = "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in err.errors())
+        return f"Your JSON failed validation -> {problems}. Return ONLY corrected JSON."
+    return f"Your reply was not parseable JSON ({err}). Return ONLY a JSON object."
+
+# ---------------------------------------------------------------------------
 # Retry loop: on invalid output, send the error BACK to the model and ask again.
 # ---------------------------------------------------------------------------
 def classify_json(text: str, mock: MockLLM, max_attempts: int = 3) -> Sentiment:
@@ -84,7 +101,8 @@ def classify_json(text: str, mock: MockLLM, max_attempts: int = 3) -> Sentiment:
         except (ValueError, ValidationError) as err:    # ValidationError is a ValueError in pydantic v2
             # Feedback turn: show the model its own answer + what was wrong.
             messages += [{"role": "assistant", "content": reply},
-                         {"role": "user", "content": f"Invalid: {err}. Return ONLY valid JSON."}]
+                         {"role": "user", "content": feedback_from(err)}]
+            print(f"  feedback sent to model: {feedback_from(err)[:110]}")
     raise RuntimeError(f"no valid JSON after {max_attempts} attempts")   # fail loudly, never guess
 
 print("\nRetry demo (the mock is SCRIPTED to fail twice, then behave):")
@@ -96,6 +114,15 @@ scripted = MockLLM(script=[
 result = classify_json("I love it", scripted)
 print("  result object:", result, "| as dict:", result.model_dump())
 
+# Same pipeline against the repo's rule-based simulator (sim_llm.py): it answers in JSON when asked.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from sim_llm import make_sim                     # noqa: E402
+print("\nSimulator, JSON requested:")
+sim_reply = generate([{"role": "user", "content": "Text: The delivery was slow and the box was broken."}],
+                     system='Return ONLY JSON {"label": ..., "confidence": ...}', mock=make_sim())
+print("  raw:", sim_reply, "->", Sentiment.model_validate(extract_json(sim_reply)))
+
 # TRY IT: set max_attempts=2 and watch the RuntimeError.
 # TRY IT: add a `reason: str` field to Sentiment and see which cases now fail.
+# BREAK IT: Sentiment.model_validate({"label": "happy", "confidence": 7})  -> the ValidationError printed above.
 # BREAK IT: json.loads("{'label': 'x'}")  -> single quotes are not valid JSON (JSONDecodeError).

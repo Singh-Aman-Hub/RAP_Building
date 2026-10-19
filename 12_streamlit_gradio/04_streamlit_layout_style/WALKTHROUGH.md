@@ -1,5 +1,14 @@
 # Step 04 - Layouts, columns, tabs and basic customisation
 
+## The story so far
+[Step 03](../03_streamlit_api_client/WALKTHROUGH.md) made the UI call the API correctly, but everything is stacked in one column.
+
+## The pain point
+Settings, inputs, results and comparisons all compete for the same strip of screen. Users cannot tell what is a control and what is an output, and a demo looks unfinished.
+
+## The spark
+Use layout containers: a sidebar for settings, tabs for separate views, columns for side-by-side comparison, and `set_page_config` plus a `config.toml` theme for the look. Layout only decides where things appear, not what runs.
+
 ## Goal
 Arrange a UI sensibly and customise its look with page config and a theme file.
 
@@ -45,5 +54,8 @@ Two widgets with identical label and no key -> `DuplicateWidgetID`. Fix with uni
 - [ ] Sidebar + two columns + tabs from memory.
 - [ ] Explain why `set_page_config` goes first.
 
+## The new problem (cliffhanger)
+Streamlit is one way to build this UI. The other popular tool wraps a single function instead of rerunning a script, and gives you a shareable link almost for free. Next: [step 05, Gradio basics](../05_gradio_basics/WALKTHROUGH.md).
+
 ## Say it aloud
-"Layout in Streamlit is declarative: sidebar for settings, tabs for views, columns for side-by-side comparison. Appearance comes from set_page_config and a config.toml theme. Trade-off: deep custom styling needs fragile CSS hacks, so Streamlit suits internal tools and demos rather than pixel-perfect products."
+> **Say it aloud (interview box):** Layout in Streamlit is declarative: a sidebar for settings, tabs for views and columns for side-by-side comparison. Appearance comes from set_page_config and a config.toml theme. The trade-off is that deep custom styling needs fragile CSS hacks, so Streamlit suits internal tools and demos rather than pixel-perfect products.

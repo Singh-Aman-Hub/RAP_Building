@@ -1,5 +1,25 @@
 # Step 04 — The PyTorch training loop
 
+## The story so far
+Step 03 gave us automatic gradients but a hand-rolled update. Here we package the same five moves into the standard PyTorch skeleton.
+
+## The pain point
+Updating each parameter by hand does not scale to many layers, many batches, or swapping in a better optimizer such as Adam. Every project would reinvent the same loop slightly differently and slightly wrong.
+
+## The spark
+Let `nn.Module` own the parameters, `DataLoader` serve the batches, and the optimizer do the update. What is left is five lines, always in this order: forward, loss, `zero_grad`, `backward`, `step`.
+
+## The universal training loop
+The five lines inside the batch loop are the whole secret of training:
+```python
+pred = model(xb)               # 1. forward
+loss = loss_fn(pred, yb)        # 2. loss
+optimizer.zero_grad()           # 3. clear old gradients
+loss.backward()                 # 4. new gradients (autograd)
+optimizer.step()                # 5. update the parameters
+```
+Only the model, the data and the loss change. The same five lines train this 3-parameter model, a CNN, and an LLM during fine-tuning (module [06](../../06_llm_training_and_fast_inference/)).
+
 ## Goal
 Write the canonical loop: `DataLoader` → `model(x)` → `loss_fn` → `zero_grad` → `backward` → `step`; evaluate on validation.
 
@@ -49,12 +69,15 @@ Loss floor ≈ noise variance 0.01. Train ≈ validation → no overfitting.
 3. Add a hidden layer: `nn.Sequential(nn.Linear(2,8), nn.ReLU(), nn.Linear(8,1))`; count parameters (33).
 
 ## Debugging practice
-Pass `y` of shape `(500,)` instead of `(500,1)` to `MSELoss`: you get a broadcasting *warning* and a wrong loss — shape bugs may not crash. Print `pred.shape, yb.shape`.
+Pass `y` of shape `(500,)` instead of `(500,1)` to `MSELoss`: you get `UserWarning: Using a target size (torch.Size([500])) that is different to the input size (torch.Size([500, 1]))...` (a broadcasting *warning*, not an error) and a wrong loss — shape bugs may not crash. Print `pred.shape, yb.shape`.
 
 ## Rebuild checklist
 - [ ] Write the 5-line loop body from memory in order.
 - [ ] Explain train vs eval mode and `no_grad`.
 - [ ] Count parameters of `nn.Linear(2,1)`.
 
+## The new problem (cliffhanger)
+The loop drives training loss toward the noise floor. But here the validation set looked just like the training set. What happens when the model is flexible enough to memorise instead of learn? Does it understand, or does it memorise? Next: [05_overfitting_train_val](../05_overfitting_train_val/).
+
 ## Say it aloud
-"Each step: the model predicts, the loss function scores it, `backward` computes gradients, and the optimizer updates the weights; `zero_grad` first clears old gradients. I evaluate on a held-out validation set in `eval` mode with no gradients. Fine-tuning an LLM uses this same loop with a much bigger model and a text loss."
+> **Say it aloud (interview box):** Each step of the loop is: the model predicts, the loss scores it, `zero_grad` clears old gradients, `backward` computes new ones, and the optimizer steps the weights. I evaluate on held-out data in `eval` mode under `no_grad`. These five lines are the universal training loop, and fine-tuning an LLM reuses them unchanged with a bigger model and a text loss.

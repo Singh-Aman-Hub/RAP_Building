@@ -1,5 +1,14 @@
 # Step 03 — Tool registry, dispatch and argument validation
 
+## The story so far
+In [step 02](../02_agent_loop/) the loop runs any tool call the model writes, straight into `TOOLS[name](**args)`.
+
+## The pain point
+Models invent tool names, forget arguments and pass strings where numbers belong. Unchecked, that raises `KeyError` or `TypeError` inside your loop and the agent dies.
+
+## The spark
+Describe each tool once in a registry (function, description, parameter types, allowed values). Validate every call against it before running, and return any problem to the model as an `Observation: ERROR ...` so it can correct itself.
+
 ## Goal
 Describe each tool once (function, description, parameter types, allowed values), validate every call before running it, and send problems back to the model as observations.
 
@@ -60,5 +69,7 @@ Pydantic version of the same checks:
 ## Rebuild checklist
 - [ ] Registry dict with params/required/allowed. [ ] `validate_call` returning problems. [ ] `execute` that never raises.
 
-## Say it aloud
-"Tools are registered once in a dict with a description and parameter schema; the prompt is generated from it. The model only proposes a call; before running it I validate tool name, required/unknown arguments, types and allowed values and return failures as observations so the model can self-correct. Pydantic does the same declaratively; the trade-off is lax type coercion unless I turn on strict mode."
+## The new problem (cliffhanger)
+Each turn adds messages, and the agent runs for many steps. The message list keeps growing until it no longer fits in the model's context window. Next: [04_history_and_context](../04_history_and_context/).
+
+> **Say it aloud (interview box):** I describe every tool once in a registry with its parameters and allowed values, and I validate each model-proposed call before executing it. Problems go back to the model as error observations instead of crashing the loop. The registry also generates the tool descriptions in the prompt, so code and prompt cannot drift apart.

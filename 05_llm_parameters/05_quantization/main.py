@@ -30,19 +30,19 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 def quantize_symmetric(w, bits=8):
     """Return (integer_tensor, scale).  `w` is any numpy array of floats."""
     qmax = 2 ** (bits - 1) - 1                    # 127 for int8, 7 for int4
-    scale = np.abs(w).max() / qmax
-    q = np.clip(np.round(w / scale), -qmax, qmax).astype(np.int8)   # int8 container even for 4-bit demo
+    scale = np.abs(w).max() / qmax                # shape: () one scale for the whole tensor
+    q = np.clip(np.round(w / scale), -qmax, qmax).astype(np.int8)   # shape: same as w; int8 container even for 4-bit demo
     return q, scale
 
 
 def dequantize(q, scale):
-    return q.astype(np.float32) * scale
+    return q.astype(np.float32) * scale           # shape: same as q
 
 
 # ---------------------------------------------------------------------------
 # 1. Toy example you can read
 # ---------------------------------------------------------------------------
-w = np.array([0.823, -0.317, 0.054, -1.274, 0.447], dtype=np.float32)
+w = np.array([0.823, -0.317, 0.054, -1.274, 0.447], dtype=np.float32)   # shape: (5,)
 q, s = quantize_symmetric(w, 8)
 print("weights  :", w)
 print("int8     :", q, f"(scale={s:.5f})")
@@ -53,7 +53,7 @@ print("abs error:", np.round(np.abs(w - dequantize(q, s)), 4))
 # 2. A bigger random matrix: error and memory at 8 vs 4 bits
 # ---------------------------------------------------------------------------
 rng = np.random.default_rng(0)
-W = rng.normal(0, 0.02, size=(768, 768)).astype(np.float32)    # typical LLM weight scale
+W = rng.normal(0, 0.02, size=(768, 768)).astype(np.float32)    # shape: (d_in, d_out) = (768, 768); typical LLM weight scale
 print("\nmatrix 768x768 (float32 =", W.nbytes // 1024, "KiB)")
 for bits in (8, 4):
     q, s = quantize_symmetric(W, bits)
@@ -67,7 +67,7 @@ for bits in (8, 4):
 tok = AutoTokenizer.from_pretrained("distilgpt2")
 text = ("The quick brown fox jumps over the lazy dog. Machine learning models learn patterns from data "
         "and use them to make predictions on new examples.")
-batch = tok(text, return_tensors="pt")
+batch = tok(text, return_tensors="pt")      # input_ids, attention_mask: shape (1, seq_len)
 base = AutoModelForCausalLM.from_pretrained("distilgpt2").eval()
 
 
@@ -96,7 +96,7 @@ for bits in (8, 6, 4, 3):
 # ---------------------------------------------------------------------------
 # 4. Outliers: ONE huge weight ruins per-tensor scaling -> why real methods quantize in small groups
 # ---------------------------------------------------------------------------
-W2 = W.copy()
+W2 = W.copy()                                     # shape: (768, 768)
 W2[0, 0] = 5.0                                    # a single outlier, 250x typical size
 q, s = quantize_symmetric(W2, 8)
 q0, s0 = quantize_symmetric(W, 8)
@@ -111,9 +111,9 @@ def fake_quantize_grouped(model, bits, group=64):
     m = copy.deepcopy(model)
     for name, p in m.named_parameters():
         if p.ndim == 2 and "wte" not in name and "wpe" not in name:
-            flat = p.detach().numpy().reshape(-1, group)          # every row = one group of `group` weights
+            flat = p.detach().numpy().reshape(-1, group)          # shape: (n_weights / group, group); every row = one group
             qmax = 2 ** (bits - 1) - 1
-            scales = np.abs(flat).max(axis=1, keepdims=True) / qmax   # one scale PER GROUP
+            scales = np.abs(flat).max(axis=1, keepdims=True) / qmax   # shape: (n_groups, 1) one scale PER GROUP
             q = np.clip(np.round(flat / scales), -qmax, qmax)
             p.data = torch.from_numpy((q * scales).reshape(p.shape).astype(np.float32))
     return m

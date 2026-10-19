@@ -11,7 +11,7 @@ Change ONE thing at a time. Worked answers: [solutions/](solutions/).
 | 05 | Add L2 regularisation via `np.polyfit` on scaled features, or reduce degree; find the best degree by validation error. | Evaluate val on train | Overfitting table logic | "How do I detect overfitting?" |
 | 06 | Add a 4th class and recompute probabilities/loss. Implement `log_softmax` stably. | Double softmax with `F.cross_entropy` | softmax + CE | "Why does -log(p) punish confident mistakes?" |
 | 07 | Compute macro-F1; build a 3-class confusion matrix by hand (solutions/ex07_macro_f1.py). | Precision when no positives | P/R/F1 formulas | "Which metric for cancer screening?" |
-| 08 | Add a third label "neutral" with 20 sentences; retrain; change version to v2 and compare metadata. Add a `/batch` style function that takes many texts. | Run predict before train | Pipeline + joblib save/load | "Why save the vectorizer with the model?" |
+| 08 | In `flaw_demo.py` add `"the monarch rules the land"`; predict the king/monarch cosine before running. Add a third label "neutral" with 20 sentences; retrain; change version to v2 and compare metadata. Add a `/batch` style function that takes many texts. | Run predict before train; look up a missing word in `vocab` (`KeyError`) | Pipeline + joblib save/load | "Why save the vectorizer with the model? Why do king and queen have cosine 0.0?" |
 
 ## Cumulative challenge (45 min, no AI)
 1. Generate `y = 4x − 2 + noise`, train with PyTorch (`nn.Linear(1,1)`), report train/val loss.

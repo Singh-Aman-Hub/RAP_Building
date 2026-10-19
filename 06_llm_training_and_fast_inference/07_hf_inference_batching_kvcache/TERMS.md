@@ -16,7 +16,7 @@ Back to module: [06 README](../README.md)
 ## time.perf_counter  `(standard library)`
 **1. Definition:** `time.perf_counter()` returns a high-resolution clock value in seconds, suitable for measuring short durations by subtracting two readings.
 **2. In plain words:** It's a stopwatch. Take one reading before and one after, then subtract. The script runs on CPU so the timing is honest; GPUs run asynchronously and need synchronising before you stop the clock.
-**3. Example to quote:** > "I wrap `generate` between two `perf_counter()` calls: 100 tokens took 1.5 s with the cache and 4.8 s without."
+**3. Example to quote:** > "I wrap `generate` between two `perf_counter()` calls: 100 tokens took 3.5 s with the cache and 8.5 s without."
 ```python
 import time
 t0 = time.perf_counter(); do_work(); print(time.perf_counter() - t0)
@@ -71,8 +71,8 @@ f(a=1, b=2)   # {'a': 1, 'b': 2}
 
 ## KV cache  `(concept)`
 **1. Definition:** The KV cache stores the attention keys (K) and values (V) already computed for earlier tokens so each new token only computes its own K and V.
-**2. In plain words:** Without it, every step re-processes the whole sequence. The measured result: 100 tokens in 1.5 s with the cache versus 4.8 s without. The price is memory that grows with sequence length and batch size (see step 08).
-**3. Example to quote:** > "With the KV cache on, 100 tokens took 1.5 s; off, 4.8 s, because every step recomputed the entire sequence."
+**2. In plain words:** Without it, every step re-processes the whole sequence. The measured result: 100 tokens in 3.5 s with the cache versus 8.5 s without (timings vary by machine). The price is memory that grows with sequence length and batch size (see step 08).
+**3. Example to quote:** > "With the KV cache on, 100 tokens took 3.5 s; off, 8.5 s, because every step recomputed the entire sequence."
 **Seen in:** `main.py`, section 1
 
 ## use_cache  `(concept)`
@@ -95,8 +95,8 @@ f(a=1, b=2)   # {'a': 1, 'b': 2}
 
 ## Batching  `(concept)`
 **1. Definition:** Batching processes several prompts together in one forward pass.
-**2. In plain words:** The hardware does more useful work per pass. Four prompts one by one took 2.8 s; as one batch 0.6 s. Time grows sub-linearly at first, then linearly once the hardware is saturated.
-**3. Example to quote:** > "Batching four prompts cut total time from 2.8 s to 0.6 s on the same machine."
+**2. In plain words:** The hardware does more useful work per pass. Four prompts one by one took 4.3 s; as one batch 1.2 s. Time grows sub-linearly at first, then linearly once the hardware is saturated.
+**3. Example to quote:** > "Batching four prompts cut total time from 4.3 s to 1.2 s on the same machine."
 **Seen in:** `main.py`, section 3
 
 ## Throughput vs latency  `(concept)`

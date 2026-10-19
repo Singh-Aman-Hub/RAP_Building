@@ -1,5 +1,14 @@
 # Step 01 - Your first image and container
 
+## The story so far
+Chapter 22 ([module 10](../../10_ml_system_architecture/)) ended with a blueprint for a serving system and one honest problem: it works on my machine only. This step is the first answer. We take the toy FastAPI service from [module 09](../../09_api_development/) and make it run anywhere.
+
+## The pain point
+A teammate clones your repo. Their Python is a different version, `fastapi` is not installed, port 8000 is busy, and your `.venv` is not in git. The same code behaves differently on every laptop and server. Writing a longer README does not fix it.
+
+## The spark
+Do not ship instructions, ship the machine. A **Dockerfile** is a recipe that starts from a known base (Python 3.12 slim), installs pinned requirements and copies your code. Building it gives an **image**; running the image gives a **container**, the same everywhere.
+
 ## Goal
 Package a small FastAPI app into an image, run it as a container, and reach it from your laptop.
 
@@ -63,5 +72,8 @@ OK
 - [ ] Write the 7-line Dockerfile from memory (FROM, WORKDIR, COPY req, RUN pip, COPY app, EXPOSE, CMD).
 - [ ] Write build + run commands from memory.
 
+## The new problem (cliffhanger)
+The image works, but every time you change one line of code, `docker build` seems to reinstall every package. A 1-second edit costs a 30-second build. Why, and how do we make rebuilds fast? Next: [step 02, layers and cache](../02_layers_and_cache/WALKTHROUGH.md).
+
 ## Say it aloud
-"An image is a read-only template built from a Dockerfile layer by layer; a container is a running instance of it with its own filesystem and network namespace. I used a slim Python base, installed pinned requirements, copied my code, and started uvicorn on 0.0.0.0 so the published port is reachable. Trade-off: the image must be rebuilt for every code change, which is why layer ordering matters (step 02)."
+> **Say it aloud (interview box):** An image is a read-only template built from a Dockerfile layer by layer, and a container is a running instance of it with its own filesystem and network. I used a slim Python base, installed pinned requirements, copied my code and started uvicorn on 0.0.0.0 so the published port is reachable. The trade-off is that every code change needs a rebuild, which is why layer ordering matters.

@@ -1,5 +1,14 @@
 # Step 09 — Native tool/function calling (reference)
 
+## The story so far
+In [step 08](../08_trace_and_full_agent/) the whole agent runs on a text protocol that we invented and parse ourselves.
+
+## The pain point
+Parsing JSON out of prose is fragile, and every provider's models behave differently with our home-made format.
+
+## The spark
+Hosted APIs accept a `tools` schema and return structured `tool_use` blocks, so parsing disappears. The registry from step 03 can generate that schema. The loop, validation, permissions, retries and trace are still yours either way.
+
 ## Goal
 Understand how hosted APIs expose tool calling natively, and that your harness (validation, permissions, retries, tracing) is needed either way.
 
@@ -53,5 +62,7 @@ message to send back: {"role": "user", "content": [{"type": "tool_result", "tool
 ## Debugging practice
 Typical native-API errors: `400` when a `tool_result` is missing for a `tool_use` id, or when history order is wrong. Read the error's message: it names the offending message index.
 
-## Say it aloud
-"Native tool calling lets me pass tool schemas to the API and get back structured tool_use blocks instead of parsing JSON from text. It's more reliable, but the model still only *requests* actions — I still validate arguments, enforce permissions, bound the loop, retry and trace."
+## The new problem (cliffhanger)
+The agent now works end to end, but only inside your terminal. Other programs, a website or a teammate cannot call it. We need to put it behind a network interface. Next: [09_api_development](../../09_api_development/).
+
+> **Say it aloud (interview box):** Native tool calling means I send a tools schema and the API returns structured tool-use blocks instead of text I must parse. The agent loop is the same: execute the tool, append the whole assistant turn and the tool result, and repeat. My harness still owns validation, permissions, retries and tracing, because the API does not provide those.

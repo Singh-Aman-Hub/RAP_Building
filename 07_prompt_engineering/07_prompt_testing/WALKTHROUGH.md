@@ -1,5 +1,14 @@
 # Step 07 — Prompt testing & evaluation
 
+## The story so far
+In [step 06](../06_prompt_injection/) you defended a prompt, but you judged it by a couple of hand-picked attacks.
+
+## The pain point
+Two or three examples prove nothing. Change a prompt and you cannot say whether it got better, or whether you quietly broke the sarcasm case it handled yesterday.
+
+## The spark
+Treat prompts as code: a fixed test set (normal, ambiguous, missing, adversarial), temperature 0, a parser, a per-category accuracy table, and saved results per version.
+
 ## Goal
 Compare prompt versions with a small, fixed, categorised test set and a parser, and save results so changes can be compared over time.
 
@@ -60,5 +69,7 @@ Saved results_mock.json
 ## Rebuild checklist
 - [ ] Test set with 4 categories; 2+ prompt versions; parser; per-category table; JSON save.
 
-## Say it aloud
-"I treat prompts like code: a versioned prompt, a fixed test set covering normal, ambiguous, missing and adversarial inputs, an output parser and a repeatable metric. I change one thing per version and compare. Limitation: a small test set is noisy, and tests only measure what I thought to include."
+## The new problem (cliffhanger)
+Your prompts are now tested and safe, and the model follows instructions well. But the tests only check *format and behaviour*. They cannot add a fact the model never saw: ask about your own refund policy and it confidently invents one. Next: [08_minimal_rag](../08_minimal_rag/).
+
+> **Say it aloud (interview box):** I test a prompt with a fixed, categorised test set (normal, ambiguous, missing-input, adversarial) at temperature 0 and compare versions in an accuracy table. I change one thing per version and save the results so regressions are visible. A tiny or simulated test set only checks my harness, so I re-run on a real model before trusting the numbers.

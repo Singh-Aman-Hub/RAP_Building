@@ -21,11 +21,11 @@ print("X shape:", X.shape, "| y shape:", y.shape)
 
 # --- The model: a straight line y_hat = w * x + b ---------------------------
 w, b = 5.0, 45.0                                # parameters (weight and bias) - guessed by hand for now
-y_hat = w * X + b                               # vectorised: applies to ALL 5 samples at once (no loop!)
+y_hat = w * X + b                               # shape: (5,) | vectorised: applies to ALL 5 samples at once (no loop!)
 print("predictions:", y_hat)
 
 # --- How wrong is the model?  Loss = mean squared error ---------------------
-errors = y_hat - y                              # element-wise subtraction
+errors = y_hat - y                              # shape: (5,) | element-wise subtraction
 mse = np.mean(errors ** 2)                      # square so +/- errors don't cancel; mean over samples
 print("MSE loss:", round(float(mse), 3))
 # TRY IT: change w to 6.0. Does the loss go up or down?  That "up or down" signal is what training uses.
@@ -35,14 +35,14 @@ X2 = np.array([[1.0, 100.0],                    # 2-D: rows = samples, columns =
                [2.0, 150.0],
                [3.0, 120.0]])
 print("X2 shape (samples, features):", X2.shape)
-weights = np.array([0.5, 0.01])                 # one weight per feature
+weights = np.array([0.5, 0.01])                 # shape: (2,) | one weight per feature
 print("X2 @ weights =", X2 @ weights)           # @ is matrix multiplication: (3,2) @ (2,) -> (3,)
 # BREAK IT: use weights = np.array([0.5, 0.01, 1.0]) and read the "matmul: Input operand 1 has a mismatch" ValueError.
 
 # --- Broadcasting & normalising features ------------------------------------
-mean, std = X2.mean(axis=0), X2.std(axis=0)     # axis=0 -> statistics PER COLUMN
+mean, std = X2.mean(axis=0), X2.std(axis=0)     # shape: (2,) each | axis=0 -> statistics PER COLUMN
 print("mean:", mean, "std:", std)
-X2_scaled = (X2 - mean) / std                   # (3,2) - (2,) broadcasts the row across every sample
+X2_scaled = (X2 - mean) / std                   # shape: (3, 2) | (3,2) - (2,) broadcasts the row across every sample
 print("scaled columns now have mean ~0:", X2_scaled.mean(axis=0).round(6))
 # Why scale? Features with very different sizes (1..3 vs 100..150) make gradient descent zig-zag (see step 02).
 

@@ -1,5 +1,8 @@
 # 12 - Streamlit and Gradio (build a UI for a model)
 
+## The story of this module
+**Chapter 24, The Face of AI.** Module 11 ended with a shippable API that only `curl` can talk to, so product managers and teammates cannot give feedback. Spark: write the UI in plain Python. You start with Streamlit's rerun model (01), cache the model and keep state (02), turn the UI into a thin API client with loading and error states (03), arrange the page (04), then rebuild the idea with Gradio's callback model (05) and Blocks, state, API and sharing (06). When the API streams tokens over SSE ([09 step 10](../09_api_development/10_streaming_sse/)), these UIs are where a human sees the answer arrive word by word. Cliffhanger: model, API, container and UI all exist as separate pieces. The [capstone (module 13)](../13_capstone_project/) assembles them into one system.
+
 ## Why this matters
 A model nobody can try is hard to demo. Streamlit and Gradio turn Python into a web UI in minutes. Interviewers want you to connect a UI to a model or API, show loading/error states, keep state, and explain the callback/rerun model. The syllabus says "choose at least one": this module teaches **both** so you can compare them (learn Streamlit first, Gradio second).
 

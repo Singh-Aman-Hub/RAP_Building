@@ -1,5 +1,14 @@
 # Step 06 - Training parameters: learning rate, batch size, epochs, optimizers, loss
 
+## The story so far
+[Step 05](../05_quantization/WALKTHROUGH.md) made inference fit. To change what the model knows you must train it, and training has its own dials that can silently ruin a run.
+
+## The pain point
+A fine-tune with the wrong learning rate either never learns or wrecks the pretrained knowledge: loss goes to NaN, or barely moves. Batch size and epochs decide whether you run out of memory or just memorise four sentences. Copying numbers from a from-scratch tutorial is how people fail here.
+
+## The spark
+Run controlled experiments: one knob at a time on a tiny network where results appear in seconds (learning rate, batch size, epochs, optimizer), then confirm the pattern on a real LLM fine-tune. Learn to read the loss curve as a gauge.
+
 ## Goal
 See what each training knob does by running controlled experiments (tiny network for speed, then a real LLM fine-tune).
 
@@ -66,7 +75,7 @@ See what each training knob does by running controlled experiments (tiny network
    lr=0.005   [6.49, 6.26, 6.81, 15.54, 7.12, 6.39, 5.09, 4.69]     spikes to 15.5
 ```
 - **Why fine-tuning LRs are tiny (1e-5 to 5e-4)**: the weights are already good; big steps damage ("catastrophically forget") pretrained knowledge.
-- **Epochs and datasets:** for LLM fine-tuning 1-3 epochs is typical; more epochs on a small dataset memorises it (step 07 of module 04 showed loss 0.5 on 4 sentences).
+- **Epochs and datasets:** for LLM fine-tuning 1-3 epochs is typical; more epochs on a small dataset memorises it (step 09 of module 04 showed loss 0.5 on 4 sentences).
 - **Batch size on GPUs:** you pick the largest that fits in memory; if too big, use *gradient accumulation* (several small batches before one update). Covered in module 06.
 - **Loss functions:** regression -> mean squared error; classification and LLM next-token prediction -> cross-entropy (see [03/06_softmax_cross_entropy](../../03_ml_foundations/06_softmax_cross_entropy/)).
 
@@ -84,5 +93,7 @@ Delete `opt.zero_grad()` inside `train`: no traceback, but the training curve be
 - [ ] Draw the train/val loss curves of overfitting and mark where to stop.
 - [ ] Explain why Adam uses more memory than SGD.
 
-## Say it aloud
-"Learning rate is the step size: too small and training crawls, too large and loss explodes - for LLM fine-tuning it's small, like 1e-5 to 5e-4. Batch size is how many examples per update; it affects gradient noise, speed and especially memory. Epochs are passes over the data; too many overfits, which I detect by validation loss rising while training loss falls. AdamW is the standard optimizer because it adapts the step per weight. Trade-off: every knob trades speed, memory and stability against final quality, so I change one at a time and log the result."
+## The new problem (cliffhanger)
+You can tune each knob, but impressions are not evidence: "it felt better" does not survive a code review. We need a record of every run. Next: [step 07, the experiment logger](../07_experiment_logger/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** The learning rate is the step size: too small and nothing is learned, too large and the loss explodes, and fine-tuning wants small values. Batch size trades gradient noise against memory, and more epochs on a small dataset means memorising it. I change one knob at a time and read the loss curve to know which one is wrong.

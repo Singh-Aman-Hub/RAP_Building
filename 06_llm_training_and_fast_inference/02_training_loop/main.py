@@ -39,7 +39,7 @@ print("device:", device)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device)   # .to(device) moves weights to GPU/CPU memory
 
-blocks = make_blocks(tokenizer, read_lines(), BLOCK_SIZE)
+blocks = make_blocks(tokenizer, read_lines(), BLOCK_SIZE)   # shape: (n_blocks, BLOCK_SIZE)
 loader = DataLoader(TensorDataset(blocks), batch_size=BATCH_SIZE, shuffle=True)
 
 # AdamW = Adam optimizer with proper weight decay; model.parameters() = every weight it may update.
@@ -49,12 +49,12 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 def sample(prompt: str) -> str:
     """Generate a short continuation (greedy = always pick the most likely token)."""
     model.eval()                                            # turns off dropout
-    enc = tokenizer(prompt, return_tensors="pt").to(device)
+    enc = tokenizer(prompt, return_tensors="pt").to(device)   # input_ids, attention_mask: shape (1, prompt_len)
     with torch.no_grad():                                   # no gradients needed -> less memory, faster
         out = model.generate(**enc, max_new_tokens=30, do_sample=False,
                              pad_token_id=tokenizer.eos_token_id)
     model.train()                                           # back to training mode
-    return tokenizer.decode(out[0], skip_special_tokens=True)
+    return tokenizer.decode(out[0], skip_special_tokens=True)   # out shape: (1, prompt_len + 30)
 
 
 PROMPT = "Ticket: How do I reset my password? Reply:"
@@ -65,9 +65,9 @@ model.train()                                               # dropout ON
 step = 0
 for epoch in range(1, EPOCHS + 1):
     for (batch,) in loader:                                 # TensorDataset yields 1-tuples -> unpack with (batch,)
-        batch = batch.to(device)
+        batch = batch.to(device)                            # shape: (BATCH_SIZE, BLOCK_SIZE)
         # 1. FORWARD: labels=batch makes HF shift by one and compute cross-entropy for us.
-        out = model(input_ids=batch, labels=batch)
+        out = model(input_ids=batch, labels=batch)          # out.logits shape: (BATCH_SIZE, BLOCK_SIZE, 50257)
         loss = out.loss                                     # a 0-d tensor: average loss per token
         # 2. BACKWARD: compute d(loss)/d(weight) for every weight.
         optimizer.zero_grad()                               # clear gradients from the previous step (they accumulate!)

@@ -30,7 +30,7 @@ cfg = load_config()
 tok = AutoTokenizer.from_pretrained(cfg["model_name"])
 model = AutoModelForCausalLM.from_pretrained(cfg["model_name"]).eval()
 prompt = "The best way to learn programming is"
-ids = tok(prompt, return_tensors="pt")["input_ids"]
+ids = tok(prompt, return_tensors="pt")["input_ids"]   # shape: (1, prompt_len)
 
 # ---------------------------------------------------------------------------
 # 1. Is our math the same as the library's?  Compare the final probability distributions.
@@ -54,7 +54,7 @@ def run(label, **overrides):
     kwargs.update(overrides)                            # dict.update: later keys win
     torch.manual_seed(7)                                # same random stream for every run
     with torch.no_grad():
-        out = model.generate(ids, pad_token_id=tok.eos_token_id, **kwargs)
+        out = model.generate(ids, pad_token_id=tok.eos_token_id, **kwargs)   # shape: (1, prompt_len + new_tokens)
     text = tok.decode(out[0][ids.shape[1]:])            # slice off the prompt: keep only NEW tokens
     print(f"\n[{label}]\n  {text!r}")
 

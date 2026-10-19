@@ -21,6 +21,7 @@ Rule: change ONE thing at a time, predict the output first, then run. Answers/wo
 - **Explain aloud:** when do you prefer `Template`?
 
 ## Step 04 — structured JSON
+- **Read:** print `str(ValidationError)` for `{"label": "happy", "confidence": 7}` and name the two failing fields.
 - **Modify:** add `reason: str` to `Sentiment`; make hand validator and prompt match (see `solutions/ex04_reason_field.py`).
 - **Break it:** `json.loads("{'a': 1}")` — explain the error position.
 - **Rebuild:** write `validate_by_hand` for `{"name": str, "age": int>=0}`.
@@ -43,6 +44,12 @@ Rule: change ONE thing at a time, predict the output first, then run. Answers/wo
 - **Break it:** make `parse_label` stricter (exact match only) and see how many replies become `invalid`.
 - **Rebuild:** write `run_version` + the per-category table from memory.
 - **Explain aloud:** what does the mock prove vs not prove? Why temperature 0?
+
+## Step 08 — minimal RAG
+- **Modify:** add a gift-card document to `DOCS` and re-ask "Do you sell gift cards?". Then try `k=1` and `k=6` and compare the prompts.
+- **Break it:** run the money-back question with `min_score=0.0`, read which chunk is injected, then fix it with a threshold. Also embed the query with a different vectorizer and read the `matmul` shape error.
+- **Rebuild:** write `retrieve` (cosine with NumPy, top-k with `argsort`) from memory.
+- **Explain aloud:** why does a retrieval miss produce a confident wrong answer?
 
 ## Stretch
 Run step 07 with `LLM_BACKEND=local`. Write 5 lines: which version won, did the ranking match the simulation, and why might it differ?

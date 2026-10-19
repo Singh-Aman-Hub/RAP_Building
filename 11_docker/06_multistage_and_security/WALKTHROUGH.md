@@ -1,5 +1,14 @@
 # Step 06 - Multi-stage builds, small images and security basics
 
+## The story so far
+[Step 05](../05_healthchecks_logs_debugging/WALKTHROUGH.md) taught us to diagnose containers. This step makes the image worth shipping.
+
+## The pain point
+`Dockerfile.single` installs and runs in one stage: compilers and pip caches stay in the final image, it is large, it has more known vulnerabilities, and the process runs as root. If the app is compromised, the attacker is root in the container.
+
+## The spark
+Build in one stage and copy only the results into a clean slim runtime stage (**multi-stage**). Create and switch to a **non-root** user, pin versions, keep secrets out of layers (see `SECURITY_CHECKLIST.md`) and add a `HEALTHCHECK`.
+
 ## Goal
 Produce a small, non-root, health-checked image and know the security habits interviewers ask about.
 
@@ -40,5 +49,8 @@ Note: with only pure-Python wheels the multi-stage gain is mostly "slim vs full 
 - [ ] Sketch a 2-stage Dockerfile from memory.
 - [ ] List 5 hardening practices.
 
+## The new problem (cliffhanger)
+The service is now portable, small and safer, but its only users are programs and people who can type `curl`. A product manager cannot test it. We need a face for the model. Next: [module 12, Streamlit and Gradio](../../12_streamlit_gradio/01_streamlit_basics/WALKTHROUGH.md).
+
 ## Say it aloud
-"A multi-stage build compiles or installs in one stage and copies only the results into a clean runtime stage, so the final image is smaller and has no build tools. I also run as a non-root user, pin versions, keep secrets out of layers and add a health check. Trade-off: more complex Dockerfiles and slower first builds, in exchange for smaller, safer images."
+> **Say it aloud (interview box):** A multi-stage build installs or compiles in one stage and copies only the results into a clean runtime stage, so the final image is smaller and has no build tools. I also run as a non-root user, pin versions, keep secrets out of layers and add a health check. The trade-off is a more complex Dockerfile and a slower first build, in exchange for a smaller and safer image.

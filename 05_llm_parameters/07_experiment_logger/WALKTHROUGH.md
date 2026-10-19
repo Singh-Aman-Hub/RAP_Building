@@ -1,5 +1,14 @@
 # Step 07 - Experiment logger (length, latency, memory, quality)
 
+## The story so far
+[Step 06](../06_training_parameters/WALKTHROUGH.md) taught you the dials, and by now you have a head full of runs. Which setting gave which result?
+
+## The pain point
+Without a record, tuning is superstition. You remember the output you liked, not the latency, the memory or the seed that produced it, and a teammate cannot repeat your result.
+
+## The spark
+Run each setting, measure output length, latency and memory, add a simple quality signal, and write every run as a row in a CSV and a Markdown table. Evidence beats impressions.
+
 ## Goal
 Run several settings, measure output length / latency / memory, add a quality signal and save the results as CSV + Markdown - evidence instead of impressions.
 
@@ -34,20 +43,22 @@ Run several settings, measure output length / latency / memory, add a quality si
 ## Execution trace
 ```
 | experiment | new_tokens | latency_s | tokens_per_s | weights_MB | peak_rss_MB | distinct_ratio | auto_note |
-| baseline (config.json)   | 40 | 0.73 | 54.7 | 328 | 864  | 0.93 | varied |
-| greedy                   | 40 | 0.57 | 70.3 | 328 | 865  | 0.93 | varied |
-| temperature 0.3          | 18 | 0.69 | 26.1 | 328 | 865  | 1.0  | stopped early (EOS) |
-| temperature 1.5          | 40 | 0.62 | 64.4 | 328 | 865  | 1.0  | varied |
-| repetition_penalty 1.0   | 40 | 0.52 | 77.1 | 328 | 865  | 0.12 | repetitive |
-| max_new_tokens 10        | 10 | 0.18 | 57.1 | 328 | 865  | 1.0  | varied |
-| max_new_tokens 100       | 83 | 1.44 | 57.7 | 328 | 865  | 0.92 | stopped early (EOS) |
-| bigger model: gpt2       | 40 | 0.99 | 40.4 | 498 | 1390 | 1.0  | varied |
+|---|---|---|---|---|---|---|---|
+| baseline (config.json) | 40 | 0.85 | 46.9 | 328 | 839 | 0.93 | varied |
+| greedy | 40 | 0.62 | 64.4 | 328 | 839 | 0.93 | varied |
+| temperature 0.3 | 18 | 0.79 | 22.8 | 328 | 839 | 1.0 | stopped early (EOS) |
+| temperature 1.5 | 40 | 0.74 | 53.8 | 328 | 839 | 1.0 | varied |
+| top_k 5 | 40 | 0.75 | 53.3 | 328 | 839 | 0.97 | varied |
+| repetition_penalty 1.0 | 40 | 0.75 | 53.3 | 328 | 839 | 0.12 | repetitive |
+| max_new_tokens 10 | 10 | 0.21 | 46.9 | 328 | 839 | 1.0 | varied |
+| max_new_tokens 100 | 83 | 1.7 | 48.9 | 328 | 839 | 0.92 | stopped early (EOS) |
+| bigger model: gpt2 | 40 | 1.38 | 29.0 | 498 | 997 | 1.0 | varied |
 ```
 (Your numbers will differ - machine, load, randomness.)
 How to read it:
-- **Latency scales with output length** (10 tokens 0.18 s, 83 tokens 1.44 s) but **tokens/s stays about constant**: cost per token is steady, so shorter outputs = faster, cheaper responses.
+- **Latency scales with output length** (10 tokens 0.21 s, 83 tokens 1.7 s) but **tokens/s stays about constant**: cost per token is steady, so shorter outputs = faster, cheaper responses.
 - **Sampling parameters barely change speed**; they change *quality*. `repetition_penalty 1.0` + greedy has `distinct_ratio 0.12`: a loop. The auto-note flags it; you still READ the sample text and fill `my_notes`.
-- **Bigger model (gpt2)**: +52% weights (328 -> 498 MB), ~35-45% slower; peak memory jumps. Quality is usually better - the classic size/latency/quality trade-off.
+- **Bigger model (gpt2)**: +52% weights (328 -> 498 MB), ~60% slower here; peak memory jumps. Quality is usually better - the classic size/latency/quality trade-off.
 - **`peak_rss_MB` is a high-water mark**: it only goes up during the process, so compare *differences*, and for a clean per-model number run each model in its own process.
 - Timing noise: we do a warm-up call and take the median of 3 runs - single timings mislead.
 - A **proxy metric** (`distinct_ratio`) is cheap but crude; the real quality judgement is reading samples or using a labelled test set (module 07, prompt testing).
@@ -66,5 +77,7 @@ How to read it:
 - [ ] Explain why only one parameter changes per row.
 - [ ] Explain what peak RSS does and does not tell you.
 
-## Say it aloud
-"To tune generation I fix the prompt and seed, change one parameter per run, and log new tokens, latency, tokens per second, memory and a quality signal into a table. I found latency grows linearly with output length while per-token speed stays about constant, a bigger model costs memory and speed, and sampling settings mostly affect quality, not speed. Limitation: automatic metrics like distinct-token ratio are crude, so I still read samples or use a labelled test set."
+## The new problem (cliffhanger)
+Module 05 gave you the dials and the gauges. The next question is a hard one: will a full fine-tune of a real model even fit on our GPU? Do the arithmetic in [module 06, step 08, GPU memory calculator](../../06_llm_training_and_fast_inference/08_gpu_memory_calculator/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** An experiment logger runs each parameter setting and records length, latency, memory and a quality score into a CSV and a Markdown table. It turns opinions about settings into evidence that someone else can reproduce. I change one thing at a time, fix the seed and test on more than one prompt.

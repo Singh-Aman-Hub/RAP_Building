@@ -1,5 +1,14 @@
 # Step 06 — The same model API in Flask and FastAPI
 
+## The story so far
+Step 05 made the door safe. Now we put the real thing behind it: a trained model that answers `/predict`, in both frameworks so you see what really differs.
+
+## The pain point
+Loading a model takes hundreds of milliseconds to seconds. Doing it inside the request handler makes every user pay that cost, and hard-coded paths make the service fragile.
+
+## The spark
+Load the model once when the process starts (module level or FastAPI `lifespan`), keep it in memory, and have each request only call `predict_proba`. Read the model path from an environment variable.
+
 ## Goal
 Serve a classifier at `POST /predict` with `GET /health`, in both frameworks, sharing one `model_loader.py` and one `config.py`, so the *only* difference is the framework.
 
@@ -60,7 +69,7 @@ With the real module-03 model (`MODEL_PATH` set): `'I love this great film' -> p
 | `joblib.load(path)` | 3rd-party | Load a saved sklearn pipeline (module 03/10) |
 | `model.predict_proba(list_of_texts)` | sklearn | Probability per class per text |
 | `model.classes_` | sklearn | Label names in column order |
-| `transformers.pipeline("text-generation", model="distilgpt2")` | 3rd-party | One-liner LLM generation (module 04) |
+| `transformers.pipeline("text-generation", model="distilgpt2")` | 3rd-party | One-liner LLM generation (04_llm_fundamentals step 06 load model, step 08 generation loop) |
 | `time.perf_counter()` | stdlib | High-resolution timer for latency |
 | `dotenv.load_dotenv()` | 3rd-party | `.env` → `os.environ` |
 
@@ -95,5 +104,8 @@ The model object was created **once at startup**, not per request — loading pe
 - [ ] Same in FastAPI with a Pydantic model.
 - [ ] Explain why the model is loaded at startup and what "per worker" implies.
 
+## The new problem (cliffhanger)
+It works for one caller. What happens with ten at once, and how many copies of the model fit in memory? Next: [07_servers_workers_concurrency](../07_servers_workers_concurrency/).
+
 ## Say it aloud
-"I load the model once at startup into the process, validate input, run `predict_proba`, and return label, confidence and the model version. Flask and FastAPI expose the same contract; FastAPI adds Pydantic validation and automatic docs. Configuration comes from environment variables so the same code serves a different model by changing `MODEL_PATH`. Trade-off: each worker process holds its own copy of the model, so memory grows with the worker count."
+> **Say it aloud (interview box):** I load the model once at startup into the process, validate input, run `predict_proba`, and return label, confidence and model version. Flask and FastAPI expose the same contract, and `MODEL_PATH` lets the same code serve a different model. Each worker process holds its own copy of the model, so memory grows with the worker count.

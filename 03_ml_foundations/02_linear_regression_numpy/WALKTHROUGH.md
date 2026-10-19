@@ -1,5 +1,14 @@
 # Step 02 — Gradient descent from scratch (numpy)
 
+## The story so far
+Chapter 1 ended with a guess typed by hand (`w=5, b=45`) and a loss that told us how wrong it was. Chapter 2 asks the obvious question: can the machine nudge those numbers itself?
+
+## The pain point
+Trying parameter values by hand does not scale. With two parameters you might get lucky; with a million you cannot even search. And with no rule for the step size, the first attempt either crawls or blows up.
+
+## The spark
+The slope of the loss tells you which way is uphill for each parameter. Step the opposite way, a little at a time, and repeat. That is gradient descent: forward, loss, gradient, update. The step size is the learning rate.
+
 ## Goal
 See loss, learning rate, epochs and batch size act on a model you wrote yourself.
 
@@ -58,5 +67,8 @@ Change `w -= ...` to `w += ...`: loss rises each epoch (uphill). Symptom "loss g
 - [ ] Define epoch, batch, step.
 - [ ] What happens at lr too big/small.
 
+## The new problem (cliffhanger)
+This works, but we derived `2*mean(error*x)` on paper for one formula with two parameters. A deep network has millions of parameters across many layers, and nobody can derive that by hand. We need the computer to differentiate for us: [03_pytorch_tensors_autograd](../03_pytorch_tensors_autograd/).
+
 ## Say it aloud
-"Training repeats four things: predict, measure the loss, compute how each parameter changes the loss (gradient), and nudge the parameters downhill by the learning rate. An epoch is one pass over the data; a batch is the chunk used per update. Trade-off: big batches are stable but few updates; small batches are noisy but faster per epoch and use less memory."
+> **Say it aloud (interview box):** Training repeats four things: predict, measure the loss, compute how each parameter changes the loss (the gradient), and nudge the parameters downhill by the learning rate. An epoch is one pass over the data and a batch is the chunk used per update. The trade-off is that big batches are stable but give few updates, while small batches are noisy but update more often and use less memory.

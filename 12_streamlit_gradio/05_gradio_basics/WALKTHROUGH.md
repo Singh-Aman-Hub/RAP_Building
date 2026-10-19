@@ -1,5 +1,14 @@
 # Step 05 - Gradio basics (Interface and callbacks)
 
+## The story so far
+[Step 04](../04_streamlit_layout_style/WALKTHROUGH.md) finished the Streamlit side. Gradio solves the same pain with a different idea.
+
+## The pain point
+Sometimes all you have is a function `text -> label` and ten minutes before a demo. Even Streamlit means thinking about reruns, state and layout.
+
+## The spark
+Hand Gradio the function and list its input and output components. `gr.Interface` builds the page, calls your function on submit, and `gr.Error` turns a failure into a red toast instead of a crash.
+
 ## Goal
 Expose a prediction function as a web UI and understand Gradio's input -> function -> output model.
 
@@ -46,5 +55,8 @@ Mismatch between number of inputs and function parameters -> error mentions expe
 - [ ] Interface for a function `(text) -> text` from memory.
 - [ ] Explain callback vs rerun model.
 
+## The new problem (cliffhanger)
+An `Interface` is one function in, one result out. Real demos need several tabs, per-session history, file uploads, progress bars and an API for other programs. Next: [step 06, Blocks, API and sharing](../06_gradio_blocks_api_share/WALKTHROUGH.md).
+
 ## Say it aloud
-"Gradio wraps a function: I list input and output components and Gradio calls my function when the user submits. It is the fastest way to demo a model and can expose an API automatically. Trade-off: less control over complex layouts and multi-step state than Streamlit or a custom frontend, though Blocks (next step) closes much of that gap."
+> **Say it aloud (interview box):** Gradio wraps a function: I list the input and output components and Gradio calls my function when the user submits. It is the fastest way to demo a model and can expose an API automatically. The trade-off is less control over complex layouts and multi-step state than Streamlit or a custom frontend, though Blocks closes much of that gap.

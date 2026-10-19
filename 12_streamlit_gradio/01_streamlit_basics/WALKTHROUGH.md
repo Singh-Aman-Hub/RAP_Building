@@ -1,5 +1,14 @@
 # Step 01 - Streamlit basics and the rerun model
 
+## The story so far
+[Module 11](../../11_docker/06_multistage_and_security/WALKTHROUGH.md) ended with a shippable API that only `curl` can talk to. We now give humans a way to try it.
+
+## The pain point
+To test a model, a teammate must write JSON by hand, run `curl` and read raw text. Nobody outside engineering will do that, so nobody gives feedback. A normal web front end (HTML, JavaScript, a build chain) is a project of its own.
+
+## The spark
+Streamlit lets you write the UI as a plain Python script: `st.text_input` returns what the user typed and `st.button` returns True when clicked. Every interaction reruns the script top to bottom, so UI code reads like ordinary code.
+
 ## Goal
 Install Streamlit, display text, read a text box, react to a button, and understand why the script reruns.
 
@@ -47,5 +56,8 @@ Errors are shown in the browser with a full traceback. Introduce `st.text_input(
 - [ ] Re-create the app (title, text_input, button, success) without looking.
 - [ ] Explain why `count` is always 1.
 
+## The new problem (cliffhanger)
+The rerun model has a price: anything slow (loading a model) happens again on each click, and variables reset. Next: [step 02, caching, session state and uploads](../02_streamlit_model_state_uploads/WALKTHROUGH.md).
+
 ## Say it aloud
-"Streamlit turns a Python script into a web app. Every interaction reruns the script top to bottom, and widgets return their current values, so UI code reads like normal code. Trade-off: no persistence across reruns unless you use session_state or caching, and expensive work reruns unless cached."
+> **Say it aloud (interview box):** Streamlit turns a Python script into a web app, where every interaction reruns the script top to bottom and widgets return their current values. That makes UI code read like normal code, so a model can be demoed in minutes. The trade-off is that nothing persists across reruns unless I use session_state or caching, and expensive work reruns unless it is cached.

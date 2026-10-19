@@ -1,5 +1,14 @@
 # Step 08 — GPU memory calculator
 
+## The story so far
+[Module 05](../../05_llm_parameters/07_experiment_logger/WALKTHROUGH.md) ended with dials, gauges and a quantized model that fits. Before we try to train, we must ask the question every GPU owner asks first: will it fit?
+
+## The pain point
+Guessing wastes hours. You launch a fine-tune, wait for the model to load, and get `CUDA out of memory`. Or you rent an 80 GB GPU you did not need. Nobody told you that training costs about 16 bytes per parameter, not 2.
+
+## The spark
+Memory is arithmetic. Serving = weights (params x bytes) + KV cache (2 x layers x kv_heads x head_dim x tokens x batch x bytes) + overhead. Training adds gradients and AdamW state: about 16 bytes per parameter for a full fine-tune. Compute it on paper first.
+
 ## Goal
 Answer "will it fit?" with arithmetic: weights + KV cache + overhead for serving, and weights + gradients + optimizer states for training.
 
@@ -67,5 +76,7 @@ argparse errors list the valid choices — read to the end of the line.
 - [ ] explain why KV cache grows with batch and length but weights do not
 - [ ] verify your formula against `past_key_values` for a small model
 
-## Say it aloud
-"Weights take parameters times bytes per parameter, so a 7B model is about 14 GB in fp16 and 3.5 GB in int4. On top of that the KV cache grows with layers, KV heads, head size, tokens and batch, and at long context or big batch it can exceed the weights. For training, AdamW needs about 16 bytes per parameter, which is why LoRA and QLoRA matter. These are estimates; real usage adds activations and fragmentation."
+## The new problem (cliffhanger)
+The calculator is blunt: a full fine-tune of a 7B model needs about 107 GB, far beyond one GPU. Rewriting every weight is the problem. Before the clever fix, learn what training is made of: [step 01, dataset preparation](../01_dataset_preparation/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** GPU memory for serving is weights plus KV cache plus overhead, and I compute each term from parameters, layers, heads and bytes per value. Full fine-tuning with AdamW costs about 16 bytes per parameter, so a 7B model needs around 107 GB, while LoRA and QLoRA need a small fraction of that. I always do this arithmetic before renting hardware.

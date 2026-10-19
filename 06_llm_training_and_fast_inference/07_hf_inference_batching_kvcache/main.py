@@ -36,10 +36,10 @@ print(f"parameters: {n_params / 1e6:.1f}M | fp32 size {n_params * 4 / 1e6:.0f} M
 
 def timed_generate(prompts, **gen_kwargs):
     """Tokenize `prompts` (list of str), generate, return (decoded_texts, seconds)."""
-    enc = tokenizer(prompts, return_tensors="pt", padding=True).to(device)
+    enc = tokenizer(prompts, return_tensors="pt", padding=True).to(device)   # input_ids, attention_mask: shape (n_prompts, longest_prompt)
     start = time.perf_counter()                    # high-resolution clock for benchmarking
     with torch.no_grad():                          # inference never needs gradients: saves memory + time
-        out = model.generate(**enc, pad_token_id=tokenizer.eos_token_id, do_sample=False, **gen_kwargs)
+        out = model.generate(**enc, pad_token_id=tokenizer.eos_token_id, do_sample=False, **gen_kwargs)   # shape: (n_prompts, longest_prompt + new_tokens)
     seconds = time.perf_counter() - start
     return tokenizer.batch_decode(out, skip_special_tokens=True), seconds
 

@@ -1,5 +1,14 @@
 # Step 06 — Softmax and cross-entropy
 
+## The story so far
+Step 05 taught us to trust validation numbers. But we only predicted real numbers so far. Chapter 5, Decisions & Confidence, handles picking one answer from several.
+
+## The pain point
+A classifier outputs raw scores (logits) such as `[2.0, 1.0, 0.1]`. They can be negative, do not sum to anything meaningful, and MSE is the wrong way to score them. We need probabilities and a loss that punishes confident mistakes.
+
+## The spark
+Exponentiate each score so all are positive, divide by the total so they sum to 1: that is softmax. Then take the negative log of the probability given to the correct class: that is cross-entropy. An LLM does exactly this over its whole vocabulary for every next token.
+
 ## Goal
 Turn scores into probabilities and score them. Same maths as next-token prediction in an LLM.
 
@@ -41,12 +50,15 @@ Low temperature sharpens; high flattens. Module [05](../../05_llm_parameters/) u
 3. Temperature 0.1 and 100.
 
 ## Debugging practice
-Passing probabilities to `F.cross_entropy` produces a wrong number with no error (double softmax). Rule: loss functions with "cross_entropy" in PyTorch want logits.
+Passing probabilities to `F.cross_entropy` produces a wrong number with no error (double softmax): for logits `[2.0, 1.0, 0.1]` and truth=cat the loss comes out `0.802` instead of `0.417`. Rule: loss functions with "cross_entropy" in PyTorch want logits.
 
 ## Rebuild checklist
 - [ ] Softmax with the max-subtraction trick.
 - [ ] Cross-entropy for one example.
 - [ ] Explain why confident-and-wrong is punished heavily.
 
+## The new problem (cliffhanger)
+Softmax and cross-entropy give us a loss, but a single loss number does not tell us what *kind* of mistakes we make. Is 90% accuracy good? It depends on the classes. Next: [07_metrics](../07_metrics/).
+
 ## Say it aloud
-"Softmax converts raw scores to probabilities that sum to 1. Cross-entropy is the negative log of the probability given to the correct answer, so it is small when the model is right and confident, and huge when confidently wrong. A language model applies this over its whole vocabulary for every next token."
+> **Say it aloud (interview box):** Softmax converts raw scores into probabilities that sum to 1. Cross-entropy is the negative log of the probability given to the correct answer, so it is tiny when the model is right and confident and huge when it is confidently wrong. A language model applies exactly this over its whole vocabulary for every next token.

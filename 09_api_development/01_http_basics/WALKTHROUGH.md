@@ -1,5 +1,14 @@
 # Step 01 — HTTP basics with the standard library
 
+## The story so far
+Chapter 20 ended with an agent that works in a notebook, and nobody else can call it. For another program to use it (or any model) there must be a shared language over the network. That language is HTTP, and this step shows it with nothing hiding it. Previous step: [08_agent_harness](../../08_agent_harness/).
+
+## The pain point
+A notebook cell can only be run by the person who owns the notebook. A teammate, a web page or another service needs a way to send a question over the network and get an answer back, and most people have never seen what actually travels on the wire.
+
+## The spark
+HTTP is just text: a request (method, path, headers, body) and a response (status, headers, body). If you can write a tiny server that reads one and writes the other, no framework will ever feel like magic.
+
 ## Goal
 See a request and a response with your own eyes, before any framework hides them: a server that answers `GET /health` and `POST /echo`, and a client that checks status codes.
 
@@ -60,5 +69,8 @@ Remove `.encode("utf-8")` in `_send_json`: `self.wfile.write(body)` raises `Type
 - [ ] Remember the response order: status → headers → blank line → body.
 - [ ] Explain 200 / 201 / 400 / 404 / 405 / 422 / 500.
 
+## The new problem (cliffhanger)
+This stdlib server handles one request at a time, and you parsed and encoded everything by hand. Real servers must run any Python web app, so how does a server talk to your code in a standard way? Next: [02_wsgi_asgi_by_hand](../02_wsgi_asgi_by_hand/).
+
 ## Say it aloud
-"HTTP is request/response text over a socket. A request has a method, path, headers and optional body; a response has a status code, headers and body. `http.server` shows the raw mechanics; frameworks like Flask and FastAPI do the same parsing and let me write just the logic. Trade-off: this stdlib server handles requests one at a time and has no routing/validation, so it's only for learning."
+> **Say it aloud (interview box):** HTTP is request and response text: a request has a method, path, headers and optional body, and a response has a status code, headers and body. Python's `http.server` shows those mechanics by hand, and frameworks like Flask and FastAPI do the same parsing for me. Its limit is that it serves one request at a time with no routing or validation, so it is only for learning.

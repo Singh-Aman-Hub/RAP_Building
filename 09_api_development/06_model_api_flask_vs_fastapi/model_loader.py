@@ -58,7 +58,7 @@ _GENERATOR = None                                        # cache: load the big m
 
 
 def generate_text(prompt: str, max_new_tokens: int = 20) -> str:
-    """Generate text with distilgpt2 (downloads ~330 MB the first time; see module 04/05)."""
+    """Generate text with distilgpt2 (downloads ~330 MB the first time; see 04_llm_fundamentals step 06 and 08, module 05)."""
     global _GENERATOR
     if _GENERATOR is None:                               # LAZY LOADING: pay the cost only if someone calls /generate
         from transformers import pipeline                # heavy import, so keep it inside the function

@@ -23,7 +23,7 @@ Back to module: [06 README](../README.md)
 **1. Definition:** Naive serving reserves a contiguous region for each request sized to its maximum length, so unused reserved space and gaps (fragmentation) waste memory.
 **2. In plain words:** Most requests are shorter than the maximum, so a big share of the reservation is never used and fewer requests fit.
 **3. Example to quote:** > "Reserving the full 2048-token cache for every request wastes memory when most answers are short."
-**Seen in:** `WALKTHROUGH.md`, "Problem it solves"
+**Seen in:** `WALKTHROUGH.md`, "Problem it solves". Simulated in [step 11](../11_paged_attention_fragmentation/TERMS.md) (internal and external fragmentation, block table).
 
 ## Continuous batching  `(concept)`
 **1. Definition:** Continuous batching lets finished requests leave the batch and waiting requests join at every decoding step.

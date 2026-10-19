@@ -65,7 +65,7 @@ model.train()
 for epoch in range(1, EPOCHS + 1):
     total = 0.0
     for (batch,) in loader:
-        batch = batch.to(device)
+        batch = batch.to(device)   # shape: (BATCH_SIZE, BLOCK_SIZE)
         loss = model(input_ids=batch, labels=batch).loss
         optimizer.zero_grad()
         loss.backward()

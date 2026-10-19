@@ -1,14 +1,14 @@
 | experiment | new_tokens | latency_s | tokens_per_s | weights_MB | peak_rss_MB | distinct_ratio | auto_note |
 |---|---|---|---|---|---|---|---|
-| baseline (config.json) | 40 | 0.73 | 54.7 | 328 | 864 | 0.93 | varied |
-| greedy | 40 | 0.57 | 70.3 | 328 | 865 | 0.93 | varied |
-| temperature 0.3 | 18 | 0.69 | 26.1 | 328 | 865 | 1.0 | stopped early (EOS) |
-| temperature 1.5 | 40 | 0.62 | 64.4 | 328 | 865 | 1.0 | varied |
-| top_k 5 | 40 | 0.57 | 70.0 | 328 | 865 | 0.97 | varied |
-| repetition_penalty 1.0 | 40 | 0.52 | 77.1 | 328 | 865 | 0.12 | repetitive |
-| max_new_tokens 10 | 10 | 0.18 | 57.1 | 328 | 865 | 1.0 | varied |
-| max_new_tokens 100 | 83 | 1.44 | 57.7 | 328 | 865 | 0.92 | stopped early (EOS) |
-| bigger model: gpt2 | 40 | 0.99 | 40.4 | 498 | 1390 | 1.0 | varied |
+| baseline (config.json) | 40 | 0.85 | 46.9 | 328 | 839 | 0.93 | varied |
+| greedy | 40 | 0.62 | 64.4 | 328 | 839 | 0.93 | varied |
+| temperature 0.3 | 18 | 0.79 | 22.8 | 328 | 839 | 1.0 | stopped early (EOS) |
+| temperature 1.5 | 40 | 0.74 | 53.8 | 328 | 839 | 1.0 | varied |
+| top_k 5 | 40 | 0.75 | 53.3 | 328 | 839 | 0.97 | varied |
+| repetition_penalty 1.0 | 40 | 0.75 | 53.3 | 328 | 839 | 0.12 | repetitive |
+| max_new_tokens 10 | 10 | 0.21 | 46.9 | 328 | 839 | 1.0 | varied |
+| max_new_tokens 100 | 83 | 1.7 | 48.9 | 328 | 839 | 0.92 | stopped early (EOS) |
+| bigger model: gpt2 | 40 | 1.38 | 29.0 | 498 | 997 | 1.0 | varied |
 
 ## Samples
 

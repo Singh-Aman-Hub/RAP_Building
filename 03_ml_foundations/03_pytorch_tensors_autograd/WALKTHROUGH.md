@@ -1,5 +1,14 @@
 # Step 03 — PyTorch tensors and autograd
 
+## The story so far
+Chapter 2 ended with a wall: gradients derived by hand do not scale past one formula. Chapter 3, [The Modern Engine](../../MASTER_READING_GUIDE.md), starts here: let the library compute them.
+
+## The pain point
+Hand-written gradients are slow to derive and easy to get wrong, and each new model needs a new derivation. Plain numpy also cannot run on a GPU.
+
+## The spark
+If every operation is recorded as it happens, the chain rule can be replayed backwards automatically. Mark a number `requires_grad=True`, compute a loss, call `loss.backward()`, and read `.grad`. We check it against our step 02 formula and it matches exactly. Look at the manual loop at the bottom of `main.py`: forward, loss, clear gradients, backward, update. Those are the five lines we name next.
+
 ## Goal
 Replace hand-derived gradients with `loss.backward()`; know tensors, dtype, shape, device.
 
@@ -50,5 +59,8 @@ Delete `with torch.no_grad():` → `RuntimeError: a leaf Variable that requires 
 - [ ] Explain why you must zero gradients.
 - [ ] Move a tensor between devices (`.to(device)`).
 
+## The new problem (cliffhanger)
+Autograd gives us gradients, but we are still hand-updating each parameter one by one. A real model has dozens of parameter tensors and data that arrives in batches. We need a tidy, reusable skeleton: [04_pytorch_training_loop](../04_pytorch_training_loop/).
+
 ## Say it aloud
-"A tensor is a numpy-like array that can live on a GPU. With `requires_grad=True` PyTorch records the operations, and `loss.backward()` computes every parameter's gradient automatically, so I don't derive formulas. Gradients accumulate by default, so I clear them each step."
+> **Say it aloud (interview box):** A tensor is a numpy-like array that can live on a GPU, and with `requires_grad=True` PyTorch records the operations so `loss.backward()` fills in every parameter's gradient without me deriving anything. The result matched my hand formula exactly. Gradients accumulate by default, so I clear them every step, and the parameter update must happen under `no_grad`.

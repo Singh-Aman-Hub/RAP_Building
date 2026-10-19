@@ -1,5 +1,14 @@
 # Step 02 - Sampling from scratch: temperature, top-k, top-p, repetition penalty
 
+## The story so far
+The config in [step 01](../01_config_file/WALKTHROUGH.md) lists `temperature`, `top_k` and `top_p`, but so far every generation used greedy decoding: always take the top token.
+
+## The pain point
+Greedy is boring and repetitive. It gives the same answer every time, and often falls into loops such as "the the the" or a repeated sentence. Always choosing the single most probable token is not the same as writing well.
+
+## The spark
+The model does not output one token, it outputs a probability for all 50,257 of them. Reshape that distribution before drawing from it: temperature sharpens or flattens it, top-k and top-p cut off the unlikely tail, repetition penalty demotes tokens already used. Then roll a weighted die.
+
 ## Goal
 Implement the four decoding controls yourself on the real logits of distilgpt2 and see exactly how each reshapes the probability distribution.
 
@@ -84,5 +93,7 @@ Notes:
 - [ ] Write top-p (sort, cumsum, mask).
 - [ ] Explain the order of operations.
 
-## Say it aloud
-"The model outputs a probability for each token. Greedy always takes the top one. Temperature rescales the logits - below 1 makes the distribution sharper, above 1 flatter. Top-k keeps only the k most likely tokens; top-p keeps the smallest group covering probability p, so it adapts to how confident the model is. Repetition penalty down-weights tokens already used. Trade-off: more randomness gives variety and creativity but more errors; lower randomness is reliable but repetitive - choose by task (low for extraction, higher for brainstorming)."
+## The new problem (cliffhanger)
+Your own sampler produces varied text, but is it correct? Maybe it only looks right. Prove it against the library: [step 03, compare with Hugging Face generate](../03_hf_generate_compare/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** The model gives a probability for every token, and greedy always takes the top one, which is repetitive. Temperature divides the logits to sharpen or flatten the distribution, while top-k and top-p cut the unlikely tail, and top-p adapts to how confident the model is. More randomness gives variety but more errors, so I choose low values for extraction and higher ones for brainstorming.

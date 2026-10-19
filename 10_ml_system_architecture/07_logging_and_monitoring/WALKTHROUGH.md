@@ -1,5 +1,14 @@
 # Step 07 — Logging, metrics and drift monitoring
 
+## The story so far
+Step 06 chose how the model runs. Now it runs unattended, and nobody is reading its output.
+
+## The pain point
+A silent model can fail in three ways: it crashes, it gets slow for a few users, or its inputs change so its answers quietly degrade. Averages and print statements show none of this.
+
+## The spark
+Emit one structured JSON log line per request, count errors, track latency percentiles instead of averages, and compare live inputs to the training reference.
+
 ## Goal
 Know what to observe in a deployed model: **logs** (what happened), **metrics** (how often/how fast), **drift** (is the world changing so the model gets worse?).
 
@@ -76,5 +85,8 @@ No log lines appear? Checklist: logger level too high; no handler attached; logg
 - [ ] Compute p50/p95 from a list of latencies.
 - [ ] Explain data drift vs concept drift and what you do when you detect drift.
 
+## The new problem (cliffhanger)
+That drift check was a quick one-feature taste. Real monitoring needs proper statistics and an alert threshold, fed from the prediction log. Next: [08_scalability_and_reliability](../08_scalability_and_reliability/), then the full drift demo in [09_drift_monitoring](../09_drift_monitoring/).
+
 ## Say it aloud
-"I log one structured JSON line per request with an id, model version, latency and outcome; I track counters and latency percentiles, because averages hide slow tails; and I compare live input and prediction distributions against the training reference to catch drift. When drift shows up I investigate, retrain, version and roll out carefully. Trade-off: monitoring adds overhead and noise, thresholds need tuning, and true accuracy can only be measured once labels arrive."
+> **Say it aloud (interview box):** I log one structured JSON line per request with an id, model version, latency and outcome, and I track latency percentiles because averages hide slow tails. I also compare live input and prediction distributions with the training reference to catch drift. The cost is overhead and noisy thresholds, and true accuracy is only known once labels arrive.

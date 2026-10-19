@@ -85,7 +85,7 @@ for name, model_name, overrides in EXPERIMENTS:
     if not kwargs["do_sample"]:       # greedy ignores sampling params; drop them to avoid HF warnings
         for k in ("temperature", "top_k", "top_p"):
             kwargs.pop(k, None)
-    ids = tok(PROMPT, return_tensors="pt")["input_ids"]
+    ids = tok(PROMPT, return_tensors="pt")["input_ids"]   # shape: (1, prompt_len)
 
     times, last_out = [], None
     for r in range(REPEATS):

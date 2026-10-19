@@ -16,7 +16,7 @@ def apply_repetition_penalty(logits, generated_ids, penalty=1.2):
     Same rule as Hugging Face: a positive logit is divided by penalty, a negative one multiplied
     (both make the token less attractive).  penalty == 1.0 changes nothing.
     """
-    logits = logits.clone()                                  # never mutate the caller's tensor
+    logits = logits.clone()                                  # never mutate the caller's tensor; shape: (vocab,)
     for token_id in set(generated_ids):                      # set(): penalise each distinct token once
         score = logits[token_id]
         logits[token_id] = score / penalty if score > 0 else score * penalty
@@ -25,14 +25,14 @@ def apply_repetition_penalty(logits, generated_ids, penalty=1.2):
 
 def apply_temperature(logits, temperature=1.0):
     """Divide logits by T.  T<1 widens the gaps (sharper); T>1 shrinks them (flatter)."""
-    return logits / temperature
+    return logits / temperature                              # shape: (vocab,) -> (vocab,)
 
 
 def top_k_filter(logits, k):
     """Keep only the k highest logits; everything else becomes -inf.  k == 0 means 'disabled'."""
     if k <= 0 or k >= logits.numel():
         return logits
-    kth_value = torch.topk(logits, k).values[-1]             # the k-th largest logit = the cut-off
+    kth_value = torch.topk(logits, k).values[-1]             # shape: () scalar; the k-th largest logit = the cut-off
     return torch.where(logits < kth_value, torch.tensor(float("-inf")), logits)
 
 
@@ -40,12 +40,12 @@ def top_p_filter(logits, p):
     """Nucleus sampling: keep the smallest set of top tokens whose probabilities sum to >= p."""
     if p >= 1.0:
         return logits
-    sorted_logits, sorted_idx = torch.sort(logits, descending=True)
-    sorted_probs = torch.softmax(sorted_logits, dim=-1)
-    cumulative = torch.cumsum(sorted_probs, dim=-1)          # running total of probability
+    sorted_logits, sorted_idx = torch.sort(logits, descending=True)   # shape: (vocab,) both
+    sorted_probs = torch.softmax(sorted_logits, dim=-1)               # shape: (vocab,)
+    cumulative = torch.cumsum(sorted_probs, dim=-1)          # shape: (vocab,) running total of probability
     # Remove a token if the probability mass BEFORE it already reached p (so the first token always stays)
-    remove_sorted = (cumulative - sorted_probs) >= p
-    remove = torch.zeros_like(remove_sorted)
+    remove_sorted = (cumulative - sorted_probs) >= p         # shape: (vocab,) bool, in sorted order
+    remove = torch.zeros_like(remove_sorted)                 # shape: (vocab,) bool
     remove[sorted_idx] = remove_sorted                       # map back to the original token order
     return logits.masked_fill(remove, float("-inf"))
 
@@ -59,6 +59,6 @@ def sample_next_token(logits, generated_ids=(), temperature=1.0, top_k=0, top_p=
     logits = apply_temperature(logits, temperature)
     logits = top_k_filter(logits, top_k)
     logits = top_p_filter(logits, top_p)
-    probs = torch.softmax(logits, dim=-1)
+    probs = torch.softmax(logits, dim=-1)                    # shape: (vocab,) sums to 1
     # torch.multinomial draws random indices according to the probabilities
     return int(torch.multinomial(probs, num_samples=1, generator=generator))

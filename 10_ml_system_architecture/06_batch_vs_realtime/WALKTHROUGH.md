@@ -1,5 +1,14 @@
 # Step 06 — Batch vs real-time inference
 
+## The story so far
+Step 05 logged predictions one request at a time. But nightly scoring of a million rows should not make a million separate calls.
+
+## The pain point
+Scoring items one by one pays fixed overhead per call, so a big job runs far slower than it needs to. Treating a user-facing request like a batch job makes the user wait.
+
+## The spark
+Pick by who is waiting: real-time when a person waits, batch when no one does, micro-batching in between. One vectorized call over many items amortises the overhead.
+
 ## Goal
 Run the same model two ways and understand which metric each optimises: **latency** (real-time) vs **throughput** (batch).
 
@@ -59,5 +68,8 @@ Typical hybrid: precompute (batch) the expensive parts, serve cached results in 
 - [ ] State which metric each mode optimises and give one example of each.
 - [ ] Explain micro-batching.
 
+## The new problem (cliffhanger)
+Whichever mode we pick, once it runs unattended we have to know whether it is healthy: slow, failing, or seeing strange inputs. Next: [07_logging_and_monitoring](../07_logging_and_monitoring/).
+
 ## Say it aloud
-"Real-time inference answers one request at a time and optimises latency; batch inference scores many items together and optimises throughput and cost. Batching is faster because one vectorized call amortises overhead — that's also why LLM servers batch concurrent requests. Trade-off: batching adds waiting time per item, so interactive use needs small batch windows."
+> **Say it aloud (interview box):** Real-time inference answers one request at a time and optimises latency, while batch inference scores many items together and optimises throughput and cost. Batching is faster because one vectorized call amortises overhead, which is also why LLM servers batch concurrent requests. The cost is waiting time per item, so interactive use needs small batch windows.

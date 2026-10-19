@@ -1,5 +1,14 @@
 # Step 01 — Calling an LLM and the message list
 
+## The story so far
+In [07_prompt_engineering](../../07_prompt_engineering/) the model answers from your facts and follows validated formats, but it only *talks*. Giving it hands starts with the plainest piece: how one call to a model actually works.
+
+## The pain point
+A model has no memory between calls. If you send only the newest question, "and what about its price?" has no "it". Many people think the model remembers; it does not.
+
+## The spark
+The memory is a Python list of messages that you resend, in full, on every call. Wrap the call in one function (`generate`) so the backend (fake, local, hosted) can be swapped without touching the rest.
+
 ## Goal
 Call a model through one function and see that "conversation memory" is simply a Python list you resend on every call.
 
@@ -56,5 +65,7 @@ Caught: Unknown LLM backend 'not-a-backend'. Use mock, local or anthropic.
 ## Rebuild checklist
 - [ ] `history` list, a `chat()` function, system prompt passed separately, assistant reply stored.
 
-## Say it aloud
-"An LLM call is stateless: I send the system prompt plus the full list of previous messages and get the next message back. Memory is that list. That makes history size my problem — longer history means more tokens, cost and latency, and eventually the context window limit."
+## The new problem (cliffhanger)
+One call answers one question. But a task like "calculate 12 + 8, then multiply by 3" needs the model to act, look at the result and decide again. We need a loop. Next: [02_agent_loop](../02_agent_loop/).
+
+> **Say it aloud (interview box):** An LLM call is stateless, so conversation memory is just a list of role-and-content messages that I resend on every call. I hide the backend behind one function so I can swap a fake, a local and a hosted model. Every call costs tokens for the whole list, which is why history later has to be managed.

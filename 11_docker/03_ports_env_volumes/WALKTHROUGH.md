@@ -1,5 +1,14 @@
 # Step 03 - Ports, environment variables, volumes and bind mounts
 
+## The story so far
+[Step 02](../02_layers_and_cache/WALKTHROUGH.md) made builds fast, but the image still has fixed behaviour, and a container's own files vanish when it is removed.
+
+## The pain point
+A hard-coded model name means one image per environment. A hard-coded port clashes with whatever else runs on the host. A visit counter written inside the container resets to zero every time the container is replaced.
+
+## The spark
+Keep the image identical and push differences outside it: `-p` chooses the host port, `-e` / `--env-file` sets configuration at start, and a **volume** (or a bind mount while developing) keeps data outside the disposable container.
+
 ## Goal
 Configure a container at run time (no rebuild) and persist data beyond the container's life.
 
@@ -56,5 +65,8 @@ OK
 - [ ] Run a container with a different host port, an env var and a named volume from memory.
 - [ ] Say when you would pick a bind mount over a volume.
 
+## The new problem (cliffhanger)
+A real system is not one container. We need an API, a UI and a cache, and typing three long `docker run` commands in the right order, with the right names, is fragile. Next: [step 04, Compose](../04_compose_multi_container/WALKTHROUGH.md).
+
 ## Say it aloud
-"I keep configuration in environment variables so one image works in dev and prod, injected with -e or an env file. Containers are ephemeral, so state goes in a named volume, or a bind mount while developing. Trade-off: env vars are visible to anyone who can inspect the container, so real secrets need a secrets mechanism."
+> **Say it aloud (interview box):** I keep configuration in environment variables so one image works in dev and prod, injected with -e or an env file. Containers are ephemeral, so state goes in a named volume, or in a bind mount while I develop. The trade-off is that env vars are visible to anyone who can inspect the container, so real secrets need a proper secrets mechanism.

@@ -29,16 +29,16 @@ print("context window:", WINDOW)
 # ---------------------------------------------------------------------------
 # 1. max_new_tokens is a hard cap
 # ---------------------------------------------------------------------------
-ids = tok("Once upon a time", return_tensors="pt")["input_ids"]
+ids = tok("Once upon a time", return_tensors="pt")["input_ids"]   # shape: (1, 4)
 for n in (5, 20, 50):
-    out = model.generate(ids, max_new_tokens=n, do_sample=False, pad_token_id=tok.eos_token_id)
+    out = model.generate(ids, max_new_tokens=n, do_sample=False, pad_token_id=tok.eos_token_id)   # shape: (1, 4 + n)
     print(f"max_new_tokens={n:3d} -> produced {out.shape[1] - ids.shape[1]} new tokens")
 # Note: generation can stop EARLIER if the model emits the end-of-text token.
 
 # ---------------------------------------------------------------------------
 # 2. Overflowing the context window
 # ---------------------------------------------------------------------------
-long_ids = torch.randint(0, 50000, (1, WINDOW + 6))      # 1030 random token ids
+long_ids = torch.randint(0, 50000, (1, WINDOW + 6))      # shape: (1, 1030) random token ids
 try:
     model(long_ids)
 except Exception as err:                                  # catching broad Exception ONLY because this is a demo
@@ -51,7 +51,7 @@ except Exception as err:                                  # catching broad Excep
 def fit_to_window(input_ids, max_new_tokens, window=WINDOW):
     """Keep only the LAST (window - max_new_tokens) prompt tokens."""
     budget = window - max_new_tokens                      # tokens we may spend on the prompt
-    return input_ids[:, -budget:]                         # negative slice = take from the end
+    return input_ids[:, -budget:]                         # shape: (1, budget); negative slice = take from the end
 
 trimmed = fit_to_window(long_ids, max_new_tokens=20)
 print("\ntrimmed prompt length:", trimmed.shape[1], "+ 20 new tokens =", trimmed.shape[1] + 20, "<= 1024")

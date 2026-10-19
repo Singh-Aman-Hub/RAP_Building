@@ -1,5 +1,14 @@
 # Step 04 — LoRA math with NumPy
 
+## The story so far
+[Step 03](../03_eval_perplexity_checkpoints/WALKTHROUGH.md) closed with a bill: full fine-tuning updates every weight, stores every gradient and optimizer state, and saves a full copy per task.
+
+## The pain point
+A single weight matrix in a 7B model is 4096 by 4096, about 16.8 million numbers. Fine-tuning changes each of them, but the useful change for one task is small and simple. We are paying for 16.8 million degrees of freedom when we need very few.
+
+## The spark
+Freeze the original `W0` and learn the update as a product of two thin matrices: `W = W0 + B @ A`, with `A` of shape (r, d) and `B` of shape (d, r), r around 8. That is 2*d*r numbers instead of d*d, under 1% for this matrix. Start `B` at zero so the model begins exactly as before.
+
 ## Goal
 See *why* LoRA trains so few parameters: freeze `W`, learn a low-rank update `B @ A`.
 
@@ -52,5 +61,7 @@ Read the shapes: `A @ x` needs `A` columns == `x` rows. Print `.shape` of every 
 - [ ] gradients for A and B only
 - [ ] merge: `W + (alpha/r) * B @ A`
 
-## Say it aloud
-"Fine-tuning changes a weight matrix by some delta, and that delta tends to be low-rank. LoRA freezes W and learns delta as B times A with a small rank r, so a 2048x2048 layer needs 32 thousand trainable numbers instead of 4 million. B starts at zero so training begins exactly at the pretrained model, and after training I can merge B·A into W so inference costs nothing extra. Trade-off: a low rank limits how much new behaviour the adapter can learn."
+## The new problem (cliffhanger)
+On paper the numbers are tiny. Does it work on a real model with a real training loop? Next: [step 05, LoRA fine-tuning with peft](../05_lora_peft_finetune/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** LoRA freezes the pretrained weight matrix and learns its change as the product of two thin matrices, W equals W0 plus B times A, where the rank r is small. That trains about one percent of the parameters or less, and B starts at zero so training begins from the original model. After training I can merge B times A into W0 so inference costs nothing extra.

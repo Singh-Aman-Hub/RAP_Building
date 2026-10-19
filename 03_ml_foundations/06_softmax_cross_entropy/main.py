@@ -13,7 +13,7 @@ import torch
 import torch.nn.functional as F
 
 # A model outputs raw scores called LOGITS, one per class. Classes: ["cat", "dog", "bird"].
-logits = np.array([2.0, 1.0, 0.1])
+logits = np.array([2.0, 1.0, 0.1])                        # shape: (3,) = (n_classes,)
 
 
 def softmax(z, temperature=1.0):
@@ -24,7 +24,7 @@ def softmax(z, temperature=1.0):
     return e / e.sum()
 
 
-probs = softmax(logits)
+probs = softmax(logits)                                 # shape: (3,)
 print("softmax:", probs.round(3), "sum =", probs.sum())
 
 # Cross-entropy: -log(probability the model gave to the CORRECT class). Confident & right => ~0, confident & wrong => huge.
@@ -34,7 +34,7 @@ print("loss if truth=cat :", round(float(loss), 4))
 print("loss if truth=bird:", round(float(-np.log(probs[2])), 4), "(model gave bird only 10%, so loss is bigger)")
 
 # Same thing in PyTorch. NOTE: F.cross_entropy takes RAW logits (it applies softmax itself) -- a classic bug is to softmax twice.
-torch_loss = F.cross_entropy(torch.tensor(logits).unsqueeze(0), torch.tensor([true_class]))
+torch_loss = F.cross_entropy(torch.tensor(logits).unsqueeze(0), torch.tensor([true_class]))  # logits (1, 3), target (1,)
 print("torch cross_entropy:", round(torch_loss.item(), 4), "(matches numpy)")
 
 # Temperature: low = sharper (more confident), high = flatter (more random)

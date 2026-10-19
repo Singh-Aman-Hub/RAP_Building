@@ -3,7 +3,9 @@
 A step-by-step, hands-on course built around the syllabus in [ML_Engineer_Interview_Preparation.md](ML_Engineer_Interview_Preparation.md).
 Goal: **understand every line of code you use** — explain it, change it, debug it, and rebuild a basic version without AI.
 
-**Start here → [ROADMAP.md](ROADMAP.md)** (what to learn, how to follow the repo, every module and sub-topic with relevance, connections, readiness checks).
+**Read the story → [MASTER_READING_GUIDE.md](MASTER_READING_GUIDE.md)** (25 chapters in 5 acts: every topic is the next chapter of one engineering story).
+
+**Plan and map → [ROADMAP.md](ROADMAP.md)** (what to learn, how to follow the repo, every module and sub-topic with relevance, connections, readiness checks).
 
 ---
 
@@ -45,7 +47,7 @@ See [shared/llm_client.py](shared/llm_client.py) — it is short and worth readi
 | [01_debugging_and_environment](01_debugging_and_environment/) | 9 Debugging without AI | tracebacks, venv, imports, HTTP/Docker errors, broken examples |
 | [02_dsa_arrays_hashmaps](02_dsa_arrays_hashmaps/) | 10 LeetCode | arrays, dicts, strings, patterns, 4-week daily plan |
 | [03_ml_foundations](03_ml_foundations/) | prerequisite (ML basics) | gradient descent, PyTorch loop, sklearn pipeline |
-| [04_llm_fundamentals](04_llm_fundamentals/) | 1 LLM basics | tokenizer, embeddings, attention, logits, generation |
+| [04_llm_fundamentals](04_llm_fundamentals/) | 1 LLM basics | tokenizer, vectors, embeddings, attention, transformer block, logits, generation |
 | [05_llm_parameters](05_llm_parameters/) | 2 LLM parameters | lr/batch/epochs, temperature/top-k/top-p, quantization |
 | [06_llm_training_and_fast_inference](06_llm_training_and_fast_inference/) | 1 (training + inference) | datasets, training loop, LoRA/QLoRA, KV cache, vLLM |
 | [07_prompt_engineering](07_prompt_engineering/) | 4 Prompt engineering | roles, few-shot, JSON, injection, prompt tests |

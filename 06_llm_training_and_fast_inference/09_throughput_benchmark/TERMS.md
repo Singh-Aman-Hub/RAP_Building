@@ -21,8 +21,8 @@ Back to module: [06 README](../README.md)
 
 ## Per-user tokens per second  `(concept)`
 **1. Definition:** Per-user tokens per second is `new_tokens / seconds`: the generation speed one individual request experiences.
-**2. In plain words:** It's the inverse view of latency. It fell from 70.7 to 42.8 as batch size grew to 16.
-**3. Example to quote:** > "Each user's speed dropped from 70.7 to 42.8 tokens per second at batch 16."
+**2. In plain words:** It's the inverse view of latency. In an earlier quiet run it fell from 70.7 to 42.8 as batch size grew to 16; in the latest run it stayed near 35.
+**3. Example to quote:** > "Each user's speed dropped from 70.7 to 42.8 tokens per second at batch 16 in one run (timings vary by machine)."
 **Seen in:** `main.py`
 
 ## Latency–throughput trade-off  `(concept)`

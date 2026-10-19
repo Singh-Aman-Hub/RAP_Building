@@ -1,5 +1,14 @@
 # Step 05 — Task decomposition & chain-of-thought alternatives
 
+## The story so far
+In [step 04](../04_structured_json/) every reply is validated JSON. But a single big prompt ("read this review, find the problem, decide urgency, write a reply") fails as one lump.
+
+## The pain point
+When one prompt does four jobs and the answer is wrong, you cannot see which job failed, and you cannot validate the middle. Asking the model to "think step by step" produces long text that is hard to parse.
+
+## The spark
+Split the task into small prompts whose outputs you validate between stages. For reasoning, request a `reason` field *before* the answer, or sample several answers and vote (self-consistency).
+
 ## Goal
 Break one complicated request into small checkable prompts, and learn two alternatives to "think step by step": a reasoning field and self-consistency voting.
 
@@ -50,5 +59,7 @@ When a multi-stage pipeline gives a wrong final answer, print every intermediate
 - [ ] A reasoning-then-answer JSON prompt.
 - [ ] A vote over N samples.
 
-## Say it aloud
-"Decomposition splits a task into small prompts whose outputs I can validate. Instead of free-form chain-of-thought I can request a reasoning field before the answer, or sample several answers and vote. The trade-off is more calls — more latency and cost — and errors can compound between stages."
+## The new problem (cliffhanger)
+Pipelines multiply the places where outside text enters your prompts. That text can contain instructions of its own, and a clever review can hijack the whole chain. Next: [06_prompt_injection](../06_prompt_injection/).
+
+> **Say it aloud (interview box):** Decomposition splits a hard task into small prompts whose outputs I validate between stages. Alternatives to chain-of-thought are a reasoning field placed before the answer and self-consistency voting over several samples. The trade-offs are more calls, more latency and cost, and errors that can compound across stages.

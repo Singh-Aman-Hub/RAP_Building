@@ -1,5 +1,14 @@
 # Step 04 - `max_new_tokens`, the context window, and the KV cache
 
+## The story so far
+Sampling now gives good text ([step 03](../03_hf_generate_compare/WALKTHROUGH.md)). The next problem is not what the model says but how much it can say, and how much it can read.
+
+## The pain point
+Set `max_new_tokens` too small and answers stop mid-sentence (or leave broken JSON). Feed in a prompt plus answer longer than the model's window and you get an error or silently dropped text. GPT-2 has only 1024 position vectors, so token 1025 has no position at all.
+
+## The spark
+Treat the context window as a budget: prompt tokens plus new tokens must fit. Count tokens first, trim the oldest chat turns (keep the system prompt), and cap the output. Also notice what each token costs: the KV cache grows with every token in the window.
+
 ## Goal
 Know what happens at the edge of the context window, how to trim a prompt safely, and how much memory the KV cache needs.
 
@@ -64,5 +73,7 @@ Remove the trim and run `model(long_ids)`. The traceback's deepest frames are in
 - [ ] Compute KV cache memory by hand for given sizes.
 - [ ] Name two ways to handle prompts longer than the window.
 
-## Say it aloud
-"The context window is the maximum number of tokens the model can attend to, prompt plus output. `max_new_tokens` caps what I generate; if prompt plus output exceeds the window the model fails or must be trimmed, so I keep the most recent tokens and always keep the system prompt. Each token also adds to the KV cache, which grows with context length and batch size and can dominate GPU memory. Trade-off: longer context gives the model more information but increases latency, memory and cost."
+## The new problem (cliffhanger)
+Output is controlled and the window is respected, but the model itself does not fit: distilgpt2 is small, a 7B model in float32 needs 28 GB. How do we squeeze it into the GPU we have? Next: [step 05, quantization](../05_quantization/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** The context window is a hard budget that covers the prompt and the output together, and max_new_tokens only caps the output part. I count tokens first, trim the oldest turns while keeping the system prompt, and expect answers cut mid-sentence if the cap is too small. Every token in the window also costs KV-cache memory, so longer context means more memory and slower generation.

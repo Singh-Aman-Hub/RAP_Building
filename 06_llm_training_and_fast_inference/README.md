@@ -2,13 +2,22 @@
 
 Syllabus topic 1 (second half): dataset preparation, the training loop, LoRA/QLoRA, fast inference (Hugging Face, vLLM) and the latency / throughput / GPU-memory trade-off.
 
+## The story of this module
+Chapters 15 (second half) to 17 of the master story. [Module 05](../05_llm_parameters/07_experiment_logger/WALKTHROUGH.md) gave you dials and a quantized model that fits.
+- **Pain point:** a full fine-tune needs about 16 bytes per parameter (107 GB for a 7B model) and saves a full copy per task; and once the model is tuned, a naive server handles one user at a time and wastes most of its GPU memory on KV-cache reservations.
+- **Spark:** first do the memory arithmetic (step 08). Then freeze the model and learn a low-rank update, `W = W0 + B @ A`, about 1% of the parameters or less (LoRA, QLoRA). For serving, cache keys and values, batch requests, and page the cache like virtual memory (vLLM).
+- **What you build:** dataset prep, a training loop, evaluation and checkpoints, LoRA in NumPy and in peft, an inference benchmark, and a fragmentation simulation (step 11).
+- **Cliffhanger:** the model is tuned and fast, but a raw model only completes text. How do we instruct it? That is Act IV, [07_prompt_engineering](../07_prompt_engineering/).
+
+Reading order for the story: 08 (will it fit?) -> 01-06 (the surgical fine-tune) -> 07, 09, 10, 11 (production speed). Folder numbers are kept; the chain from [05_llm_parameters](../05_llm_parameters/) is 05 -> 06 -> 07_prompt_engineering.
+
 ## 1. Why this matters
 Interviewers ask "how would you fine-tune a model on one GPU?" and "how do you serve it to many users?". You need to *show* a training loop, explain LoRA with numbers, and reason about memory. Everything here runs on a laptop with tiny models; the reasoning is identical for 7B models.
 
 ## 2. Where this fits
 **Builds on**
 - [../03_ml_foundations/](../03_ml_foundations/): the forward -> loss -> backward -> step loop (`04_pytorch_training_loop`), train/validation split and overfitting (`05_overfitting_train_val`), cross-entropy (`06_softmax_cross_entropy`). Step 02 here is the same loop on a language model.
-- [../04_llm_fundamentals/](../04_llm_fundamentals/): the tokenizer (`02_tokenizer`), loading a pretrained model (`04_load_pretrained_model`), logits and next-token prediction (`05_forward_pass_logits`) and the generation loop (`06_generation_loop`). The loss in step 02 is cross-entropy on exactly those logits; `07_pretrain_vs_finetune_vs_inference` is the overview that this module makes concrete.
+- [../04_llm_fundamentals/](../04_llm_fundamentals/): the tokenizer (`01_tokenizer`), loading a pretrained model (`06_load_pretrained_model`), logits and next-token prediction (`07_forward_pass_logits`) and the generation loop (`08_generation_loop`). The loss in step 02 is cross-entropy on exactly those logits; `09_pretrain_vs_finetune_vs_inference` is the overview that this module makes concrete.
 - [../05_llm_parameters/](../05_llm_parameters/): learning rate, batch size, epochs (`06_training_parameters`), generation parameters (`02_sampling_from_scratch`, `03_hf_generate_compare`) and quantization (`05_quantization`). Here they become measured effects: the learning-rate table in step 02, bytes-per-parameter in step 08.
 
 **Leads to**
@@ -31,7 +40,7 @@ raw text ──tokenize──> token IDs ──chunk/pad/mask──> batches (01
                          │                                         │
                          └──────────────┬──────────────────────────┘
                                         v
-                      INFERENCE (07,08,09,10): no_grad, KV cache, batching, dtype
+                      INFERENCE (07,08,09,10,11): no_grad, KV cache, batching, dtype
                       memory = weights + KV cache; latency vs throughput
                       production: vLLM (PagedAttention + continuous batching)
 ```
@@ -49,6 +58,7 @@ raw text ──tokenize──> token IDs ──chunk/pad/mask──> batches (01
 | 8 | [08_gpu_memory_calculator](08_gpu_memory_calculator/) | weights + KV cache + training memory arithmetic | `python main.py` | 45 min |
 | 9 | [09_throughput_benchmark](09_throughput_benchmark/) | measure latency vs throughput | `python main.py` | 45 min |
 | 10 | [10_vllm_reference](10_vllm_reference/) | PagedAttention, continuous batching (read only) | read | 30 min |
+| 11 | [11_paged_attention_fragmentation](11_paged_attention_fragmentation/) | contiguous vs paged KV cache: fragmentation, block table, requests that fit (simulation) | `python main.py` | 30 min |
 
 Total ~9-10 hours including exercises. Each step folder has `main.py` (commented code) and `WALKTHROUGH.md` (syntax, libraries, real output, experiments, debugging drill). Then do [exercises.md](exercises.md).
 Run from the repo root with `.venv/bin/python`, or `cd` into the step and use `python main.py`. Steps 02, 03, 05 write checkpoints/adapters to their own folder (03's is ~330 MB; delete freely).
@@ -63,7 +73,7 @@ Run from the repo root with `.venv/bin/python`, or `cd` into the step and use `p
 | Weights | all learned from random init | start from pretrained, update all (full) or few (LoRA) | frozen |
 | Compute | months on thousands of GPUs | hours on 1-8 GPUs (or 1 with LoRA) | milliseconds-seconds per request |
 | Memory | weights + grads + optimizer | same, or tiny with LoRA | weights + KV cache |
-| In this module | (conceptual) | steps 01-06 | steps 07-10 |
+| In this module | (conceptual) | steps 01-06 | steps 07-11 |
 Trade-off: fine-tuning changes behaviour but not knowledge reliably; for facts use prompting/retrieval (modules 07-08).
 
 ### Dataset preparation and preprocessing (step 01)
@@ -78,13 +88,13 @@ Training loss always falls if you train long enough; **validation loss** tells y
 ### LoRA and QLoRA (steps 04-06)
 Freeze `W`; learn `B (d_out x r)` and `A (r x d_in)`; output `Wx + (alpha/r)·B·A·x`. `B` starts at 0, so training starts at the pretrained model. A 2048x2048 layer: 4.2M vs 32,768 parameters at r=8. Adapters are tiny files, swappable per task, and can be merged. QLoRA stores the frozen base in 4-bit NF4 so a 7B model trains in ~4 GB of weights. Limitation: low rank limits what can be learned; QLoRA adds quantisation error and needs CUDA.
 
-### Fast inference (steps 07-10)
+### Fast inference (steps 07-11)
 - `model.eval()` + `torch.no_grad()`: no gradient memory.
-- **KV cache**: store past keys/values so each step is O(1) new work instead of recomputing the sequence (4.8 s -> 1.5 s measured). Costs memory that grows with length x batch.
+- **KV cache**: store past keys/values so each step is O(1) new work instead of recomputing the sequence (8.5 s -> 3.5 s measured for 100 tokens; the ratio, not the seconds, is the point). Costs memory that grows with length x batch.
 - **Batching**: more tokens per forward pass; throughput up, per-user speed down.
 - **Left padding** for decoder-only models.
 - **Lower precision** (bf16, int8, int4): smaller and often faster, slight quality loss.
-- **vLLM**: PagedAttention + continuous batching for production serving.
+- **vLLM**: PagedAttention + continuous batching for production serving. Step 11 simulates why: contiguous reservations waste about 85% of the KV budget, paged blocks about 2%, so about 6.6x more requests fit.
 
 ### Latency, throughput and GPU memory
 - Latency: time for one request. Throughput: tokens/s for the whole system. Memory: weights + KV cache + overhead.
@@ -123,7 +133,7 @@ Freeze `W`; learn `B (d_out x r)` and `A (r x d_in)`; output `Wx + (alpha/r)·B�
 7. **Explain LoRA.** Freeze W, add trainable low-rank `B·A` scaled by alpha/r; B initialised to zero. ~0.2% of the parameters; adapter files are MBs; merge for zero inference overhead. Limitation: rank bounds capacity.
 8. **What do `r`, `lora_alpha`, `target_modules` mean?** Rank/capacity; scaling (update × alpha/r); which layers get adapters (names depend on architecture).
 9. **What is QLoRA?** LoRA trained over a frozen 4-bit (NF4, double-quantised) base with paged optimizers; 7B fits in ~4 GB of weights. Cost: some quantisation error, slower, CUDA only.
-10. **What is the KV cache?** Stored keys/values of past tokens so each new token only computes its own; without it every step reprocesses everything (measured 4.8 s vs 1.5 s). Cost: memory proportional to layers x kv_heads x head_dim x tokens x batch.
+10. **What is the KV cache?** Stored keys/values of past tokens so each new token only computes its own; without it every step reprocesses everything (measured 8.5 s vs 3.5 s). Cost: memory proportional to layers x kv_heads x head_dim x tokens x batch.
 11. **Why left-pad for generation?** The model continues from the last position; right padding makes it continue from pad tokens.
 12. **Latency vs throughput?** Latency = one request's time; throughput = tokens/s overall. Batching raises throughput and per-request latency slightly (measured x9.7 throughput for x1.6 latency at batch 16). Trade-off depends on the product.
 13. **Will a 7B model fit on a 16 GB GPU?** fp16 weights ~14 GB leave little room for KV cache; int8 ~7 GB or int4 ~3.5 GB fit comfortably; training requires LoRA/QLoRA.

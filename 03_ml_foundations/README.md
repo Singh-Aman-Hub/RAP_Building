@@ -1,5 +1,8 @@
 # 03 — ML Foundations (the bridge to LLMs)
 
+## The story of this module
+**Pain point:** a normal program needs rules you write by hand, and nobody can write the rule for "is this review positive?". **Spark:** hold data as arrays (01), let gradient descent find the numbers (02), let autograd compute the gradients (03) and package the whole thing as the five-line loop (04: forward, loss, `zero_grad`, backward, step), the *universal training loop* that later fine-tunes an LLM. **Along the way:** the loop can memorise instead of learn, so we watch validation (05); scores become decisions with softmax and cross-entropy (06) and are judged honestly with metrics (07). **What you build:** a TF-IDF text classifier you train, save, load and test (08). **Cliffhanger:** it works, but `king` and `queen` are unrelated columns (cosine 0.0) and `dog bites man` equals `man bites dog` (`08/flaw_demo.py`). We need a better way to represent text, and first a way to feed raw text in at all: [../04_llm_fundamentals/](../04_llm_fundamentals/) (start with [BRIDGE_FROM_03.md](../04_llm_fundamentals/BRIDGE_FROM_03.md)).
+
 ## Why this matters
 An LLM is "just" a very large model trained with the loop you write here. If you can explain loss, learning rate, batch size, epochs, overfitting, softmax and a PyTorch training loop on a 3-parameter model, then LoRA, temperature and fine-tuning later are small extensions, not magic. Interviewers also ask for a simple end-to-end pipeline (train → save → load → serve), which step 08 gives you.
 
@@ -44,7 +47,7 @@ An LLM is "just" a very large model trained with the loop you write here. If you
 | 05 | [05_overfitting_train_val](05_overfitting_train_val/) | train vs validation, overfitting | `python main.py` | 45 min |
 | 06 | [06_softmax_cross_entropy](06_softmax_cross_entropy/) | logits → probabilities, loss | `python main.py` | 45 min |
 | 07 | [07_metrics](07_metrics/) | accuracy/precision/recall/F1 | `python main.py` | 45 min |
-| 08 | [08_sklearn_text_classifier](08_sklearn_text_classifier/) | pipeline, joblib save/load, predict, pytest | `python train.py` then `python predict.py "great food"` | 90 min |
+| 08 | [08_sklearn_text_classifier](08_sklearn_text_classifier/) | pipeline, joblib save/load, predict, pytest, and the TF-IDF flaw | `python train.py`, `python predict.py "great food"`, then `python flaw_demo.py` | 100 min |
 
 ## Explanations
 - **What is ML?** Instead of writing rules, you give examples (X, y) and let an algorithm find parameters that map X to y. *Limit:* it generalises only to data like what it saw.
@@ -56,6 +59,7 @@ An LLM is "just" a very large model trained with the loop you write here. If you
 - **Overfitting:** memorising noise. Detect by validation loss rising while train loss falls.
 - **Softmax and cross-entropy:** scores → probabilities → penalty for low probability on the truth.
 - **Metrics:** accuracy can lie on imbalanced data; precision/recall/F1 say what kind of errors.
+- **TF-IDF's flaw:** every word is its own column (king vs queen cosine 0.0) and order is lost; `flaw_demo.py` prints the proof. This motivates tokenizers and embeddings in module 04.
 - **Serialization:** `joblib.dump` the *whole* pipeline (vectorizer + model); a model without its preprocessing is useless.
 
 ## Common mistakes & gotchas

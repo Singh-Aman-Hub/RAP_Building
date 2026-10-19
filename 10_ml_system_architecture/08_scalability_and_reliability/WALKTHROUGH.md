@@ -1,5 +1,14 @@
 # Step 08 — Scalability, latency and reliability
 
+## The story so far
+Step 07 told us when the service is slow or failing. The natural next question is what to do when more users arrive than one process can handle.
+
+## The pain point
+Traffic doubles and latency climbs, queues grow without bound, retries pile on, and a small overload becomes an outage.
+
+## The spark
+Climb a ladder of answers: measure, cache, batch, add workers and replicas, then protect with timeouts, bounded queues and load shedding. Size with Little's Law.
+
 ## Goal
 Learn the standard answers to "what happens when requests increase or latency rises?": cache, scale out, queue and shed load, time out and retry, and size capacity with arithmetic — then confirm with a load test.
 
@@ -84,5 +93,8 @@ Load test shows `errors=...` > 0? Read the exception class: `ReadTimeout` (serve
 - [ ] Calculate workers needed for 100 req/s at 150 ms.
 - [ ] List 5 things you'd do if p95 latency doubled.
 
+## The new problem (cliffhanger)
+Scaling handles more of the same traffic, but not different traffic: the data itself can change under a model that scales perfectly. Next: [09_drift_monitoring](../09_drift_monitoring/).
+
 ## Say it aloud
-"If traffic grows I first measure, then cache, batch and shrink the model, then add workers and replicas behind a load balancer with autoscaling. I add timeouts, bounded queues and load shedding so overload degrades gracefully instead of cascading, and I size capacity with Little's Law: in-flight requests equal arrival rate times latency. Trade-offs: caching can serve stale answers, retries can amplify an outage, and every extra replica costs memory and money."
+> **Say it aloud (interview box):** If traffic grows I first measure, then cache, batch and shrink the model, then add workers and replicas behind a load balancer with autoscaling. I add timeouts, bounded queues and load shedding so overload degrades gracefully, and I size capacity with Little's Law, where in-flight requests equal arrival rate times latency. The costs are that caching can serve stale answers, retries can amplify an outage, and every replica costs memory and money.

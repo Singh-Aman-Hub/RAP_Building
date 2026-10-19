@@ -98,8 +98,8 @@ reloaded = AutoModelForCausalLM.from_pretrained(CKPT_DIR).to(device).eval()
 model.eval()
 probe = tokenizer("Ticket: How do I sign out? Reply:", return_tensors="pt").to(device)
 with torch.no_grad():
-    a = model(**probe).logits
-    b = reloaded(**probe).logits
+    a = model(**probe).logits   # shape: (1, seq_len, 50257)
+    b = reloaded(**probe).logits   # shape: (1, seq_len, 50257)
 print("max difference between original and reloaded logits:", (a - b).abs().max().item())
 
 # The lower-level PyTorch way: only the weights dictionary (you must rebuild the architecture yourself).

@@ -1,5 +1,14 @@
 # Step 03 - Streamlit as an API client (loading and error states)
 
+## The story so far
+[Step 02](../02_streamlit_model_state_uploads/WALKTHROUGH.md) kept the model inside the UI. The real system has a separate API ([module 09](../../09_api_development/)), so the UI must become a client.
+
+## The pain point
+A UI that loads its own model duplicates it per user and cannot be scaled or updated alone. Once it calls an API instead, new things can fail: the API is down, slow, or rejects the input, and a raw traceback in the browser helps nobody.
+
+## The spark
+Make the UI a thin client: `requests.post` with a timeout, `st.spinner` while waiting, and one clear message per failure (`ConnectionError`, `Timeout`, HTTP 422). For long LLM answers the API can stream tokens over SSE ([09 step 10](../../09_api_development/10_streaming_sse/)); a UI would then show them as they arrive instead of after a long wait.
+
 ## Goal
 Separate UI from model: the UI sends HTTP requests to the API from [module 09](../../09_api_development/) (or the mock) and handles every way that can go wrong.
 
@@ -49,5 +58,8 @@ Always distinguish "UI bug" from "API bug": test the API alone with `curl -X POS
 - [ ] POST JSON and handle ConnectionError, Timeout, HTTPError.
 - [ ] Explain why a timeout is mandatory.
 
+## The new problem (cliffhanger)
+The function works but the page is one long column that looks like a prototype. Next: [step 04, layout and style](../04_streamlit_layout_style/WALKTHROUGH.md).
+
 ## Say it aloud
-"The UI is a thin client: it validates input, calls the prediction API with a timeout, shows a spinner, and maps each failure to a clear message. That keeps the model deployable and scalable separately from the UI. Trade-off: an extra network hop adds latency and a new failure mode."
+> **Say it aloud (interview box):** The UI is a thin client: it validates input, calls the prediction API with a timeout, shows a spinner, and maps each failure to a clear message. That keeps the model deployable and scalable separately from the UI. The trade-off is an extra network hop, which adds latency and a new failure mode.

@@ -40,6 +40,7 @@ Change ONE thing at a time; predict, then run. Worked answers: [solutions/](solu
 
 ## Step 07 — safety
 - **Modify:** add a `list_files` tool (read-only) limited to the sandbox; add a max write size of 1000 chars.
+- **Trace it:** call `read_file('/etc/passwd')` directly (not through the gate) inside `try/except`, print `traceback.format_exc()`, and name the line that refused it. Then call `guarded_execute('run_shell', {}, 'read_write', deny_all)` and explain why no check was needed.
 - **Break it:** remove `is_relative_to` temporarily and run `../../.env`; then fix it.
 - **Rebuild:** `safe_path` and `guarded_execute`.
 - **Explain aloud:** why is a sandbox folder not a security boundary?

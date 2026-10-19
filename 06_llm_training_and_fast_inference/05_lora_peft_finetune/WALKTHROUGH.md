@@ -1,5 +1,14 @@
 # Step 05 — LoRA fine-tuning with `peft`
 
+## The story so far
+[Step 04](../04_lora_math_numpy/WALKTHROUGH.md) proved the idea on one matrix in NumPy. Real models have dozens of matrices, and nobody wants to write the plumbing by hand.
+
+## The pain point
+Hand-wiring low-rank layers into every attention projection of a real model is slow and error-prone. You must also freeze the base, give the optimizer only the new parameters, and later save and load just the adapter.
+
+## The spark
+Let `peft` do it: `LoraConfig(r, alpha, target_modules)` plus `get_peft_model` wraps the chosen layers, freezes the rest and leaves about 0.18% of the parameters trainable. Train with the same loop as step 02, save a 0.6 MB adapter, reload it, merge it.
+
 ## Goal
 Fine-tune distilgpt2 by training only ~0.18% of the parameters, save just the adapter, reload it and merge it.
 
@@ -66,5 +75,7 @@ Fix by listing real layer names: `print([n for n, _ in base.named_modules()][:20
 - [ ] optimizer over trainable params only; same loop as step 02
 - [ ] `save_pretrained`, reload with `PeftModel.from_pretrained`, `merge_and_unload()`
 
-## Say it aloud
-"LoRA freezes the pretrained weights and adds small low-rank matrices to chosen layers, here GPT-2's attention projection, so I train 147 thousand parameters instead of 82 million. The adapter is 0.6 megabytes, I can keep one base model and swap adapters per task, and I can merge it into the weights for deployment so inference has no overhead. Trade-off: rank and target modules limit how much it can learn, and for large behaviour changes full fine-tuning can still do better."
+## The new problem (cliffhanger)
+The adapter trains on a laptop. For a 7B model the frozen base weights still take 14 GB in float16, more than a small GPU holds. Compress the frozen part: [step 06, QLoRA](../06_qlora_reference/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** With peft I wrap the attention layers in LoRA adapters, freeze the base model, and train only about 0.2 percent of the parameters with the same loop as before. The result is a tiny adapter file that I can load on top of the base model or merge into it. One base model can then serve many tasks, each with its own small adapter.

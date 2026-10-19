@@ -1,5 +1,14 @@
 # Step 05 — Overfitting and validation
 
+## The story so far
+Step 04's loop drove the loss down on a simple linear rule, and validation loss followed. That is the happy case. Chapter 4 shows the unhappy one.
+
+## The pain point
+A flexible model can reach near-zero training error by memorising the noise in the examples. The training loss looks perfect, yet on new data the predictions are wild. If you only watch training loss, you ship a model that fails in production.
+
+## The spark
+Hold out data the model never trains on and compare the two errors. Training error falling while validation error rises is the signature of memorising. Fixes follow from the cause: more data, a simpler model, regularisation, dropout, early stopping.
+
 ## Goal
 Read train vs validation error to detect underfitting, good fit and overfitting.
 
@@ -47,5 +56,8 @@ Evaluating "validation" on `x_train` gives a tiny gap and false confidence: **da
 - [ ] List 4 remedies.
 - [ ] Explain early stopping.
 
+## The new problem (cliffhanger)
+Now we can tell memorising from learning, but so far every task output a single number. Real tasks need a decision: "which class, and how sure are you?" Raw scores are not probabilities. Next: [06_softmax_cross_entropy](../06_softmax_cross_entropy/).
+
 ## Say it aloud
-"Overfitting is when the model memorises training noise: training loss keeps dropping but validation loss rises. I detect it by comparing the two. Fixes: more data, a simpler model, regularisation, dropout, early stopping. This is why fine-tuning an LLM on a tiny dataset for many epochs hurts."
+> **Say it aloud (interview box):** Overfitting is when a model memorises training noise, so training loss keeps falling while validation loss rises. I detect it by comparing the two, and I fix it with more data, a simpler model, regularisation, dropout or early stopping. It is why fine-tuning an LLM on a tiny dataset for many epochs makes it worse, not better.

@@ -1,5 +1,14 @@
 # Step 07 — Fast inference with Hugging Face: no_grad, KV cache, batching, dtype
 
+## The story so far
+Chapter 17, Production Speed. The surgical fine-tune of [step 06](../06_qlora_reference/WALKTHROUGH.md) gave you a model that knows your task. Now users arrive, and each of them is waiting.
+
+## The pain point
+Plain generation is slow in three ways. It tracks gradients it never uses, it recomputes keys and values for the whole sequence at every new token, and it serves one request while the GPU is mostly idle. Batch with the wrong padding side and the output is garbage.
+
+## The spark
+Use `torch.no_grad`, keep the KV cache (store each token's K,V so only the new token is computed), and batch several prompts with left padding. Measure each change: the cache alone cut 100 tokens from 8.5 s to 3.5 s in this step (timings vary with machine load; earlier runs measured 4.8 s versus 1.5 s).
+
 ## Goal
 Measure (not just read about) what makes generation fast, and avoid the classic padding bug.
 
@@ -32,9 +41,9 @@ python main.py       # ~30 s, CPU on purpose
 
 ## Execution trace (real run)
 - `parameters: 81.9M | fp32 size 328 MB | bf16 size 164 MB` — bytes/param x number of params = memory for weights.
-- **KV cache:** 100 new tokens: `use_cache=True` **1.5 s**, `use_cache=False` **4.8 s**. Without the cache every step re-processes the whole sequence.
+- **KV cache:** 100 new tokens: `use_cache=True` **3.5 s**, `use_cache=False` **8.5 s**. Without the cache every step re-processes the whole sequence.
 - **Padding side:** with right padding the short prompt continues as `'Hello, my name is\n\n\n\n\n\n\n\n'` (it continued from padding; transformers also prints a warning). With left padding: `'Hello, my name is J.J.K. Rowling.'`.
-- **Batching:** 4 prompts one by one **2.8 s** vs as one batch **0.6 s**.
+- **Batching:** 4 prompts one by one **4.3 s** vs as one batch **1.2 s**.
 - **dtype:** bf16 weights report `torch.bfloat16`, 2 bytes/param.
 
 ## Experiments (change ONE thing)
@@ -51,5 +60,7 @@ Right padding gives *no traceback* — only odd output and a one-line warning. H
 - [ ] time with `perf_counter`, warm up first
 - [ ] explain cache on/off and batching results
 
-## Say it aloud
-"For fast inference I put the model in eval mode, disable gradients, keep the KV cache on so each new token only computes its own keys and values, and batch prompts so the GPU does more useful work per pass. For decoder-only models I pad on the left. I can also load weights in bf16 or int8 to cut memory. Trade-off: the KV cache and batches cost memory and larger batches raise each user's latency."
+## The new problem (cliffhanger)
+Batching and the cache help, but how much? Speed has two faces, latency for one user and throughput for the whole system, and they pull against each other. Measure them: [step 09, throughput benchmark](../09_throughput_benchmark/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** I turn off gradient tracking, keep the KV cache so each new token only computes its own keys and values, and batch prompts with left padding for decoder-only models. The cache trades memory for speed, and batching trades per-user speed for total throughput. I measure each change instead of assuming it helps.

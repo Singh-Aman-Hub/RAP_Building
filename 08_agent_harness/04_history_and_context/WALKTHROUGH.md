@@ -1,5 +1,14 @@
 # Step 04 — Conversation history and context-window limits
 
+## The story so far
+In [step 03](../03_tool_registry_and_validation/) calls are checked, so the agent can run long. Every step appends two messages.
+
+## The pain point
+The whole list is resent on every call. It gets slower and more expensive, and past the context window the call fails or the oldest facts are silently cut.
+
+## The spark
+Budget the history: estimate tokens, always keep the first user message, keep the newest messages, and summarise or drop the middle.
+
 ## Goal
 Stop history from growing past the model's context window by estimating tokens, truncating and summarising.
 
@@ -50,5 +59,7 @@ If the agent "forgets" a fact, print the exact `messages` list sent on that call
 ## Rebuild checklist
 - [ ] `estimate_tokens`. [ ] `truncate` keeping first + newest. [ ] `summarise_and_trim`. [ ] A check before each call.
 
-## Say it aloud
-"A model can only read a fixed context window, and cost and latency grow with it. When the history approaches the budget I truncate (cheap, but forgets — so I pin the first message) or summarise older turns with an extra model call (keeps meaning, can distort details). I check the size before every call."
+## The new problem (cliffhanger)
+Trimming forgets old turns for good, and every run starts from a blank list. The agent cannot remember that your name is Asha tomorrow. Next: [05_memory](../05_memory/).
+
+> **Say it aloud (interview box):** The whole message list is resent on every call, so I estimate its token count and trim it to a budget. I keep the first user message and the newest turns, and summarise or drop the middle. Trimming is lossy, so anything that must survive goes into memory instead.

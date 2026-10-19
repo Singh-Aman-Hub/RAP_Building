@@ -1,5 +1,14 @@
 # Step 05 - Quantization
 
+## The story so far
+Chapter 15, Squeezing into VRAM. Chapter 14 gave you good output from a small model; scale it up and the first wall you hit is memory, as [step 04](../04_max_new_tokens_and_context_window/WALKTHROUGH.md) hinted.
+
+## The pain point
+Float32 spends 4 bytes on every weight. A 7B model needs 28 GB just for weights, more than almost any single GPU. Most of that precision is wasted: the model works nearly as well with far fewer bits.
+
+## The spark
+Store each weight as a small integer plus a scale factor: `int8 = round(w / scale)`. That is 4x smaller (float16 is 2x, int4 is 8x). One huge outlier weight stretches the scale and ruins the rest, so scale per small group of weights instead of per tensor.
+
 ## Goal
 Shrink float32 weights to int8/int4 by hand, measure memory saved and accuracy lost, and learn why group-wise scaling matters.
 
@@ -81,5 +90,7 @@ Remove `np.clip`: values near the extremes can round outside -127..127 and `asty
 - [ ] Explain outliers and why groups help.
 - [ ] Explain the accuracy vs memory vs speed trade-off in two sentences.
 
-## Say it aloud
-"Quantization stores weights in fewer bits, like int8 or int4 instead of float32, using a scale factor to map between them. It cuts memory 4-8x and, because inference is bound by memory bandwidth, usually speeds it up. The cost is rounding error: int8 is almost lossless, while 4-bit needs tricks like group-wise scales because outlier weights otherwise ruin precision. I measured this on distilgpt2: int4 per-tensor loss went from 5.0 to 9.7, group-wise only to 5.1."
+## The new problem (cliffhanger)
+Inference now fits. But we want to teach the model something new, and training needs gradients and optimizer state, 4 to 16 times more memory than the weights alone. First learn the knobs of training: [step 06, training parameters](../06_training_parameters/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** Quantization stores each weight in fewer bits as a small integer times a scale factor, so int8 is 4 times smaller than float32 and int4 is 8 times smaller. A single outlier stretches a per-tensor scale and destroys accuracy, which is why int4 needs group-wise scaling. I always re-measure quality after quantizing, because the memory saving alone proves nothing.

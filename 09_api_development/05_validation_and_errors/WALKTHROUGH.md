@@ -1,5 +1,14 @@
 # Step 05 — Validation, Pydantic and HTTP status codes
 
+## The story so far
+Step 04 showed FastAPI rejecting bad input on its own. Before a real model sits behind this door, we must decide exactly what is allowed in and what the caller is told when it is not.
+
+## The pain point
+A model that receives an empty string, a 10 MB text or a number where text belongs will crash with a 500, waste compute, or answer nonsense. A bare 500 also tells the client nothing about what to fix.
+
+## The spark
+Validate at the door (type, range, size) with Pydantic, and pick the status code by who is at fault: 4xx means the client must change something, 5xx means we broke.
+
 ## Goal
 Compare hand-written validation (Flask) with Pydantic (FastAPI) and choose the right status code.
 
@@ -77,5 +86,8 @@ Change `min_length=1` to `min_length="1"`: Pydantic fails at **import time** (a 
 - [ ] Write a Pydantic model with 2 constrained fields.
 - [ ] List which codes you'd return for: bad JSON, missing field, unknown route, wrong verb, crash.
 
+## The new problem (cliffhanger)
+The API is safe on toy items. Now it must serve a real model, which is big, slow to load, and must not be loaded on every request. Next: [06_model_api_flask_vs_fastapi](../06_model_api_flask_vs_fastapi/).
+
 ## Say it aloud
-"Never trust input: validate type, range and size before it reaches the model. Pydantic does that declaratively and FastAPI returns a 422 listing every bad field; in Flask I validate by hand or add Pydantic myself. I return 4xx when the client is wrong and 5xx when I am. Trade-off: strict validation rejects some borderline inputs, so error messages must be clear."
+> **Say it aloud (interview box):** I never trust input, so I validate type, range and size before it reaches the model, and Pydantic does that declaratively. I return a 4xx when the client is wrong and a 5xx when I am, with a clear error message. The cost is that strict validation rejects some borderline inputs, so the messages must tell the caller how to fix them.

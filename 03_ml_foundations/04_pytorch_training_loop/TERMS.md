@@ -3,7 +3,7 @@
 Folder: `03_ml_foundations/04_pytorch_training_loop` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [ML foundations README](../README.md)
 
-**Terms in this folder:** [Training loop (PyTorch standard)](#training-loop-pytorch-standard--concept) · [torch.manual_seed()](#torchmanual_seed--third-party-torch) · [torch.randn() and unsqueeze()](#torchrandn-and-unsqueeze--third-party-torch) · [Dataset (TensorDataset)](#dataset-tensordataset--third-party-torch) · [random_split()](#random_split--third-party-torch) · [DataLoader](#dataloader--third-party-torch) · [Batch (`xb`, `yb`)](#batch-xb-yb--concept) · [nn.Module](#nnmodule--third-party-torch) · [super().__init__()](#super__init__--syntax) · [Class inheritance](#class-inheritance--syntax) · [nn.Linear](#nnlinear--third-party-torch) · [forward()](#forward--third-party-torch) · [Loss function (nn.MSELoss)](#loss-function-nnmseloss--third-party-torch) · [Optimizer (SGD / Adam)](#optimizer-sgd--adam--third-party-torch) · [model.parameters() and numel()](#modelparameters-and-numel--third-party-torch) · [optimizer.zero_grad()](#optimizerzero_grad--third-party-torch) · [optimizer.step()](#optimizerstep--third-party-torch) · [model.train() and model.eval()](#modeltrain-and-modeleval--third-party-torch) · [Validation loss](#validation-loss--concept) · [Weighted average of batch losses](#weighted-average-of-batch-losses--concept) · [Tuple unpacking in loops](#tuple-unpacking-in-loops--syntax) · [Generator expression inside sum()](#generator-expression-inside-sum--syntax) · [Overfitting check via train vs validation](#overfitting-check-via-train-vs-validation--concept)
+**Terms in this folder:** [Training loop (PyTorch standard)](#training-loop-pytorch-standard--concept) · [torch.manual_seed()](#torchmanual_seed--third-party-torch) · [torch.randn() and unsqueeze()](#torchrandn-and-unsqueeze--third-party-torch) · [Dataset (TensorDataset)](#dataset-tensordataset--third-party-torch) · [random_split()](#random_split--third-party-torch) · [DataLoader](#dataloader--third-party-torch) · [Batch (`xb`, `yb`)](#batch-xb-yb--concept) · [nn.Module](#nnmodule--third-party-torch) · [super().__init__()](#super__init__--syntax) · [Class inheritance](#class-inheritance--syntax) · [nn.Linear](#nnlinear--third-party-torch) · [forward()](#forward--third-party-torch) · [Loss function (nn.MSELoss)](#loss-function-nnmseloss--third-party-torch) · [Optimizer (SGD / Adam)](#optimizer-sgd--adam--third-party-torch) · [model.parameters() and numel()](#modelparameters-and-numel--third-party-torch) · [optimizer.zero_grad()](#optimizerzero_grad--third-party-torch) · [optimizer.step()](#optimizerstep--third-party-torch) · [model.train() and model.eval()](#modeltrain-and-modeleval--third-party-torch) · [Validation loss](#validation-loss--concept) · [Weighted average of batch losses](#weighted-average-of-batch-losses--concept) · [Tuple unpacking in loops](#tuple-unpacking-in-loops--syntax) · [Generator expression inside sum()](#generator-expression-inside-sum--syntax) · [Overfitting check via train vs validation](#overfitting-check-via-train-vs-validation--concept) · [Universal training loop](#universal-training-loop--concept)
 
 ---
 
@@ -194,3 +194,11 @@ optimizer.zero_grad(); loss.backward(); optimizer.step()
 > "I watch both losses. If validation loss rises while training loss falls, I stop early or simplify the model."
 
 **Seen in:** `main.py`, epoch print
+
+## Universal training loop  `(concept)`
+**1. Definition:** The five-line sequence inside every PyTorch training step: forward (`model(x)`), loss (`loss_fn`), `optimizer.zero_grad()`, `loss.backward()`, `optimizer.step()`.
+**2. In plain words:** Only the model, the data and the loss change between projects. The same five lines train a 3-parameter line fit and, later, fine-tune an LLM.
+**3. Example to quote:**
+> "Fine-tuning an LLM is the same five-line loop as my linear model, just with a bigger model and a text loss."
+
+**Seen in:** `main.py`, the inner `for xb, yb in train_loader` loop

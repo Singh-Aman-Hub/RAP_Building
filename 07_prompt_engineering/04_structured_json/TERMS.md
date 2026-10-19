@@ -3,7 +3,7 @@
 Folder: `07_prompt_engineering/04_structured_json` · Files covered: `main.py`, `WALKTHROUGH.md` (uses `../../shared/llm_client.py`)
 Back to module: [07 Prompt engineering README](../README.md)
 
-**Terms in this folder:** [Structured output](#structured-output) · [JSON (JavaScript Object Notation)](#json-javascript-object-notation) · [json.loads](#jsonloads) · [extract_json](#extract_json) · [Schema](#schema) · [Validation](#validation) · [Hand-written validator (validate_by_hand)](#hand-written-validator-validate_by_hand) · [isinstance](#isinstance) · [Set difference](#set-difference) · [pydantic](#pydantic) · [BaseModel](#basemodel) · [Literal (typing)](#literal-typing) · [Field (pydantic)](#field-pydantic) · [model_validate](#model_validate) · [model_dump](#model_dump) · [ValidationError](#validationerror) · [Retry with error feedback](#retry-with-error-feedback) · [Bounded loop (range(1, max_attempts + 1))](#bounded-loop-range1-max_attempts--1) · [except with a tuple of exceptions](#except-with-a-tuple-of-exceptions) · [Scripted MockLLM](#scripted-mockllm) · [RuntimeError (fail loudly)](#runtimeerror-fail-loudly) · [JSONDecodeError](#jsondecodeerror)
+**Terms in this folder:** [Structured output](#structured-output) · [JSON (JavaScript Object Notation)](#json-javascript-object-notation) · [json.loads](#jsonloads) · [extract_json](#extract_json) · [Schema](#schema) · [Validation](#validation) · [Hand-written validator (validate_by_hand)](#hand-written-validator-validate_by_hand) · [isinstance](#isinstance) · [Set difference](#set-difference) · [pydantic](#pydantic) · [BaseModel](#basemodel) · [Literal (typing)](#literal-typing) · [Field (pydantic)](#field-pydantic) · [model_validate](#model_validate) · [model_dump](#model_dump) · [ValidationError](#validationerror) · [Retry with error feedback](#retry-with-error-feedback) · [Bounded loop (range(1, max_attempts + 1))](#bounded-loop-range1-max_attempts--1) · [except with a tuple of exceptions](#except-with-a-tuple-of-exceptions) · [Scripted MockLLM](#scripted-mockllm) · [RuntimeError (fail loudly)](#runtimeerror-fail-loudly) · [JSONDecodeError](#jsondecodeerror) · [err.errors() and feedback_from](#errerrors-and-feedback_from)
 
 ---
 
@@ -234,3 +234,13 @@ isinstance(1, (int, float))   # True
 > "`json.loads(\"{'label': 'x'}\")` gives 'Expecting property name enclosed in double quotes: line 1 column 2'."
 
 **Seen in:** `main.py` BREAK IT comment; `WALKTHROUGH.md` debugging practice.
+
+## err.errors() and feedback_from
+*Type: third-party: pydantic v2 / project function*
+
+**1. Definition:** `ValidationError.errors()` returns a list of dicts, one per failing field, with `loc` (field path), `msg` and the bad `input`. `feedback_from(err)` joins them into one short instruction for the model.
+**2. In plain words:** The raw error is for humans; the retry message should say only which field is wrong and what is allowed. That is what makes the second attempt succeed.
+**3. Example to quote:**
+> "My retry message says `label: Input should be 'positive', 'negative', 'neutral' or 'unknown'`, so the model knows exactly what to fix."
+
+**Seen in:** `main.py`, `feedback_from` and `classify_json`.

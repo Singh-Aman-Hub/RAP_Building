@@ -61,5 +61,12 @@ Rules: change ONE thing at a time, predict the result before running, write down
 - **Rebuild:** write the timing loop with warm-up from memory.
 - **Explain aloud:** latency vs throughput with your own measured numbers.
 
+## Step 11 — PagedAttention fragmentation (simulation)
+- **Modify:** set `BLOCK_SIZE = 128`, then `1`. Predict which direction the waste in section A moves first.
+- **Modify:** change `MAX_LEN` to 4096. Which allocator suffers more, and why?
+- **Break it:** make `PagedAllocator.free` forget to return blocks and read the error.
+- **Rebuild:** write the free-stack allocator and the block table from memory, then re-create the A) numbers.
+- **Explain aloud:** internal vs external fragmentation, and what the block table does, in three sentences.
+
 ## Integration challenge
 Take your LoRA-adapted model from step 05, load it with `PeftModel.from_pretrained`, merge it, save it with `save_pretrained`, and time `generate` before and after merging (hint: adapter on = a little extra work per layer). Write 5 lines on what you measured.

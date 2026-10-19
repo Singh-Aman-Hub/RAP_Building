@@ -1,5 +1,14 @@
 # Step 03 - Compare with Hugging Face `generate()`
 
+## The story so far
+[Step 02](../02_sampling_from_scratch/WALKTHROUGH.md) gave you a hand-written sampler. It looks plausible, but plausible is not proof, and in production you will call `model.generate()` rather than your own loop.
+
+## The pain point
+A home-made sampler can hide bugs: a wrong order of operations or an off-by-one in top-p still produces fluent-looking text. You also need to know that `generate()` is not magic before you trust it.
+
+## The spark
+Feed the same logits through your functions and through the library's `LogitsWarper` classes and compare the tensors. If they are equal, `generate()` is just your maths. Then change one argument at a time in `generate()` and watch the output change.
+
 ## Goal
 Prove your sampler matches the library's, then drive `model.generate()` from `config.json` and compare outputs changing ONE parameter at a time.
 
@@ -61,5 +70,7 @@ repetition_penalty=1.3: ' it too, but that's not what we do here in the city of 
 - [ ] Explain why the seed must be fixed when comparing settings.
 - [ ] Say which `generate` arguments correspond to your step 02 functions.
 
-## Say it aloud
-"`generate()` is the decoding loop plus the same temperature, top-k, top-p and repetition-penalty logic I wrote by hand - I verified that the processed distributions match. To compare settings fairly I fix the seed and change one parameter per run. Trade-off: sampling settings are task-dependent; there is no universally best value, and results from a small model don't automatically transfer to a large one."
+## The new problem (cliffhanger)
+Sampling is understood and verified. But every request also has a length limit that cuts the answer, and an invisible ceiling on prompt plus answer. Next: [step 04, max_new_tokens and the context window](../04_max_new_tokens_and_context_window/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** I checked my temperature, top-k and top-p functions against the library's logits warpers and the tensors matched, so generate has no hidden magic. With the same seed, changing one argument at a time shows exactly which setting causes which change. That discipline of one change, fixed seed, compare outputs is how I tune generation in practice.

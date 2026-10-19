@@ -1,5 +1,14 @@
 # Step 06 — Error handling and retries
 
+## The story so far
+In [step 05](../05_memory/) the agent has tools and memory, and every one of them can fail.
+
+## The pain point
+A flaky API times out, the model wraps JSON in prose, a tool raises `ZeroDivisionError`. A single uncaught exception kills the run, and a naive retry loop can spin forever.
+
+## The spark
+Classify failures. Retry transient ones (network) with capped exponential backoff; repair bad JSON by telling the model what was wrong; turn tool exceptions into observations; and always cap attempts and steps.
+
 ## Goal
 Survive flaky networks, malformed model output and failing tools without crashing or looping forever.
 
@@ -35,6 +44,8 @@ D permanent outage
   A: FAILED: model unavailable after retries (TimeoutError). Try again later.
 ```
 
+(Sleep values contain random jitter, so they differ slightly on every run.)
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|
@@ -68,5 +79,7 @@ Delete the `except RETRYABLE` in `run_agent` and run D: the `TimeoutError` trace
 ## Rebuild checklist
 - [ ] retry with backoff + jitter and retryable-only. [ ] JSON repair with a cap. [ ] errors as observations.
 
-## Say it aloud
-"I retry only transient failures — timeouts, rate limits, 5xx — with exponential backoff and jitter and a hard attempt cap. Invalid JSON gets a bounded repair request. Tool exceptions become observations so the model can adapt. Retrying a permanent error like a 400 just wastes time and money."
+## The new problem (cliffhanger)
+The agent now survives failures, but it will also happily run `delete_file("/")` or read `/etc/passwd` if the model asks. Resilience is not safety. Next: [07_safety_and_permissions](../07_safety_and_permissions/).
+
+> **Say it aloud (interview box):** I separate transient failures, which I retry with capped exponential backoff, from model-output failures, which I repair by feeding the error back, and from tool failures, which I return as observations. Every retry has a hard cap so the agent cannot loop forever or burn money. The goal is that a failure becomes information for the model, not a crash.

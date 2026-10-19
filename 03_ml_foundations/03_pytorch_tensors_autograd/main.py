@@ -12,7 +12,7 @@ import numpy as np
 import torch  # third-party library: tensors + autograd + neural-network building blocks
 
 # --- Tensors ---------------------------------------------------------------
-a = torch.tensor([1.0, 2.0, 3.0])               # create from a Python list
+a = torch.tensor([1.0, 2.0, 3.0])               # shape: (3,) | create from a Python list
 b = torch.zeros(3)                              # 3 zeros
 print("a + 2 =", a + 2, "| a * a =", a * a, "| dtype:", a.dtype, "| shape:", a.shape)
 print("from numpy:", torch.from_numpy(np.array([1.0, 2.0])), "| back:", a.numpy())
@@ -22,13 +22,13 @@ device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is
 print("best available device:", device, "(we use cpu in this module to keep things simple)")
 
 # --- Autograd: PyTorch records operations and can differentiate them -------
-x = torch.tensor([1.0, 2.0, 3.0, 4.0])
+x = torch.tensor([1.0, 2.0, 3.0, 4.0])          # shape: (4,)
 y = torch.tensor([3.0, 5.0, 7.0, 9.0])          # rule: y = 2x + 1
 w = torch.tensor(0.0, requires_grad=True)       # requires_grad=True -> "track me, I'm a parameter"
 bias = torch.tensor(0.0, requires_grad=True)
 
-y_hat = w * x + bias                            # forward pass (builds a computation graph)
-loss = ((y_hat - y) ** 2).mean()                # MSE as a single number
+y_hat = w * x + bias                            # shape: (4,) | forward pass (builds a computation graph)
+loss = ((y_hat - y) ** 2).mean()                # shape: () scalar | MSE as a single number
 print("loss:", loss.item())                     # .item() -> plain Python float
 
 loss.backward()                                 # backward pass: fills w.grad and bias.grad
@@ -39,6 +39,8 @@ error = (0.0 * x + 0.0) - y
 print("by hand   dL/dw =", (2 * (error * x).mean()).item(), " dL/db =", (2 * error.mean()).item())
 
 # --- A manual training loop with autograd ----------------------------------
+# The 5 moves below (forward, loss, clear grads, backward, update) are the UNIVERSAL training loop: step 04 names them, and
+# the same five lines fine-tune an LLM in module 06.
 for step in range(200):
     y_hat = w * x + bias
     loss = ((y_hat - y) ** 2).mean()

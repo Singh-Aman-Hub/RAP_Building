@@ -1,5 +1,14 @@
 # Step 01 — Roles, tasks, instructions (zero-shot) and system vs user
 
+## The story so far
+In [module 05](../../05_llm_parameters/) you learned to control the model (temperature, top-k) and in [module 06](../../06_llm_training_and_fast_inference/) you shrank, tuned and sped it up. But a raw model only *completes text*: give it a sentence and it continues it, whether or not that is what you wanted. This is the start of Act IV: how do we make the model do a job?
+
+## The pain point
+Send a vague prompt like "What do you think of this review?" and you get a chatty paragraph. Your program wanted one word. Free-form replies cannot be compared, counted or fed to the next line of code.
+
+## The spark
+Brief the model like a new intern: say who it is (role), what to do (task) and what the answer must look like (constraints). Put the stable rules in a `system` message and the changing input in the `user` message.
+
 ## Goal
 See that the *wording* of a prompt (role, task, constraints) controls the **shape** of the reply, and learn which text belongs in the `system` prompt vs the `user` message.
 
@@ -53,5 +62,7 @@ Only prompt C returns something your code can use directly (`reply == "negative"
 - [ ] Build `messages` with one user dict.
 - [ ] Loop over 3 prompts and print aligned results.
 
-## Say it aloud
-"Zero-shot means I give instructions but no examples. I put stable rules — role, allowed labels, output format — in the system prompt and the changing input in the user message, and I use temperature 0 for classification so results are repeatable. The trade-off: instructions can still be ignored or misread, so I validate the output instead of trusting it."
+## The new problem (cliffhanger)
+One precise instruction works for easy cases. For tricky ones (sarcasm) the model still misreads, and words alone cannot show it what you mean. What if you *showed* it solved examples? Next: [02_few_shot](../02_few_shot/).
+
+> **Say it aloud (interview box):** Zero-shot means I give instructions but no examples. I put stable rules (role, allowed labels, output format) in the system prompt and the changing input in the user message, at temperature 0 for repeatable results. The trade-off is that instructions can still be misread, so I validate the output instead of trusting it.

@@ -1,5 +1,14 @@
 # Step 03 — Flask fundamentals
 
+## The story so far
+Step 02 gave us the contract, but writing raw `environ` and `send` code for every route is painful. We want to write ordinary functions and let a framework do the plumbing.
+
+## The pain point
+With raw WSGI you check `PATH_INFO` with long if-chains, build header lists, and encode JSON yourself. One typo in a header and the client gets garbage.
+
+## The spark
+Register a function on a route with a decorator, read input from `request`, return a dict and a status code. Flask turns that into a valid WSGI response and gives you a test client for free.
+
 ## Goal
 Build routes, read query/path/JSON input, return JSON with the right status codes, and test without a server.
 
@@ -63,5 +72,8 @@ Delete `global _next_id` and POST: `UnboundLocalError: cannot access local varia
 - [ ] Path parameter route returning 404 for missing.
 - [ ] A test using `test_client()`.
 
+## The new problem (cliffhanger)
+Flask worked, but every check (is `a` a number? is `name` present?) was a hand-written try/except, and nothing documents the API. Next: [04_fastapi_basics](../04_fastapi_basics/).
+
 ## Say it aloud
-"Flask is a small WSGI micro-framework: I register functions on routes with decorators, read input from `request`, and return JSON plus a status code. I can test it in-process with `test_client()`. Trade-off: Flask gives no built-in validation or docs — I write them by hand — and its built-in server is for development only."
+> **Say it aloud (interview box):** Flask is a small WSGI micro-framework where I register functions on routes with decorators, read input from `request`, and return JSON plus a status code. I can test it in-process with `test_client()` without starting a server. Its limit is that validation and docs are all hand-written and the built-in server is for development only.

@@ -1,5 +1,14 @@
 # Step 08 — Tracing and the full agent
 
+## The story so far
+In [step 07](../07_safety_and_permissions/) the agent is guarded. All the pieces from steps 01 to 07 now exist; they just sit in separate folders.
+
+## The pain point
+When an agent misbehaves you only see the final answer. Which prompt did the model see, which tool ran, which call failed, and how long did each take?
+
+## The spark
+Log one JSON line per event (start, model reply, tool call, end) to a JSONL trace, and write a small reader. Put every earlier idea into one readable `agent.py` loop of about 200 lines.
+
 ## Goal
 Record every step to a JSONL trace so the agent can be debugged afterwards, and see all earlier ideas combined in [`agent.py`](agent.py).
 
@@ -25,6 +34,11 @@ Failed tool calls (the first place to look when an agent misbehaves):
   [7be13922] step 1: read_file({'path': '../../.env'}) -> ERROR: permission denied: path '../../.env' is outside the sandbox
   [c13bbf7b] step 1: calculator({'a': 5, 'op': '/', 'b': 0}) -> ERROR: ZeroDivisionError: division by zero
   [4550bf88] step 1: delete_file({'path': 'notes.txt'}) -> ERROR: permission denied: delete_file needs confirmation and was not approved
+```
+
+The one loop everything else guards (see `run` in [`agent.py`](agent.py)):
+```
+Prompt -> LLM call -> parse tool call -> execute tool -> return observation -> iterate until final answer
 ```
 
 ## Syntax explained
@@ -61,5 +75,7 @@ Use `show_trace.py` to find the **first** failing event of a bad run, then repro
 ## Rebuild checklist
 - [ ] `log()` appending JSON lines. [ ] statuses for every exit path. [ ] a summary script.
 
-## Say it aloud
-"I log every model reply and tool call — with arguments, result, success flag and duration — as JSONL, plus a status for every way a run can end. When something goes wrong I read the trace to find the first failing event instead of guessing. Limitation: traces can contain sensitive data, so I redact secrets and set retention."
+## The new problem (cliffhanger)
+The full agent works, but it parses tool calls from plain text with our own protocol. Hosted APIs offer a native tool-calling format. Next: [09_native_tool_calling](../09_native_tool_calling/).
+
+> **Say it aloud (interview box):** I write one JSON line per event to a trace file so any run can be replayed and failed tool calls are easy to find. The full agent is one loop: prompt, model call, parse, validate and execute the tool through a permission gate, append the observation, repeat until final or the step limit. Tracing is what turns a mysterious failure into a debuggable one.

@@ -48,5 +48,10 @@ def lora_forward(W, A, B, x, alpha, r):
 ## Step 09
 - Throughput usually flattens when the hardware is compute-bound (large batch); repeated runs differ by tens of percent on a laptop, so average several runs.
 
+## Step 11
+- Smaller blocks waste less in the last block (at most `BLOCK_SIZE - 1` slots per request) but need a longer block table; `BLOCK_SIZE = 128` makes waste visibly larger, which is why vLLM defaults to 16.
+- With `MAX_LEN = 4096` the contiguous reservation doubles while real lengths stay the same, so contiguous fits half as many requests; paged barely changes because it only allocates what exists.
+- The leaked-block bug ends with `RuntimeError: simulation did not finish`: no blocks return to the pool, so nothing new is admitted.
+
 ## Integration challenge
 Merged models are plain transformers models, so no adapter matmuls remain; the speed-up is small for small ranks but nonzero, and deployment is simpler (no peft dependency).

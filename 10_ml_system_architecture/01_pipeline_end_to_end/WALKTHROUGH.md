@@ -1,5 +1,14 @@
 # Step 01 — The end-to-end ML pipeline, stage by stage
 
+## The story so far
+Module 09 ended with an API that serves one request correctly. But the model behind it came from a notebook, and the question is now how the whole journey from raw data to answer fits together and stays correct over months. Previous step: [09_api_development/10_streaming_sse](../../09_api_development/10_streaming_sse/).
+
+## The pain point
+A notebook mixes cleaning, features, training and evaluation in cells run in whatever order you remembered. Nobody can reproduce it, and test data quietly leaks into training.
+
+## The spark
+Name every stage (collect, clean, features, train, evaluate, save, serve), run them in a fixed order in one script, and bundle preprocessing with the model in one scikit-learn Pipeline.
+
 ## Goal
 Walk collect → preprocess → features → train → evaluate → serialize → load → predict with real code, so every box in an architecture diagram has code behind it.
 
@@ -68,5 +77,8 @@ Call `vectorizer.transform(X_test)` before `fit_transform` → `NotFittedError: 
 - [ ] Say which stage each of these belongs to: `re.sub`, `fit_transform`, `joblib.dump`, `accuracy_score`.
 - [ ] Explain why you never `fit` on test data.
 
+## The new problem (cliffhanger)
+One script that trains and predicts hides a trap: in production training and serving are two different programs. Do they still agree? Next: [02_training_vs_inference_pipelines](../02_training_vs_inference_pipelines/).
+
 ## Say it aloud
-"An ML system is a pipeline: collect data, clean it, turn it into features, train, evaluate on held-out data, save the fitted artifact, then load and serve it. I bundle preprocessing and the model in one scikit-learn Pipeline so training and serving cannot drift apart. Trade-off: a pipeline hides steps — I still need to inspect each stage when debugging — and a high score on a tiny, template-based test set says little about real data."
+> **Say it aloud (interview box):** An ML system is a pipeline: collect data, clean it, build features, train, evaluate on held-out data, save the fitted artifact, then load and serve it. I bundle preprocessing and the model in one scikit-learn Pipeline so training and serving cannot drift apart. The catch is that a pipeline hides steps I must still inspect when debugging, and a high score on a tiny template-based test set says little about real data.

@@ -1,5 +1,14 @@
 # Step 01 - A config file for every parameter
 
+## The story so far
+Chapter 14, Rolling the Dice. The end of [the life-cycle step](../../04_llm_fundamentals/09_pretrain_vs_finetune_vs_inference/WALKTHROUGH.md) left you with a model you can run but not control, shrink or specialise. Control comes first, and it starts with admitting how many dials there are.
+
+## The pain point
+Before this step, the generation loop in module 04 had settings scattered as magic numbers: `max_new_tokens=20` here, `lr=5e-5` there. Change one, forget another, and nobody can say which setting produced which output. A typo like `"temprature"` silently does nothing.
+
+## The spark
+Put every dial in one `config.json`, load it through one function that checks names and ranges, and describe each dial in a glossary. One file, one source of truth, errors at load time instead of silent surprises.
+
 ## Goal
 Keep all training and generation parameters in `config.json`, load and validate them with explained code, and learn what each one means.
 
@@ -72,5 +81,7 @@ Input: a JSON file. Processing: parse -> validate -> return dict. Output: valida
 - [ ] Explain every parameter in the file without looking.
 - [ ] Explain why validation happens at load time.
 
-## Say it aloud
-"I keep parameters in a config file so experiments are reproducible and the code doesn't change when settings change. The loader reads JSON, validates ranges, and returns a dict I can pass straight into `model.generate`. Validating early turns silent misbehaviour into a clear error. Trade-off: a config that's too flexible hides defaults; keep it small and documented."
+## The new problem (cliffhanger)
+The dials are named, but you do not yet know what they do. The most surprising one is also the first that matters: why would a model ever pick anything except its single best token? Next: [step 02, sampling from scratch](../02_sampling_from_scratch/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** A config file holds every training and generation parameter in one validated place, so each experiment is reproducible and a typo fails loudly at load time. I load it with a function that checks names and ranges and reuse it in every later step and in the API. The glossary inside it is the list of dials I can explain in an interview.

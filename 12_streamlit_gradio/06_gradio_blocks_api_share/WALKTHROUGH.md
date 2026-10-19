@@ -1,5 +1,14 @@
 # Step 06 - Gradio Blocks, API calls, uploads, state, sharing
 
+## The story so far
+[Step 05](../05_gradio_basics/WALKTHROUGH.md) covered the one-function `Interface`. Real demos outgrow it.
+
+## The pain point
+A single function cannot hold history between clicks, split work into tabs, accept uploads, show progress or run two events. Functions that stream results (a generator that yields partial text) are also awkward to express in a plain `Interface`.
+
+## The spark
+`gr.Blocks` lets you place components yourself and wire events: a click calls a function with component values and spreads its return values over the outputs. `gr.State` keeps per-session data, `gr.Progress` shows waiting, and `share=True` makes a temporary public link. A generator function that yields partial text is how you would show an LLM answer arriving token by token, the UI side of [SSE streaming](../../09_api_development/10_streaming_sse/).
+
 ## Goal
 Build a multi-tab app with events, state, file upload, API integration, error/loading states; know how to run and share it.
 
@@ -50,5 +59,8 @@ Returning the wrong number of values -> "A function ... didn't return enough out
 - [ ] Blocks with Textbox, Button, click wiring from memory.
 - [ ] State for history; gr.Error for failures.
 
+## The new problem (cliffhanger)
+Now every piece exists on its own: a model, a FastAPI service, a container image, a Compose stack and a UI. None of them is yet one system that someone else can start with one command. Next: [module 13, the capstone](../../13_capstone_project/README.md).
+
 ## Say it aloud
-"With Blocks I place components and wire events: click calls a function with the input values and distributes its return values to the outputs. gr.State keeps per-session data and gr.Error turns failures into user-friendly messages. share=True creates a temporary public tunnel; for real deployment I would use Spaces or a container. Trade-off: the callback style is explicit but you must keep input/output counts aligned, and share links expose your machine."
+> **Say it aloud (interview box):** With Blocks I place components and wire events, so a click calls a function with the input values and distributes its return values to the outputs. gr.State keeps per-session data, gr.Error turns failures into friendly messages, and share=True creates a temporary public tunnel for demos. The trade-off is that the callback style is explicit but input and output counts must stay aligned, and share links expose my machine.

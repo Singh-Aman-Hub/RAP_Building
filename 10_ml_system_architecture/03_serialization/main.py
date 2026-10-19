@@ -51,7 +51,7 @@ back = load_file(str(tmp / "weights.safetensors"))
 print(f"2. safetensors    {os.path.getsize(tmp / 'weights.safetensors'):>6} bytes; arrays: {list(back)}; "
       f"identical: {np.array_equal(back['coef'], weights['coef'])}")
 print("   (it stores arrays only: to use them you must rebuild the model code yourself -- that is the safety trade-off.)")
-print("   Hugging Face LLM checkpoints (module 04) use this format: model.safetensors.")
+print("   Hugging Face LLM checkpoints (module 04 step 06, load pretrained model) use this format: model.safetensors.")
 
 # ---- 3. SECURITY: unpickling RUNS CODE chosen by whoever made the file ----
 class Innocent:

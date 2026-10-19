@@ -1,5 +1,14 @@
 # Step 01 — Dataset preparation
 
+## The story so far
+Chapter 16, The Surgical Fine-Tune. [Step 08](../08_gpu_memory_calculator/WALKTHROUGH.md) showed that full fine-tuning is expensive. Whatever method we pick, the model still needs data in the form it understands.
+
+## The pain point
+A text file is not a training set. The model reads token ids in fixed-length tensors with labels, and padding must not count as real text. Most real-world training bugs live here: mis-shifted labels, padding inside the loss, sequences of different lengths that cannot be stacked.
+
+## The spark
+Tokenize, cut into fixed-size blocks, make labels (the same ids, shifted by the model), mark padding with -100 so the loss ignores it, and wrap everything in a DataLoader that serves batches.
+
 ## Goal
 Turn a raw text file into tensors of token IDs (plus labels) that a causal language model can train on.
 This is the "dataset prep and preprocessing" bullet of the syllabus, and it is where most real-world training bugs start.
@@ -62,5 +71,7 @@ Read it bottom-up: the last line names the error and the numbers. `1200 != 25*49
 - [ ] cut to a multiple of `BLOCK_SIZE` and `.view(...)`
 - [ ] wrap in `TensorDataset` + `DataLoader`
 
-## Say it aloud
-"A language model trains on next-token prediction, so I tokenise the text, join documents with an end-of-text token, and cut it into fixed-size blocks. The labels are the same IDs because Hugging Face shifts them by one inside the model. When sequences differ in length I pad and use an attention mask, and set padded labels to -100 so they do not affect the loss. Trade-off: chopping at fixed blocks can split a document mid-sentence, and padding wastes compute."
+## The new problem (cliffhanger)
+The data is ready: batches of ids and labels. Now we need something that learns from them. Next: [step 02, the training loop](../02_training_loop/WALKTHROUGH.md).
+
+> **Say it aloud (interview box):** Training data for a causal language model is token ids cut into fixed-length blocks, with labels equal to the same ids shifted by one position. Padding positions get the label minus 100 so the loss ignores them, and a DataLoader serves shuffled batches. Most training bugs I have seen start in this step, so I print a batch and its labels before training.

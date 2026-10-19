@@ -1,5 +1,14 @@
 # Step 04 - Docker Compose: API + UI + Redis
 
+## The story so far
+[Step 03](../03_ports_env_volumes/WALKTHROUGH.md) configured one container. Our system needs three: an API, a Streamlit UI and Redis as a cache.
+
+## The pain point
+By hand you start Redis, wait, start the API with the right Redis address, wait, start the UI with the API address. Inside a container `localhost` means that container itself, so the UI cannot reach the API through it. One typo and the stack is half-alive.
+
+## The spark
+Describe the whole stack once in a `compose.yaml`. Compose creates a shared network where each service name is a DNS name (`http://api:8000`, host `redis`), and `depends_on` with a health condition starts services only when the one they need is ready.
+
 ## Goal
 Run three cooperating containers with one command and understand how they find each other.
 
@@ -55,5 +64,8 @@ Important distinction: the *browser* uses published host ports; *containers* tal
 - [ ] Draw the network: browser, ui, api, redis, with the hostnames and ports used on each arrow.
 - [ ] Write a 2-service compose file from memory.
 
+## The new problem (cliffhanger)
+One `docker compose up` works, until it does not: a container is unhealthy, exits at once, or is up but unreachable. Now you need a method, not luck, to find out why. Next: [step 05, health checks, logs and debugging](../05_healthchecks_logs_debugging/WALKTHROUGH.md).
+
 ## Say it aloud
-"Compose describes a multi-container app declaratively. Services share a network and reach each other by service name, so the API connects to host `redis`, while only the ports I publish are reachable from my laptop. depends_on with health conditions orders start-up. Trade-off: Compose is great for dev and single-host deploys, but it does not provide multi-node scaling or self-healing like Kubernetes."
+> **Say it aloud (interview box):** Compose describes a multi-container app declaratively, and its services share a network and reach each other by service name, so the API connects to host redis while only published ports reach my laptop. depends_on with a health condition orders start-up, because started does not mean ready. The trade-off is that Compose suits dev and single-host deploys but has no multi-node scaling or self-healing like Kubernetes.

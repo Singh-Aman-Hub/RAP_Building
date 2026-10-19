@@ -2,6 +2,12 @@
 
 *(Syllabus topic 6.)*
 
+## The story of this module
+**Pain point.** Chapter 20 ended with an agent that works in a notebook, but nobody else can call it. A model nobody can reach over the network has no users.
+**Spark.** Wrap it in a web API: HTTP gives a shared language, a server (Gunicorn or Uvicorn) owns the port, and a framework (Flask, then FastAPI) maps routes to functions.
+**What you build.** Raw HTTP, the WSGI/ASGI contracts, a Flask API, a FastAPI API with Pydantic validation, a real model served in both (loaded once at startup), workers and concurrency, env-var config, tests, and finally a token stream over Server-Sent Events so users stop staring at a blank screen.
+**Cliffhanger.** The Castle Gate is open and answers one request correctly. How do we keep it correct over months, as data drifts and models are retrained? Next: [10_ml_system_architecture](../10_ml_system_architecture/).
+
 ## 1. Why this matters
 A trained model is useless until another program can call it. In the interview you will be asked to build a health-check and a POST endpoint, validate input, return correct status codes, and — the favourite follow-up — **explain what the framework does vs what the server does**. This module gives you both frameworks, side by side, serving a real model.
 
@@ -10,7 +16,7 @@ A trained model is useless until another program can call it. In the interview y
 - [00_python_foundations](../00_python_foundations/) — functions, dicts, exceptions, decorators, type hints (every route is a function with a decorator; Pydantic *is* type hints).
 - [01_debugging_and_environment](../01_debugging_and_environment/) — reading tracebacks, venvs, `ModuleNotFoundError`, "address already in use". You will use all of them here.
 - [03_ml_foundations](../03_ml_foundations/) — the saved scikit-learn pipeline (`08_sklearn_text_classifier/artifacts/model.joblib`) that `/predict` serves through the `MODEL_PATH` environment variable.
-- [04_llm_fundamentals](../04_llm_fundamentals/) / [05_llm_parameters](../05_llm_parameters/) — the optional `/generate` endpoint wraps a Hugging Face `pipeline` with `max_new_tokens`.
+- [04_llm_fundamentals](../04_llm_fundamentals/) / [05_llm_parameters](../05_llm_parameters/) — the optional `/generate` endpoint wraps a Hugging Face `pipeline` with `max_new_tokens` (04 step 06 load model, step 08 generation loop); the streaming step writes that loop as a generator.
 - [08_agent_harness](../08_agent_harness/) — HTTP/JSON thinking: an LLM API call is just an HTTP POST with a JSON body, exactly like the requests you send here, and a tool can be "call this API".
 
 **Leads to**
@@ -38,6 +44,8 @@ A trained model is useless until another program can call it. In the interview y
         config via env vars (08)  ──►  Docker ENV / -e (11)
                    │
         tests: pytest + curl + /docs (09)
+                   │
+        streaming tokens with SSE: yield each token as `data: ...\n\n` (10)
 ```
 
 ## 4. Study path
@@ -52,12 +60,13 @@ A trained model is useless until another program can call it. In the interview y
 | 07 | [07_servers_workers_concurrency](07_servers_workers_concurrency/) | Gunicorn/Uvicorn, workers, threads, async | `python main.py` | 90 min |
 | 08 | [08_config_and_env](08_config_and_env/) | env vars, `.env`, precedence | `python main.py` | 45 min |
 | 09 | [09_testing_and_docs](09_testing_and_docs/) | pytest, httpx smoke test, curl, OpenAPI | `pytest -v` / `python main.py` | 75 min |
+| 10 | [10_streaming_sse](10_streaming_sse/) | **stream tokens** with `text/event-stream`, load once, time-to-first-token, disconnects | `python main.py` / `pytest -q` | 75 min |
 
-Total: **~11–12 hours** + [exercises](exercises.md). Always run from the folder shown (or pass the full path).
+Total: **~12–13 hours** + [exercises](exercises.md). Always run from the folder shown (or pass the full path).
 
 ## 5. The syllabus topics in plain English
 
-**HTTP and REST basics.** HTTP is request/response. A *request* = method (verb) + path + headers + optional body; a *response* = status code + headers + body. REST is a naming convention: URLs are nouns (`/items/7`), methods are verbs (GET read, POST create, PUT/PATCH update, DELETE remove). *Limitation:* REST doesn't fit everything (streaming tokens from an LLM uses Server-Sent Events/WebSockets).
+**HTTP and REST basics.** HTTP is request/response. A *request* = method (verb) + path + headers + optional body; a *response* = status code + headers + body. REST is a naming convention: URLs are nouns (`/items/7`), methods are verbs (GET read, POST create, PUT/PATCH update, DELETE remove). *Limitation:* REST doesn't fit everything (streaming tokens from an LLM uses Server-Sent Events/WebSockets; see step 10).
 
 **GET vs POST.** GET reads, has no body, can be cached/bookmarked, data in the URL (don't put secrets there). POST sends a body, used when the request changes something or the input is large — which is why `/predict` is a POST even though it doesn't change state (the text can be long and shouldn't sit in URLs/logs).
 
@@ -93,6 +102,7 @@ Total: **~11–12 hours** + [exercises](exercises.md). Always run from the folde
 - `uvicorn main:app` run from the wrong directory → `ModuleNotFoundError`.
 - Relative `MODEL_PATH` depends on the **current working directory**, not on the script location.
 - Returning 200 with `{"error": ...}` — clients and monitors rely on status codes.
+- Streaming with the wrong `Content-Type` or a missing blank line after `data: ...` → clients dispatch nothing; a buffering proxy turns the stream back into a blank screen (step 10).
 
 ## 7. Self-check
 - [ ] I can write a health-check endpoint in Flask and FastAPI without notes.
@@ -106,6 +116,7 @@ Total: **~11–12 hours** + [exercises](exercises.md). Always run from the folde
 - [ ] I can run pytest, a curl POST, and open `/docs`.
 - [ ] I can swap the fallback model for a real joblib model via `MODEL_PATH`.
 - [ ] I can explain the role of the framework and the server separately.
+- [ ] I can stream tokens with `StreamingResponse` and `text/event-stream`, and explain time-to-first-token.
 
 ## 8. Interview questions
 1. **What is the difference between Flask and FastAPI?** Flask: WSGI micro-framework, sync, manual validation. FastAPI: ASGI, async-capable, automatic Pydantic validation and OpenAPI docs. Choose FastAPI for new typed APIs/async I/O; Flask for small/simple or existing code. Both can serve ML models equally well — inference speed is the model's, not the framework's.
@@ -119,5 +130,5 @@ Total: **~11–12 hours** + [exercises](exercises.md). Always run from the folde
 9. **What happens if I put `time.sleep` in an `async def` route?** It blocks the event loop; all requests on that worker wait. Use `await asyncio.sleep` or a plain `def` route (thread pool).
 10. **How do you pass config/secrets to the service?** Environment variables (and a secrets manager in production); `.env` locally, never committed.
 11. **How do you test an API?** Unit tests with the framework's test client, smoke tests on the running service, curl/Swagger for manual checks, load tests for performance.
-12. **How would you serve an LLM that takes 2 s per request?** More replicas and/or batching, async for waiting on an external API, timeouts/queue limits, streaming responses; discuss memory per worker (see module 10 step 08).
+12. **How would you serve an LLM that takes 2 s per request?** More replicas and/or batching, async for waiting on an external API, timeouts/queue limits, streaming responses (step 10 here); discuss memory per worker (see module 10 step 08).
 13. **Why can't I keep state in a Python global in a multi-worker API?** Each worker is a separate process with its own copy; use a database/Redis.

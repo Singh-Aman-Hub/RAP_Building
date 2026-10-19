@@ -58,6 +58,12 @@ Rules: change **one** thing at a time, predict the result first, then run. Worke
 - **Rebuild:** a parametrized test for three bad inputs.
 - **Explain aloud:** unit vs smoke vs load tests.
 
+## Step 10 — Streaming (SSE)
+- **Modify:** set `TOKEN_DELAY = 0.4` and record time-to-first-token and total time for `/blocking` and `/stream`.
+- **Break & read:** in `/stream` change `media_type` to `"text/plain"` (then remove one `\n` from `sse_event`) and run the client; say what it sees and why.
+- **Rebuild:** a `/stream` endpoint with a generator, `StreamingResponse` and `text/event-stream`, plus a client that prints tokens with timestamps, from a blank file.
+- **Explain aloud:** why streaming lowers time-to-first-token but not total time, and what happens when the client disconnects.
+
 ## Capstone-style challenge
 Add `POST /predict_batch` taking `{"texts": [...]}` (max 32) and returning a list of results using **one** `predict_proba` call. Compare the time of 32 single calls vs one batch call (connects to [10 step 06](../10_ml_system_architecture/06_batch_vs_realtime/)).
 

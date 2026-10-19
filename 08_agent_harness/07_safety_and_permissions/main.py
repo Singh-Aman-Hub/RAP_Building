@@ -117,6 +117,17 @@ if __name__ == "__main__":
     for label, question, mode, confirm in cases:
         print(f"{label:26s} [{mode:10s}] {run_agent(question, mode, confirm)}")
 
+    # Allowlist: a tool the model invents is not in TOOLS, so it is simply unavailable.
+    print("\nunknown tool 'run_shell'  :", guarded_execute("run_shell", {"cmd": "rm -rf /"}, "read_write", deny_all))
+
+    # The raw failure: what safe_path raises BEFORE guarded_execute turns it into an Observation.
+    import traceback
+    print("\nReal trace of a path-escape attempt (the harness catches this and tells the model):")
+    try:
+        read_file("../../.env")
+    except PermissionDenied:
+        print(traceback.format_exc().rstrip())
+
 # Defence in depth: (1) expose few tools  (2) read-only default  (3) sandbox paths  (4) allow-list file types
 # (5) cap output size  (6) human confirmation for destructive actions  (7) log everything (step 08)
 # LIMITATION: a sandbox folder is NOT a security boundary against malicious code (use containers/VMs - module 11),

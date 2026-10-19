@@ -1,6 +1,6 @@
 # TERMS Index
 
-2458 explained terms across every step folder. Each `TERMS.md` gives, per term: 1. definition, 2. plain-words paragraph, 3. an example to quote.
+2547 explained terms across every step folder. Each `TERMS.md` gives, per term: 1. definition, 2. plain-words paragraph, 3. an example to quote.
 The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](vocabulary/index.md).
 
 ## 00_python_foundations
@@ -50,23 +50,26 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 01_numpy_and_data | 23 | [03_ml_foundations/01_numpy_and_data/TERMS.md](03_ml_foundations/01_numpy_and_data/TERMS.md) |
 | 02_linear_regression_numpy | 21 | [03_ml_foundations/02_linear_regression_numpy/TERMS.md](03_ml_foundations/02_linear_regression_numpy/TERMS.md) |
 | 03_pytorch_tensors_autograd | 19 | [03_ml_foundations/03_pytorch_tensors_autograd/TERMS.md](03_ml_foundations/03_pytorch_tensors_autograd/TERMS.md) |
-| 04_pytorch_training_loop | 23 | [03_ml_foundations/04_pytorch_training_loop/TERMS.md](03_ml_foundations/04_pytorch_training_loop/TERMS.md) |
+| 04_pytorch_training_loop | 24 | [03_ml_foundations/04_pytorch_training_loop/TERMS.md](03_ml_foundations/04_pytorch_training_loop/TERMS.md) |
 | 05_overfitting_train_val | 13 | [03_ml_foundations/05_overfitting_train_val/TERMS.md](03_ml_foundations/05_overfitting_train_val/TERMS.md) |
 | 06_softmax_cross_entropy | 14 | [03_ml_foundations/06_softmax_cross_entropy/TERMS.md](03_ml_foundations/06_softmax_cross_entropy/TERMS.md) |
 | 07_metrics | 15 | [03_ml_foundations/07_metrics/TERMS.md](03_ml_foundations/07_metrics/TERMS.md) |
-| 08_sklearn_text_classifier | 26 | [03_ml_foundations/08_sklearn_text_classifier/TERMS.md](03_ml_foundations/08_sklearn_text_classifier/TERMS.md) |
+| 08_sklearn_text_classifier | 30 | [03_ml_foundations/08_sklearn_text_classifier/TERMS.md](03_ml_foundations/08_sklearn_text_classifier/TERMS.md) |
 
 ## 04_llm_fundamentals
 
 | Folder | Terms | File |
 |---|--:|---|
-| 01_attention_from_scratch | 26 | [04_llm_fundamentals/01_attention_from_scratch/TERMS.md](04_llm_fundamentals/01_attention_from_scratch/TERMS.md) |
-| 02_tokenizer | 26 | [04_llm_fundamentals/02_tokenizer/TERMS.md](04_llm_fundamentals/02_tokenizer/TERMS.md) |
-| 03_embeddings | 23 | [04_llm_fundamentals/03_embeddings/TERMS.md](04_llm_fundamentals/03_embeddings/TERMS.md) |
-| 04_load_pretrained_model | 28 | [04_llm_fundamentals/04_load_pretrained_model/TERMS.md](04_llm_fundamentals/04_load_pretrained_model/TERMS.md) |
-| 05_forward_pass_logits | 22 | [04_llm_fundamentals/05_forward_pass_logits/TERMS.md](04_llm_fundamentals/05_forward_pass_logits/TERMS.md) |
-| 06_generation_loop | 22 | [04_llm_fundamentals/06_generation_loop/TERMS.md](04_llm_fundamentals/06_generation_loop/TERMS.md) |
-| 07_pretrain_vs_finetune_vs_inference | 24 | [04_llm_fundamentals/07_pretrain_vs_finetune_vs_inference/TERMS.md](04_llm_fundamentals/07_pretrain_vs_finetune_vs_inference/TERMS.md) |
+| 00_what_is_an_llm | 10 | [04_llm_fundamentals/00_what_is_an_llm/TERMS.md](04_llm_fundamentals/00_what_is_an_llm/TERMS.md) |
+| 01_tokenizer | 28 | [04_llm_fundamentals/01_tokenizer/TERMS.md](04_llm_fundamentals/01_tokenizer/TERMS.md) |
+| 02_vectors_and_similarity | 11 | [04_llm_fundamentals/02_vectors_and_similarity/TERMS.md](04_llm_fundamentals/02_vectors_and_similarity/TERMS.md) |
+| 03_embeddings | 24 | [04_llm_fundamentals/03_embeddings/TERMS.md](04_llm_fundamentals/03_embeddings/TERMS.md) |
+| 04_attention_from_scratch | 27 | [04_llm_fundamentals/04_attention_from_scratch/TERMS.md](04_llm_fundamentals/04_attention_from_scratch/TERMS.md) |
+| 05_transformer_block | 13 | [04_llm_fundamentals/05_transformer_block/TERMS.md](04_llm_fundamentals/05_transformer_block/TERMS.md) |
+| 06_load_pretrained_model | 28 | [04_llm_fundamentals/06_load_pretrained_model/TERMS.md](04_llm_fundamentals/06_load_pretrained_model/TERMS.md) |
+| 07_forward_pass_logits | 22 | [04_llm_fundamentals/07_forward_pass_logits/TERMS.md](04_llm_fundamentals/07_forward_pass_logits/TERMS.md) |
+| 08_generation_loop | 25 | [04_llm_fundamentals/08_generation_loop/TERMS.md](04_llm_fundamentals/08_generation_loop/TERMS.md) |
+| 09_pretrain_vs_finetune_vs_inference | 24 | [04_llm_fundamentals/09_pretrain_vs_finetune_vs_inference/TERMS.md](04_llm_fundamentals/09_pretrain_vs_finetune_vs_inference/TERMS.md) |
 
 ## 05_llm_parameters
 
@@ -94,6 +97,7 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 08_gpu_memory_calculator | 19 | [06_llm_training_and_fast_inference/08_gpu_memory_calculator/TERMS.md](06_llm_training_and_fast_inference/08_gpu_memory_calculator/TERMS.md) |
 | 09_throughput_benchmark | 18 | [06_llm_training_and_fast_inference/09_throughput_benchmark/TERMS.md](06_llm_training_and_fast_inference/09_throughput_benchmark/TERMS.md) |
 | 10_vllm_reference | 16 | [06_llm_training_and_fast_inference/10_vllm_reference/TERMS.md](06_llm_training_and_fast_inference/10_vllm_reference/TERMS.md) |
+| 11_paged_attention_fragmentation | 10 | [06_llm_training_and_fast_inference/11_paged_attention_fragmentation/TERMS.md](06_llm_training_and_fast_inference/11_paged_attention_fragmentation/TERMS.md) |
 
 ## 07_prompt_engineering
 
@@ -102,10 +106,11 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 01_roles_and_instructions | 20 | [07_prompt_engineering/01_roles_and_instructions/TERMS.md](07_prompt_engineering/01_roles_and_instructions/TERMS.md) |
 | 02_few_shot | 15 | [07_prompt_engineering/02_few_shot/TERMS.md](07_prompt_engineering/02_few_shot/TERMS.md) |
 | 03_prompt_templates | 14 | [07_prompt_engineering/03_prompt_templates/TERMS.md](07_prompt_engineering/03_prompt_templates/TERMS.md) |
-| 04_structured_json | 22 | [07_prompt_engineering/04_structured_json/TERMS.md](07_prompt_engineering/04_structured_json/TERMS.md) |
+| 04_structured_json | 23 | [07_prompt_engineering/04_structured_json/TERMS.md](07_prompt_engineering/04_structured_json/TERMS.md) |
 | 05_decomposition | 18 | [07_prompt_engineering/05_decomposition/TERMS.md](07_prompt_engineering/05_decomposition/TERMS.md) |
 | 06_prompt_injection | 19 | [07_prompt_engineering/06_prompt_injection/TERMS.md](07_prompt_engineering/06_prompt_injection/TERMS.md) |
 | 07_prompt_testing | 22 | [07_prompt_engineering/07_prompt_testing/TERMS.md](07_prompt_engineering/07_prompt_testing/TERMS.md) |
+| 08_minimal_rag | 10 | [07_prompt_engineering/08_minimal_rag/TERMS.md](07_prompt_engineering/08_minimal_rag/TERMS.md) |
 
 ## 08_agent_harness
 
@@ -117,7 +122,7 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 04_history_and_context | 23 | [08_agent_harness/04_history_and_context/TERMS.md](08_agent_harness/04_history_and_context/TERMS.md) |
 | 05_memory | 18 | [08_agent_harness/05_memory/TERMS.md](08_agent_harness/05_memory/TERMS.md) |
 | 06_errors_and_retries | 25 | [08_agent_harness/06_errors_and_retries/TERMS.md](08_agent_harness/06_errors_and_retries/TERMS.md) |
-| 07_safety_and_permissions | 24 | [08_agent_harness/07_safety_and_permissions/TERMS.md](08_agent_harness/07_safety_and_permissions/TERMS.md) |
+| 07_safety_and_permissions | 25 | [08_agent_harness/07_safety_and_permissions/TERMS.md](08_agent_harness/07_safety_and_permissions/TERMS.md) |
 | 08_trace_and_full_agent | 36 | [08_agent_harness/08_trace_and_full_agent/TERMS.md](08_agent_harness/08_trace_and_full_agent/TERMS.md) |
 | 09_native_tool_calling | 26 | [08_agent_harness/09_native_tool_calling/TERMS.md](08_agent_harness/09_native_tool_calling/TERMS.md) |
 
@@ -134,6 +139,7 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 07_servers_workers_concurrency | 32 | [09_api_development/07_servers_workers_concurrency/TERMS.md](09_api_development/07_servers_workers_concurrency/TERMS.md) |
 | 08_config_and_env | 23 | [09_api_development/08_config_and_env/TERMS.md](09_api_development/08_config_and_env/TERMS.md) |
 | 09_testing_and_docs | 30 | [09_api_development/09_testing_and_docs/TERMS.md](09_api_development/09_testing_and_docs/TERMS.md) |
+| 10_streaming_sse | 12 | [09_api_development/10_streaming_sse/TERMS.md](09_api_development/10_streaming_sse/TERMS.md) |
 
 ## 10_ml_system_architecture
 
@@ -147,6 +153,7 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 06_batch_vs_realtime | 20 | [10_ml_system_architecture/06_batch_vs_realtime/TERMS.md](10_ml_system_architecture/06_batch_vs_realtime/TERMS.md) |
 | 07_logging_and_monitoring | 29 | [10_ml_system_architecture/07_logging_and_monitoring/TERMS.md](10_ml_system_architecture/07_logging_and_monitoring/TERMS.md) |
 | 08_scalability_and_reliability | 34 | [10_ml_system_architecture/08_scalability_and_reliability/TERMS.md](10_ml_system_architecture/08_scalability_and_reliability/TERMS.md) |
+| 09_drift_monitoring | 9 | [10_ml_system_architecture/09_drift_monitoring/TERMS.md](10_ml_system_architecture/09_drift_monitoring/TERMS.md) |
 
 ## 11_docker
 

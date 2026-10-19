@@ -1,11 +1,20 @@
 # 05 - LLM Parameters: Training and Inference (syllabus topic 2)
 
+## The story of this module
+Chapters 14 and 15 of the master story. [Module 04](../04_llm_fundamentals/09_pretrain_vs_finetune_vs_inference/WALKTHROUGH.md) ended with a model you can run but not control, shrink or specialise.
+- **Pain point:** greedy decoding is boring and repetitive, a 7B model in float32 does not fit on a GPU, and every setting is a magic number nobody recorded.
+- **Spark:** the model outputs a probability for every token, so reshape it (temperature, top-k, top-p); store each weight in fewer bits (quantization); keep every dial in one config and log every run.
+- **What you build:** a config loader, a sampler from scratch checked against `generate()`, context-window trimming, int8/int4 quantization by hand, training-knob sweeps, and an experiment logger.
+- **Cliffhanger:** inference now fits and behaves, but training needs gradients and optimizer state, 4 to 16 times more memory. Can we even fine-tune? That is [module 06](../06_llm_training_and_fast_inference/), whose first step is the memory calculator. After module 06 comes [07_prompt_engineering](../07_prompt_engineering/).
+
+Story chain: 04 step 09 -> 05 steps 01-05 (dice and squeezing) -> 05 steps 06-07 (training dials, logger) -> 06.
+
 ## Why this matters
 "What does temperature do?", "What happens if the learning rate is too high?", "Why quantize?" are near-certain interview questions. Strong answers combine a definition, an effect you measured, and a trade-off. This module is the "dials and gauges" of module 04's engine: every parameter is tied to a script you can run, change and break.
 
 ## Where this fits
 **Builds on**
-- [04_llm_fundamentals](../04_llm_fundamentals/) - the **logits** from step 05 (sampling parameters reshape them), the **position table** from step 03 (the context window), the **generation loop** from step 06 (`max_new_tokens`, KV cache), the **training loop** from step 07 (LR/batch/epochs).
+- [04_llm_fundamentals](../04_llm_fundamentals/) - the **logits** from step 07 `07_forward_pass_logits` (sampling parameters reshape them), the **position table** from step 03 `03_embeddings` (the context window), the **generation loop and KV cache** from step 08 `08_generation_loop` (`max_new_tokens`), the **training loop** from step 09 `09_pretrain_vs_finetune_vs_inference` (LR/batch/epochs).
 - [03_ml_foundations](../03_ml_foundations/) - gradient descent, loss functions, overfitting. Step 06 here re-runs those ideas as parameter sweeps.
 - [00_python_foundations](../00_python_foundations/) - dicts, JSON, functions with default/keyword arguments (`**kwargs`), try/except; step 01 uses all of them.
 
@@ -31,7 +40,7 @@
                                                                                         |
                  +------------------ INFERENCE-TIME (per request) ----------------------v--+
  logits -------> | repetition penalty -> temperature -> top-k -> top-p -> softmax -> sample |
- (module 04/05)  | max_new_tokens (length cap)   do_sample False = greedy                   |
+ (04 step 07)    | max_new_tokens (length cap)   do_sample False = greedy                   |
                  +----------------------------------------------------------------------+
         ALL of it recorded in config.json (01) and compared with the experiment logger (07)
 ```

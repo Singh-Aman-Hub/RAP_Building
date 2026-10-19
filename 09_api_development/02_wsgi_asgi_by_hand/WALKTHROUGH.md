@@ -1,5 +1,14 @@
 # Step 02 — WSGI vs ASGI, written by hand
 
+## The story so far
+Step 01 left us parsing sockets by hand, with a server that cannot be swapped for a better one. We need a standard handshake between a server (owns the port) and an app (owns the logic).
+
+## The pain point
+If every framework invented its own way to talk to servers, each framework would only run on its own server. Your code would be locked in, and nobody could improve the server without touching every app.
+
+## The spark
+Agree on a contract: the app is just a callable and the server calls it. WSGI is the synchronous version `(environ, start_response)`; ASGI is the asynchronous version `(scope, receive, send)`. Write both by hand once and the words stop being scary.
+
 ## Goal
 Remove the magic: a **web framework** (Flask/FastAPI) and a **web server** (Gunicorn/Uvicorn) talk through a tiny contract. WSGI is the synchronous contract; ASGI is the asynchronous one.
 
@@ -60,5 +69,8 @@ Remove `await` before `app(scope, receive, send)` in `call_asgi`: you get `Runti
 - [ ] Write the ASGI signature and the two `send` events of a response.
 - [ ] Say which of Flask/FastAPI is WSGI/ASGI and which server runs each.
 
+## The new problem (cliffhanger)
+A bare callable still makes you route paths and parse query strings yourself. We need a framework that hides the contract behind decorators. Next: [03_flask_basics](../03_flask_basics/).
+
 ## Say it aloud
-"Flask and FastAPI are *frameworks*: routing, validation, convenience. They don't listen on a port themselves in production — a *server* does (Gunicorn for WSGI, Uvicorn for ASGI) and calls the app through the WSGI or ASGI contract. WSGI is synchronous: a worker handles one request at a time. ASGI is asynchronous and also supports WebSockets. Trade-off: async only helps when the work is waiting (I/O); CPU-bound model inference still needs more processes."
+> **Say it aloud (interview box):** Flask and FastAPI are frameworks, and a server such as Gunicorn or Uvicorn owns the port and calls the app through the WSGI or ASGI contract. WSGI is a synchronous callable, while ASGI is asynchronous and also supports WebSockets and streaming. Async only helps when the work is waiting, so CPU-bound model inference still needs more processes.

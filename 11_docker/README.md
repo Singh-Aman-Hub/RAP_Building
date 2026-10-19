@@ -1,5 +1,8 @@
 # 11 - Docker and Docker Compose
 
+## The story of this module
+**Chapter 23, The Shipping Container.** Chapter 22 ended with a blueprint and one problem: it works on my machine only. Pain: different Python versions, missing packages and busy ports make the same code behave differently on every laptop. Spark: ship the machine, not the instructions, as an image built from a Dockerfile. You build up in order: a first image (01), fast cached layers (02), run-time config and volumes (03), an API + UI + Redis stack with Compose (04), a method for debugging broken containers (05), and a small non-root multi-stage image (06). Cliffhanger: the service is portable and safe, but only `curl` users can test it. Humans need a face for the model, so we go to [module 12, Streamlit and Gradio](../12_streamlit_gradio/).
+
 ## Why this matters
 "It works on my machine" is the most common deployment failure. Docker packages your code, Python version and dependencies into one image that behaves the same everywhere. Interviewers ask you to explain a Dockerfile line by line, map ports, pass env vars, and debug a container that will not start.
 

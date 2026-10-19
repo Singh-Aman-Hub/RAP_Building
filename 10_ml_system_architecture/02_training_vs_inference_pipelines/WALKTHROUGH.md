@@ -1,5 +1,14 @@
 # Step 02 — Training pipeline vs inference pipeline
 
+## The story so far
+Step 01 ran everything in one script. In real life training happens offline on a schedule and inference runs online all day, as two separate programs.
+
+## The pain point
+If serving cleans text differently from training (say it forgets to lowercase), the model quietly gets worse. No error, no warning, only unhappy users weeks later.
+
+## The spark
+Treat them as two pipelines joined by exactly one thing, the saved artifact. Keep preprocessing inside that artifact so both sides run identical code, and record metadata and library versions.
+
 ## Goal
 See that training (offline, heavy, occasional) and inference (online, light, constant) are different programs joined by **one artifact**, and learn the classic bug when they disagree: **training/serving skew**.
 
@@ -75,5 +84,8 @@ Prevention: put preprocessing **inside** the saved pipeline, share code (not cop
 - [ ] Write `train()` and `predict_text()` as two functions sharing only the saved file.
 - [ ] Name three things that must be identical in training and serving.
 
+## The new problem (cliffhanger)
+The artifact is now the handoff between two programs, so how it is written to disk matters (format, safety, versions). Next: [03_serialization](../03_serialization/).
+
 ## Say it aloud
-"Training is an offline job that fits and evaluates a model and saves an artifact; inference is an online service that loads that artifact once and answers requests quickly. They must share the same preprocessing, otherwise you get training/serving skew, which fails silently. I save preprocessing inside the pipeline and record metadata and library versions. Trade-off: coupling them in one artifact means any preprocessing change requires retraining and redeploying."
+> **Say it aloud (interview box):** Training is an offline job that fits and evaluates a model and saves an artifact, while inference is an online service that loads that artifact once and answers requests quickly. They must share the same preprocessing, otherwise training/serving skew fails silently. The cost is that preprocessing lives inside the artifact, so changing it means retraining and redeploying.

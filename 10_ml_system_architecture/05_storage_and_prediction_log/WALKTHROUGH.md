@@ -1,5 +1,14 @@
 # Step 05 — Databases and model storage: the prediction log
 
+## The story so far
+Step 04 told us which model is live. What we still lack is a record of what it said and to whom.
+
+## The pain point
+Without a record you cannot debug a bad answer, compare two versions, or collect the real examples needed for the next training set.
+
+## The spark
+Write one row per prediction (time, model version, input, label, confidence, latency) into a SQL table, using parameterized queries so user text can never become SQL.
+
 ## Goal
 Persist every prediction (input, label, confidence, latency, **model version**) in SQLite and answer operational questions with SQL.
 
@@ -66,5 +75,8 @@ Rename a column in a query (`lable`) → `sqlite3.OperationalError: no such colu
 - [ ] Explain what to log (and what **not** to: PII, secrets).
 - [ ] Explain why the log includes `model_version`.
 
+## The new problem (cliffhanger)
+The log answers one request at a time, but is answering one at a time the right design for every job? Some work is cheaper in bulk. Next: [06_batch_vs_realtime](../06_batch_vs_realtime/).
+
 ## Say it aloud
-"Every prediction is logged with timestamp, input, output, confidence, latency and model version in a relational store. That powers debugging, monitoring and the next training set from real traffic. I use parameterized queries to avoid SQL injection. Trade-off: logging raw inputs may contain personal data and adds write load, so I sample, mask, or log lengths instead."
+> **Say it aloud (interview box):** Every prediction is logged with timestamp, input, output, confidence, latency and model version in a relational store, which powers debugging, monitoring and the next training set. I always use parameterized queries to avoid SQL injection. The cost is that raw inputs may contain personal data and add write load, so I sample, mask, or log lengths instead.
