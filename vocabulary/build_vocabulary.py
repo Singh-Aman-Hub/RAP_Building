@@ -111,7 +111,7 @@ def main() -> None:
     # [[wiki links]] check: warn about links that do not point to a known term
     known = set(seen)
     for e in entries:
-        for link in re.findall(r"\[\[(.+?)\]\]", e["body"]):
+        for link in re.findall(r"\[\[(.+?)\]\]", re.sub(r"```.*?```", "", e["body"], flags=re.S)):
             if link.lower() not in known:
                 problems.append(f"{e['source']}: '{e['term']}' links to unknown term [[{link}]]")
 

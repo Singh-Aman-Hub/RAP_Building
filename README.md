@@ -63,7 +63,7 @@ See [shared/llm_client.py](shared/llm_client.py) — it is short and worth readi
 ```
 NN_module/
 ├── README.md          the lesson: why it matters, builds-on / leads-to links, concept map, explanations, interview Q&A, self-check
-├── 01_step/ main.py + WALKTHROUGH.md     smallest runnable example, then the line-by-line explanation
+├── 01_step/ main.py + WALKTHROUGH.md + TERMS.md   runnable example, line-by-line explanation, and every term (definition / plain words / quotable example)
 ├── 02_step/ ...                          each step builds on the previous
 ├── exercises.md       modify / break / rebuild / explain-aloud tasks per step
 └── solutions/         worked answers (try first!)

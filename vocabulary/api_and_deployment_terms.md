@@ -1,6 +1,6 @@
 # API, Docker, Architecture and Deployment Terms
 
-140 terms, alphabetical. Back to [index](index.md).
+145 terms, alphabetical. Back to [index](index.md).
 
 - [.dockerignore](#dockerignore)
 - [0.0.0.0 vs 127.0.0.1 binding](#0000-vs-127001-binding)
@@ -22,6 +22,7 @@
 - [CMD vs ENTRYPOINT](#cmd-vs-entrypoint)
 - [Compose file](#compose-file)
 - [Concurrency](#concurrency)
+- [Config](#config)
 - [Configuration](#configuration)
 - [Confirmation hook](#confirmation-hook)
 - [Container](#container)
@@ -32,8 +33,11 @@
 - [depends_on](#depends_on)
 - [Deployment (UI apps)](#deployment-ui-apps)
 - [Docker Compose](#docker-compose)
+- [Docker ENV](#docker-env)
 - [docker exec](#docker-exec)
+- [Docker health check](#docker-health-check)
 - [Docker logs](#docker-logs)
+- [Docker port mapping](#docker-port-mapping)
 - [Dockerfile](#dockerfile)
 - [Environment variable (Docker)](#environment-variable-docker)
 - [Error handler](#error-handler)
@@ -57,6 +61,7 @@
 - [Header](#header)
 - [Health check](#health-check)
 - [Health check (Docker)](#health-check-docker)
+- [Host](#host)
 - [HTTP](#http)
 - [HTTP 500](#http-500)
 - [HTTP method](#http-method)
@@ -454,7 +459,23 @@ services:
 await asyncio.sleep(1)   # lets the event loop serve others meanwhile
 ```
 - **Snippet explained:** Async waiting does not block other requests; time.sleep would.
-- **Related terms:** [Async/await](python_syntax.md#asyncawait), [Worker](api_and_deployment_terms.md#worker), GIL
+- **Related terms:** [Async/await](python_syntax.md#asyncawait), [Worker](api_and_deployment_terms.md#worker), [GIL](python_syntax.md#gil)
+
+---
+
+### Config
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** The settings an application reads at start-up (ports, file paths, model names, limits), kept outside the code in files or environment variables.
+- **Plain English:** Change behaviour without editing code: the same app runs on your laptop and in a container with different config.
+- **Example / analogy:** The settings menu of a game versus its source code.
+- **Snippet:**
+```python
+import os
+PORT = int(os.getenv("PORT", "8000"))
+```
+- **Snippet explained:** Read `PORT` from the environment, defaulting to 8000.
+- **Related terms:** [Environment variable](python_syntax.md#environment-variable)
 
 ---
 
@@ -565,7 +586,7 @@ from fastapi import Depends
 def x(settings=Depends(get_settings)): ...
 ```
 - **Snippet explained:** FastAPI calls get_settings() and passes the result in.
-- **Related terms:** [FastAPI](api_and_deployment_terms.md#fastapi), Config
+- **Related terms:** [FastAPI](api_and_deployment_terms.md#fastapi), [Config](api_and_deployment_terms.md#config)
 
 ---
 
@@ -616,6 +637,21 @@ docker compose up --build -d
 
 ---
 
+### Docker ENV
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** The Dockerfile instruction `ENV KEY=value` that sets an environment variable inside the image and every container started from it.
+- **Plain English:** Gives containers their default configuration; `docker run -e` can override it at launch.
+- **Example / analogy:** Factory default settings you can still change when you switch the device on.
+- **Snippet:**
+```dockerfile
+ENV MODEL_PATH=/app/model.joblib
+```
+- **Snippet explained:** The app reads `MODEL_PATH` with `os.getenv`.
+- **Related terms:** [Environment variable](python_syntax.md#environment-variable)
+
+---
+
 ### docker exec
 *From module: 11_docker*
 
@@ -631,6 +667,21 @@ docker exec -it toy sh
 
 ---
 
+### Docker health check
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** A `HEALTHCHECK` (or Compose `healthcheck`) command Docker runs periodically; the container is marked healthy or unhealthy by its exit code.
+- **Plain English:** "Running" is not "working". A health check lets Docker and Compose know when the app is truly ready.
+- **Example / analogy:** A nurse taking your pulse every few seconds.
+- **Snippet:**
+```dockerfile
+HEALTHCHECK CMD python -c "import urllib.request as u; u.urlopen('http://localhost:8000/health')"
+```
+- **Snippet explained:** A failing request returns non-zero, so Docker marks the container unhealthy.
+- **Related terms:** [Health check](api_and_deployment_terms.md#health-check)
+
+---
+
 ### Docker logs
 *From module: 11_docker*
 
@@ -643,6 +694,21 @@ docker logs -f --tail 50 toy
 ```
 - **Snippet explained:** Follows the last 50 lines of the container's output live.
 - **Related terms:** [Exit code (container)](api_and_deployment_terms.md#exit-code-container), [docker exec](api_and_deployment_terms.md#docker-exec)
+
+---
+
+### Docker port mapping
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** The `-p HOST:CONTAINER` option (or Compose `ports`) that forwards a port on the host machine to a port inside the container.
+- **Plain English:** Containers are isolated; mapping a port is how your browser reaches the app inside.
+- **Example / analogy:** A receptionist forwarding calls from the main number to an extension.
+- **Snippet:**
+```bash
+docker run -p 8080:8000 myapi    # browse http://localhost:8080
+```
+- **Snippet explained:** Host port 8080 is forwarded to container port 8000.
+- **Related terms:** [Port](api_and_deployment_terms.md#port), [Host](api_and_deployment_terms.md#host)
 
 ---
 
@@ -996,7 +1062,7 @@ def health():
     return {"status": "ok"}
 ```
 - **Snippet explained:** Returns 200 when the app can answer.
-- **Related terms:** [Smoke test](api_and_deployment_terms.md#smoke-test), Docker health check
+- **Related terms:** [Smoke test](api_and_deployment_terms.md#smoke-test), [Docker health check](api_and_deployment_terms.md#docker-health-check)
 
 ---
 
@@ -1012,6 +1078,21 @@ HEALTHCHECK --interval=10s CMD python -c "import urllib.request as u;u.urlopen('
 ```
 - **Snippet explained:** Calls /health every 10 s; failure marks the container unhealthy.
 - **Related terms:** [depends_on](api_and_deployment_terms.md#depends_on), [Liveness vs readiness](api_and_deployment_terms.md#liveness-vs-readiness)
+
+---
+
+### Host
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** The machine, or the network address of it, on which a server runs; `127.0.0.1` means "this machine only" and `0.0.0.0` means "all network interfaces".
+- **Plain English:** Binding to `127.0.0.1` inside a container makes the app unreachable from outside; use `0.0.0.0`.
+- **Example / analogy:** A shop's address: "inside the building only" versus "open to the street".
+- **Snippet:**
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000
+```
+- **Snippet explained:** `--host 0.0.0.0` listens on every interface so Docker's port mapping can reach it.
+- **Related terms:** [Port](api_and_deployment_terms.md#port), [Docker port mapping](api_and_deployment_terms.md#docker-port-mapping)
 
 ---
 
@@ -1124,7 +1205,7 @@ print(json.dumps({"a": [1, 2]}))
 print(json.loads('{"a": [1, 2]}'))
 ```
 - **Snippet explained:** `dumps` writes JSON text; `loads` reads it (single quotes are invalid JSON).
-- **Related terms:** [Structured output](llm_terms.md#structured-output), JSONL
+- **Related terms:** [Structured output](llm_terms.md#structured-output), [JSONL](python_syntax.md#jsonl)
 
 ---
 
@@ -1203,7 +1284,7 @@ async def lifespan(app):
     yield
 ```
 - **Snippet explained:** Loads the model before the first request; code after `yield` runs at shutdown.
-- **Related terms:** [FastAPI](api_and_deployment_terms.md#fastapi), Model loading, [Worker](api_and_deployment_terms.md#worker)
+- **Related terms:** [FastAPI](api_and_deployment_terms.md#fastapi), [Model loading](llm_terms.md#model-loading), [Worker](api_and_deployment_terms.md#worker)
 
 ---
 
@@ -1324,7 +1405,7 @@ reg.promote('v0002', 'production')
 model, meta = reg.load('production')
 ```
 - **Snippet explained:** Moves the label then loads whichever version it points to.
-- **Related terms:** [Model versioning](api_and_deployment_terms.md#model-versioning), Alias, [Model artifact](ml_terms.md#model-artifact)
+- **Related terms:** [Model versioning](api_and_deployment_terms.md#model-versioning), [Alias](ml_terms.md#alias), [Model artifact](ml_terms.md#model-artifact)
 
 ---
 
@@ -1355,7 +1436,7 @@ def predict(req): ...
 version = f'v{n:04d}'
 ```
 - **Snippet explained:** Zero-padded version names sort correctly.
-- **Related terms:** [Model registry](api_and_deployment_terms.md#model-registry), Alias
+- **Related terms:** [Model registry](api_and_deployment_terms.md#model-registry), [Alias](ml_terms.md#alias)
 
 ---
 
@@ -1526,7 +1607,7 @@ except ValueError:
 lsof -i :8000
 ```
 - **Snippet explained:** Shows which process is using port 8000 ('Address already in use' fix).
-- **Related terms:** Host, Docker port mapping
+- **Related terms:** [Host](api_and_deployment_terms.md#host), [Docker port mapping](api_and_deployment_terms.md#docker-port-mapping)
 
 ---
 

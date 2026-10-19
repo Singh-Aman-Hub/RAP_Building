@@ -1,9 +1,10 @@
 # Machine Learning Terms
 
-92 terms, alphabetical. Back to [index](index.md).
+93 terms, alphabetical. Back to [index](index.md).
 
 - [Accuracy](#accuracy)
 - [Adam and AdamW](#adam-and-adamw)
+- [Alias](#alias)
 - [Autograd](#autograd)
 - [Backpropagation](#backpropagation)
 - [Backward pass](#backward-pass)
@@ -124,6 +125,22 @@ opt = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.01)
 ```
 - **Snippet explained:** weight_decay shrinks weights slightly each step to curb overfitting.
 - **Related terms:** [Optimizer](ml_terms.md#optimizer), [Weight decay](ml_terms.md#weight-decay), [Learning rate](ml_terms.md#learning-rate)
+
+---
+
+### Alias
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** A movable name (such as `latest` or `production`) that points to a specific model version in a registry.
+- **Plain English:** Callers ask for "production" and you decide which version that means; promoting or rolling back is just moving the alias.
+- **Example / analogy:** A contact named "Mum" pointing to a phone number you can update.
+- **Snippet:**
+```python
+aliases = {"production": "v3"}
+version = aliases["production"]
+```
+- **Snippet explained:** Changing the dictionary value re-points "production" without changing callers.
+- **Related terms:** [Model registry](api_and_deployment_terms.md#model-registry), [Model versioning](api_and_deployment_terms.md#model-versioning)
 
 ---
 
@@ -763,7 +780,7 @@ def gen():
     return _GEN
 ```
 - **Snippet explained:** First call pays the loading cost; later calls reuse the cached object.
-- **Related terms:** Model loading, [Lifespan (startup/shutdown)](api_and_deployment_terms.md#lifespan-startupshutdown)
+- **Related terms:** [Model loading](llm_terms.md#model-loading), [Lifespan (startup/shutdown)](api_and_deployment_terms.md#lifespan-startupshutdown)
 
 ---
 

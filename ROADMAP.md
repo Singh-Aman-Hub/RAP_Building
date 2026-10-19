@@ -37,6 +37,7 @@ RAP_interview/
 |---------------|-----------|----------------|
 | `README.md` | **The lesson.** Why it matters → builds-on / leads-to → concept map → one explanation per syllabus bullet → gotchas → self-check → interview Q&A | Read first, before touching code |
 | `NN_step/main.py` | The smallest runnable example for that step: goal, run command, expected output, commented code, `TRY IT` and `BREAK IT` hints | Predict the output, then run |
+| `NN_step/TERMS.md` | **Every term in that step**, each with (1) a precise definition, (2) a plain-words paragraph, (3) an example you can quote aloud | Skim before running; re-read when a word is unfamiliar |
 | `NN_step/WALKTHROUGH.md` | Line-by-line explanation: syntax table, libraries/functions table, execution trace with real output, experiments, debugging drill, rebuild list, "say it aloud" | After you ran it |
 | `exercises.md` | Per step: modify one thing, break it, rebuild from memory, explain aloud | After the walkthrough |
 | `solutions/` | Worked answers | Only after you attempted the exercise |
@@ -45,7 +46,7 @@ RAP_interview/
 ### 1.3 The loop for every step (the syllabus's 10-step practice)
 
 ```
- read module README section ─► predict output ─► run main.py ─► read WALKTHROUGH.md
+ read module README + step TERMS.md ─► predict output ─► run main.py ─► read WALKTHROUGH.md
         ▲                                                              │
         │                                                              ▼
  tick self-check  ◄─ say it aloud ◄─ rebuild from memory ◄─ BREAK IT drill ◄─ change ONE thing (TRY IT)

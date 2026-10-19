@@ -46,7 +46,7 @@ def api_predict(text, api_url, progress=gr.Progress()):
         raise gr.Error(f"API error {exc.response.status_code}: {exc.response.text}")
     progress(1.0, desc="Done")
     data = r.json()
-    return {data["label"]: float(data["score"])}          # gr.Label wants {class: probability}
+    return {data["label"]: float(data.get("confidence", data.get("score")))}          # gr.Label wants {class: probability}
 
 
 def batch_predict(file_obj):

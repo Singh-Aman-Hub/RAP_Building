@@ -1,6 +1,6 @@
 # Python Syntax, Standard Library, Debugging and DSA Terms
 
-115 terms, alphabetical. Back to [index](index.md).
+120 terms, alphabetical. Back to [index](index.md).
 
 - [.env file](#env-file)
 - [args and kwargs](#args-and-kwargs)
@@ -39,13 +39,16 @@
 - [enumerate](#enumerate)
 - [Environment variable](#environment-variable)
 - [Exception](#exception)
+- [Exception handling](#exception-handling)
 - [f-string](#f-string)
 - [File handling](#file-handling)
 - [FileNotFoundError](#filenotfounderror)
+- [Fixture](#fixture)
 - [Frequency counting](#frequency-counting)
 - [Function](#function)
 - [Generator](#generator)
 - [Generator expression](#generator-expression)
+- [GIL](#gil)
 - [Grouping by key](#grouping-by-key)
 - [Hash map](#hash-map)
 - [Hash map (dict)](#hash-map-dict)
@@ -60,6 +63,7 @@
 - [joblib](#joblib)
 - [JSON](#json)
 - [JSON (config format)](#json-config-format)
+- [JSONL](#jsonl)
 - [KeyError](#keyerror)
 - [Keyword argument](#keyword-argument)
 - [Keyword arguments (**kwargs)](#keyword-arguments-kwargs)
@@ -86,6 +90,7 @@
 - [pytest](#pytest)
 - [Raise](#raise)
 - [Regression test](#regression-test)
+- [Regular expression](#regular-expression)
 - [requirements.txt](#requirementstxt)
 - [Retry with backoff](#retry-with-backoff)
 - [Root-cause analysis](#root-cause-analysis)
@@ -738,6 +743,24 @@ except ZeroDivisionError as e:
 
 ---
 
+### Exception handling
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** Using `try` / `except` / `else` / `finally` to catch errors raised at run time and respond instead of letting the program crash.
+- **Plain English:** You say "try this; if it fails in this specific way, do that instead". Catch only the errors you can actually handle.
+- **Example / analogy:** A safety net under a trapeze act.
+- **Snippet:**
+```python
+try:
+    value = int("abc")
+except ValueError as err:
+    print("not a number:", err)
+```
+- **Snippet explained:** `int("abc")` raises `ValueError`; the `except` block runs and the program continues.
+- **Related terms:** [ValidationError](python_syntax.md#validationerror)
+
+---
+
 ### f-string
 *From module: 00_python_foundations*
 
@@ -782,6 +805,26 @@ print(Path('x.txt').resolve())
 ```
 - **Snippet explained:** Prints the exact absolute path Python would try.
 - **Related terms:** [Working directory](python_syntax.md#working-directory)
+
+---
+
+### Fixture
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** In pytest, a function marked `@pytest.fixture` that prepares something tests need (a client, a temp file) and is injected by naming it as a test argument.
+- **Plain English:** Shared set-up written once and reused by many tests.
+- **Example / analogy:** Laying out the tools before each experiment.
+- **Snippet:**
+```python
+import pytest
+@pytest.fixture
+def numbers():
+    return [1, 2, 3]
+def test_sum(numbers):
+    assert sum(numbers) == 6
+```
+- **Snippet explained:** pytest sees the argument name `numbers` and passes in the fixture's return value.
+- **Related terms:** [pytest](python_syntax.md#pytest)
 
 ---
 
@@ -848,6 +891,18 @@ total = sum(1 for x in nums if x > 0)
 ```
 - **Snippet explained:** Counts positives without creating an intermediate list.
 - **Related terms:** [List comprehension](python_syntax.md#list-comprehension)
+
+---
+
+### GIL
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** The Global Interpreter Lock: a lock in standard CPython that lets only one thread execute Python bytecode at a time.
+- **Plain English:** Threads do not speed up CPU-heavy pure-Python code, though they help while waiting on network or disk. For CPU-bound work use multiple processes (as Gunicorn workers do) or libraries that release the lock.
+- **Example / analogy:** One microphone in a room: many people can wait, only one speaks at once.
+- **Snippet:** n/a
+- **Snippet explained:** n/a
+- **Related terms:** [Concurrency](api_and_deployment_terms.md#concurrency)
 
 ---
 
@@ -1075,6 +1130,23 @@ json.loads('{"a": 1}')   # {'a': 1}
 ```
 - **Snippet explained:** loads parses a JSON string; json.load reads from a file object.
 - **Related terms:** [Configuration file](python_syntax.md#configuration-file)
+
+---
+
+### JSONL
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** "JSON Lines": a text format with one complete JSON object per line, so files can be appended to and read line by line.
+- **Plain English:** A log file where each line is a self-contained record you can parse with `json.loads`; one broken line does not ruin the rest.
+- **Example / analogy:** A notebook where every line is a separate, complete index card.
+- **Snippet:**
+```python
+import json
+with open("trace.jsonl", "a") as f:
+    f.write(json.dumps({"tool": "calc", "ok": True}) + "\n")
+```
+- **Snippet explained:** `json.dumps` makes one line of JSON; the newline separates records; mode `"a"` appends.
+- **Related terms:** [JSON (JavaScript Object Notation)](api_and_deployment_terms.md#json-javascript-object-notation)
 
 ---
 
@@ -1468,7 +1540,7 @@ def test_health(client):
     assert client.get('/health').status_code == 200
 ```
 - **Snippet explained:** Fails with a readable diff if the status is not 200.
-- **Related terms:** [Test client](api_and_deployment_terms.md#test-client), Fixture, [Smoke test](api_and_deployment_terms.md#smoke-test)
+- **Related terms:** [Test client](api_and_deployment_terms.md#test-client), [Fixture](python_syntax.md#fixture), [Smoke test](api_and_deployment_terms.md#smoke-test)
 
 ---
 
@@ -1499,6 +1571,22 @@ assert add_item_fixed('b') == ['b']
 ```
 - **Snippet explained:** Would have failed with the buggy shared list.
 - **Related terms:** [Assertion](python_syntax.md#assertion), [Root-cause analysis](python_syntax.md#root-cause-analysis)
+
+---
+
+### Regular expression
+*From module: 99_extra_linked_terms*
+
+- **Technical definition:** A compact pattern language for matching and extracting text, available in Python through the `re` module.
+- **Plain English:** A search pattern more powerful than "contains": for example "the first {...} block in this reply".
+- **Example / analogy:** Find-and-replace on steroids.
+- **Snippet:**
+```python
+import re
+re.search(r"\d+", "order 66 shipped").group()   # '66'
+```
+- **Snippet explained:** `\d+` means one or more digits; `search` finds the first match and `.group()` returns its text.
+- **Related terms:** [Parser (reply parser)](llm_terms.md#parser-reply-parser)
 
 ---
 
@@ -1935,7 +2023,7 @@ except ValidationError as e:
     print(e.errors()[0]["loc"])
 ```
 - **Snippet explained:** Prints `('x',)`, the field that failed.
-- **Related terms:** [Pydantic model](python_syntax.md#pydantic-model), Exception handling
+- **Related terms:** [Pydantic model](python_syntax.md#pydantic-model), [Exception handling](python_syntax.md#exception-handling)
 
 ---
 
