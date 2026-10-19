@@ -1,0 +1,10 @@
+# Streamlit reads .streamlit/config.toml from the folder you run `streamlit run` in (and ~/.streamlit/config.toml).
+[theme]
+primaryColor = "#0b6e4f"          # buttons, sliders, links
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#eef6f2"   # sidebar and widgets background
+textColor = "#1a1a1a"
+font = "sans serif"
+
+[server]
+headless = true                   # do not auto-open a browser (useful in Docker/servers)

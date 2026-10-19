@@ -1,0 +1,20 @@
+services:
+  api:
+    build: ./api
+    ports: ["8000:8000"]
+    environment:
+      MODEL_PATH: /app/artifacts/model.joblib
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  ui:
+    build: ./ui
+    ports: ["8501:8501"]
+    environment:
+      API_URL: http://api:8000      # service name = DNS name on the compose network
+    depends_on:
+      api:
+        condition: service_healthy

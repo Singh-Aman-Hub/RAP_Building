@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "trained_at": "2026-10-19T05:40:46+00:00",
+  "labels": [
+    "negative",
+    "positive"
+  ],
+  "n_train": 135,
+  "n_val": 45,
+  "val_accuracy": 0.8,
+  "val_f1_macro": 0.7984071677451469
+}

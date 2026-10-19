@@ -1,0 +1,49 @@
+{"ts": 1792388642.014, "run_id": "8ce5e4e8", "event": "start", "question": "What is 6 x 7?", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.014, "run_id": "8ce5e4e8", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"calculator\", \"args\": {\"a\": 6, \"op\": \"*\", \"b\": 7}}", "ms": 0}
+{"ts": 1792388642.014, "run_id": "8ce5e4e8", "event": "tool_call", "step": 1, "tool": "calculator", "args": {"a": 6, "op": "*", "b": 7}, "result": "42", "ok": true, "ms": 0.01}
+{"ts": 1792388642.014, "run_id": "8ce5e4e8", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Result: 42\"}", "ms": 0}
+{"ts": 1792388642.015, "run_id": "8ce5e4e8", "event": "end", "status": "final", "answer": "Result: 42", "steps": 2}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "start", "question": "Calculate 12 + 8 then * 3", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"calculator\", \"args\": {\"a\": 12, \"op\": \"+\", \"b\": 8}}", "ms": 0}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "tool_call", "step": 1, "tool": "calculator", "args": {"a": 12, "op": "+", "b": 8}, "result": "20", "ok": true, "ms": 0.0}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "llm_reply", "step": 2, "reply": "{\"tool\": \"calculator\", \"args\": {\"a\": 20, \"op\": \"*\", \"b\": 3}}", "ms": 0}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "tool_call", "step": 2, "tool": "calculator", "args": {"a": 20, "op": "*", "b": 3}, "result": "60", "ok": true, "ms": 0.0}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "llm_reply", "step": 3, "reply": "{\"final\": \"Result: 60\"}", "ms": 0}
+{"ts": 1792388642.015, "run_id": "a6119210", "event": "end", "status": "final", "answer": "Result: 60", "steps": 3}
+{"ts": 1792388642.015, "run_id": "63bca995", "event": "start", "question": "Remember that my name is Priya", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.015, "run_id": "63bca995", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"remember\", \"args\": {\"key\": \"name\", \"value\": \"Priya\"}}", "ms": 0}
+{"ts": 1792388642.015, "run_id": "63bca995", "event": "tool_call", "step": 1, "tool": "remember", "args": {"key": "name", "value": "Priya"}, "result": "stored 'name'", "ok": true, "ms": 0.32}
+{"ts": 1792388642.016, "run_id": "63bca995", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Result: stored 'name'\"}", "ms": 0}
+{"ts": 1792388642.016, "run_id": "63bca995", "event": "end", "status": "final", "answer": "Result: stored 'name'", "steps": 2}
+{"ts": 1792388642.016, "run_id": "183d81f5", "event": "start", "question": "What is my name?", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.016, "run_id": "183d81f5", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"recall\", \"args\": {\"key\": \"name\"}}", "ms": 0}
+{"ts": 1792388642.016, "run_id": "183d81f5", "event": "tool_call", "step": 1, "tool": "recall", "args": {"key": "name"}, "result": "Priya", "ok": true, "ms": 0.05}
+{"ts": 1792388642.016, "run_id": "183d81f5", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Result: Priya\"}", "ms": 0}
+{"ts": 1792388642.016, "run_id": "183d81f5", "event": "end", "status": "final", "answer": "Result: Priya", "steps": 2}
+{"ts": 1792388642.016, "run_id": "eb060905", "event": "start", "question": "read file notes.txt", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.016, "run_id": "eb060905", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"read_file\", \"args\": {\"path\": \"notes.txt\"}}", "ms": 0}
+{"ts": 1792388642.016, "run_id": "eb060905", "event": "tool_call", "step": 1, "tool": "read_file", "args": {"path": "notes.txt"}, "result": "Shopping list:\n- rice\n- lentils\n- tea\n", "ok": true, "ms": 0.1}
+{"ts": 1792388642.016, "run_id": "eb060905", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Result: Shopping list:\\n- rice\\n- lentils\\n- tea\"}", "ms": 0}
+{"ts": 1792388642.016, "run_id": "eb060905", "event": "end", "status": "final", "answer": "Result: Shopping list:\n- rice\n- lentils\n- tea", "steps": 2}
+{"ts": 1792388642.017, "run_id": "8d3dd0fd", "event": "start", "question": "read file ../../.env", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.017, "run_id": "8d3dd0fd", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"read_file\", \"args\": {\"path\": \"../../.env\"}}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "8d3dd0fd", "event": "tool_call", "step": 1, "tool": "read_file", "args": {"path": "../../.env"}, "result": "ERROR: permission denied: path '../../.env' is outside the sandbox", "ok": false, "ms": 0.07}
+{"ts": 1792388642.017, "run_id": "8d3dd0fd", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Sorry, the tool failed: ERROR: permission denied: path '../../.env' is outside the sandbox\"}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "8d3dd0fd", "event": "end", "status": "final", "answer": "Sorry, the tool failed: ERROR: permission denied: path '../../.env' is outside the sandbox", "steps": 2}
+{"ts": 1792388642.017, "run_id": "2a87c470", "event": "start", "question": "What is 5 / 0?", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.017, "run_id": "2a87c470", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"calculator\", \"args\": {\"a\": 5, \"op\": \"/\", \"b\": 0}}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "2a87c470", "event": "tool_call", "step": 1, "tool": "calculator", "args": {"a": 5, "op": "/", "b": 0}, "result": "ERROR: ZeroDivisionError: division by zero", "ok": false, "ms": 0.01}
+{"ts": 1792388642.017, "run_id": "2a87c470", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Sorry, the tool failed: ERROR: ZeroDivisionError: division by zero\"}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "2a87c470", "event": "end", "status": "final", "answer": "Sorry, the tool failed: ERROR: ZeroDivisionError: division by zero", "steps": 2}
+{"ts": 1792388642.017, "run_id": "1b869f7b", "event": "start", "question": "delete file notes.txt", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.017, "run_id": "1b869f7b", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"delete_file\", \"args\": {\"path\": \"notes.txt\"}}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "1b869f7b", "event": "tool_call", "step": 1, "tool": "delete_file", "args": {"path": "notes.txt"}, "result": "ERROR: permission denied: delete_file needs confirmation and was not approved", "ok": false, "ms": 0.0}
+{"ts": 1792388642.017, "run_id": "1b869f7b", "event": "llm_reply", "step": 2, "reply": "{\"final\": \"Sorry, the tool failed: ERROR: permission denied: delete_file needs confirmation and was not approved\"}", "ms": 0}
+{"ts": 1792388642.017, "run_id": "1b869f7b", "event": "end", "status": "final", "answer": "Sorry, the tool failed: ERROR: permission denied: delete_file needs confirmation and was not approved", "steps": 2}
+{"ts": 1792388642.017, "run_id": "b2c7f5e1", "event": "start", "question": "Tell me a joke", "mode": "read_write", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.017, "run_id": "b2c7f5e1", "event": "llm_reply", "step": 1, "reply": "{\"final\": \"I don't know how to help with that.\"}", "ms": 0}
+{"ts": 1792388642.018, "run_id": "b2c7f5e1", "event": "end", "status": "final", "answer": "I don't know how to help with that.", "steps": 1}
+{"ts": 1792388642.018, "run_id": "6006afeb", "event": "start", "question": "Calculate 12 + 8 then * 3", "mode": "read_only", "tools": ["calculator", "delete_file", "read_file", "recall", "remember", "write_file"]}
+{"ts": 1792388642.018, "run_id": "6006afeb", "event": "llm_reply", "step": 1, "reply": "{\"tool\": \"calculator\", \"args\": {\"a\": 12, \"op\": \"+\", \"b\": 8}}", "ms": 0}
+{"ts": 1792388642.018, "run_id": "6006afeb", "event": "tool_call", "step": 1, "tool": "calculator", "args": {"a": 12, "op": "+", "b": 8}, "result": "20", "ok": true, "ms": 0.0}
+{"ts": 1792388642.018, "run_id": "6006afeb", "event": "end", "status": "max_steps", "answer": "Stopped: step limit reached.", "steps": 1}

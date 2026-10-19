@@ -1,0 +1,42 @@
+# Docker Compose file: describes a WHOLE application (several containers) in one YAML file.
+# Top-level keys: services (containers), volumes (named volumes), networks (optional; Compose makes a default one).
+services:
+  redis:                                  # service name = DNS hostname on the compose network
+    image: ${REDIS_IMAGE}                 # use a ready-made image instead of building one
+    volumes:
+      - redis-data:/data                  # named volume: counter survives `docker compose down`
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]  # healthy when redis answers PONG
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: ./api                          # build from ./api/Dockerfile
+    environment:
+      REDIS_HOST: redis                   # <- the service name above
+    ports:
+      - "${API_PORT}:8000"                # HOST:CONTAINER, like docker run -p
+    depends_on:
+      redis:
+        condition: service_healthy        # wait for redis HEALTHY, not just started
+    healthcheck:
+      # python is already in the image; curl is NOT in python:slim, so we use urllib instead.
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s                    # grace period while the app boots
+
+  ui:
+    build: ./ui
+    environment:
+      API_URL: http://api:8000            # container-to-container: service name, CONTAINER port
+    ports:
+      - "${UI_PORT}:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  redis-data:

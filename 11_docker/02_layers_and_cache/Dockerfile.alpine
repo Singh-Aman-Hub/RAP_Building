@@ -1,0 +1,8 @@
+# Alpine = tiny (~5 MB) BUT uses musl libc instead of glibc. Many Python wheels (numpy, torch, pandas)
+# have no musl wheel, so pip compiles from source: slow builds, sometimes impossible. For ML, prefer -slim.
+FROM python:3.12-alpine
+WORKDIR /code
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app ./app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,39 @@
+Ticket: How do I reset my password in PixelNote? Reply: Open Settings, tap Account, then choose Reset Password. We will email you a link.
+Ticket: Where can I change my username? Reply: Open Settings, tap Account, then choose Edit Profile. Your new name saves automatically.
+Ticket: How do I export my notes? Reply: Open the note, tap the three dots, then choose Export. You can pick PDF or Markdown.
+Ticket: Can I use PixelNote offline? Reply: Yes. Notes sync again as soon as your device reconnects to the internet.
+Ticket: How do I delete a note? Reply: Swipe the note to the left and tap the bin icon. Deleted notes stay in Trash for 30 days.
+Ticket: How do I restore a deleted note? Reply: Open Trash from the side menu, tap the note, then choose Restore.
+Ticket: Is my data encrypted? Reply: Yes. Notes are encrypted on your device and again while they travel to our servers.
+Ticket: How do I turn on dark mode? Reply: Open Settings, tap Appearance, then switch on Dark Mode.
+Ticket: How do I share a note with a friend? Reply: Open the note, tap Share, then enter your friend's email. They will get a view-only link.
+Ticket: Can I add a photo to a note? Reply: Yes. Tap the paperclip icon inside the note and choose a photo from your gallery.
+Ticket: Why is my sync stuck? Reply: Check your internet connection, then pull down on the note list to force a sync.
+Ticket: How do I cancel my subscription? Reply: Open Settings, tap Billing, then choose Cancel Plan. You keep access until the period ends.
+Ticket: Do you offer a student discount? Reply: Yes. Verify your school email in Settings, tap Billing, and the discount applies at once.
+Ticket: How do I change my language? Reply: Open Settings, tap Language, then pick one from the list. The app restarts quickly.
+Ticket: Can I lock a note with a PIN? Reply: Yes. Open the note, tap the lock icon, then set a four digit PIN.
+Ticket: How do I search my notes? Reply: Tap the magnifier at the top of the note list and type a word. Results update as you type.
+Ticket: How do I create a folder? Reply: Tap the plus icon on the home screen, choose New Folder, and give it a name.
+Ticket: How do I move a note into a folder? Reply: Press and hold the note, then drag it onto the folder.
+Ticket: The app crashes when I open it. Reply: Update PixelNote to the latest version. If it still crashes, reinstall the app. Your notes stay safe in the cloud.
+Ticket: How do I change the font size? Reply: Open Settings, tap Appearance, then move the Text Size slider.
+Ticket: Can I use PixelNote on my laptop? Reply: Yes. Sign in at the PixelNote website or install the desktop app with the same account.
+Ticket: How do I enable reminders? Reply: Open the note, tap the bell icon, then choose a date and time.
+Ticket: How do I contact support? Reply: Open Settings, tap Help, then choose Contact Us. We reply within one working day.
+Ticket: How do I merge two notes? Reply: Select both notes from the list, tap the three dots, and choose Merge.
+Ticket: Can I print a note? Reply: Yes. Open the note, tap the three dots, choose Export, then pick Print.
+Ticket: How do I change my email address? Reply: Open Settings, tap Account, then choose Change Email. Confirm the link we send to the new address.
+Ticket: How do I use tags? Reply: Type a hash symbol followed by a word inside a note. Tap a tag later to see every note that uses it.
+Ticket: Can I record voice notes? Reply: Yes. Tap the microphone icon inside a note and press record.
+Ticket: What happens if I lose my phone? Reply: Sign in on a new device with your account. All your notes sync back automatically.
+Ticket: How do I turn off notifications? Reply: Open Settings, tap Notifications, then switch off the ones you do not want.
+Ticket: Is there a limit on note size? Reply: Each note can hold up to ten thousand words and twenty attachments.
+Ticket: How do I back up my notes? Reply: Backups run automatically every night. You can also tap Backup Now in Settings.
+Ticket: How do I sign out? Reply: Open Settings, tap Account, then choose Sign Out.
+Ticket: Can I collaborate with others in real time? Reply: Yes. Share a note with edit rights and everyone sees changes live.
+Ticket: How do I check my storage? Reply: Open Settings, tap Storage to see how much space your notes and photos use.
+Ticket: How do I pin a note to the top? Reply: Swipe the note to the right and tap the pin icon.
+Ticket: How do I clear the Trash? Reply: Open Trash, tap the three dots, then choose Empty Trash. This cannot be undone.
+Ticket: How do I change my theme colour? Reply: Open Settings, tap Appearance, then choose a colour under Theme.
+Ticket: Can I import notes from another app? Reply: Yes. Tap Settings, choose Import, and pick a Markdown or text file.

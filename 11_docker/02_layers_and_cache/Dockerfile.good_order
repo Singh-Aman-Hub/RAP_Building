@@ -1,0 +1,10 @@
+# GOOD layer order: least-frequently-changing things first, most-frequently-changing last.
+FROM python:3.12-slim
+WORKDIR /code
+# layer A: changes only when dependencies change
+COPY requirements.txt .
+# layer B: CACHED as long as layer A is unchanged
+RUN pip install --no-cache-dir -r requirements.txt
+# layer C: changes on every code edit (cheap to rebuild)
+COPY app ./app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

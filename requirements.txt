@@ -1,0 +1,24 @@
+# Everything the study pack uses. Install:  uv pip install -r requirements.txt   (or: pip install -r requirements.txt)
+# Python 3.10+ recommended (developed on 3.12).
+numpy
+pandas
+scikit-learn
+joblib
+torch
+transformers
+tokenizers
+datasets
+accelerate
+peft
+flask
+gunicorn
+fastapi
+uvicorn[standard]
+pydantic
+httpx
+requests
+streamlit
+gradio
+pytest
+python-dotenv
+anthropic          # optional: only for LLM_BACKEND=anthropic
