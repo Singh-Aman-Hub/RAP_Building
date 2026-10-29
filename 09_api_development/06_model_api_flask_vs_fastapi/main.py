@@ -26,6 +26,9 @@ if __name__ == "__main__":
     with TestClient(fastapi_app) as fast_client:
         print("health  flask  =", flask_client.get("/health").get_json())
         print("health  fastapi=", fast_client.get("/health").json())
+        print("async: ", fast_client.get("/slow").json())
+        print("sync: ", fast_client.get("/slow-sync").json())
+
         print()
         for text in ["I love this great film", "This was terrible and boring", "It was a film"]:
             f = flask_client.post("/predict", json={"text": text}).get_json()

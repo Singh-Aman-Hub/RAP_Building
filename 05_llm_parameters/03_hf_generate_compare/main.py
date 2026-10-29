@@ -48,7 +48,7 @@ print("our distribution == HF distribution:", same)
 # ---------------------------------------------------------------------------
 # 2. generate() with the config.json settings
 # ---------------------------------------------------------------------------
-def run(label, **overrides):
+def run(label, **overrides): 
     """Generate once with config defaults + overrides. Seed is fixed so ONLY the parameter changes."""
     kwargs = generation_kwargs(cfg)
     kwargs.update(overrides)                            # dict.update: later keys win

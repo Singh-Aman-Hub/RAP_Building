@@ -1,0 +1,32 @@
+# Virtual environments and installed packages
+.venv/
+venv/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets
+.env
+
+# Large generated model files (re-create them by running the scripts)
+**/checkpoints/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Local vector DB / index data written by the RAG scripts
+qdrant_data/
+chroma_db/
+*.faiss

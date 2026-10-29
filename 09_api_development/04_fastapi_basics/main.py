@@ -36,7 +36,7 @@ def health():
     return {"status": "ok"}       # return a plain dict; FastAPI converts it to JSON
 
 
-@app.get("/add")
+@app.get("/add",status_code=200)
 def add(a: float, b: float):      # type hints on parameters = query params, parsed AND validated for us
     return {"result": a + b}
 

@@ -18,7 +18,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 tok = AutoTokenizer.from_pretrained("distilgpt2")
 model = AutoModelForCausalLM.from_pretrained("distilgpt2").eval()
 
-prompt = "The capital of France is"
+prompt = "Transformer blocks are made of"
 inputs = tok(prompt, return_tensors="pt")        # dict with input_ids and attention_mask
 print("input_ids:", inputs["input_ids"], " shape:", tuple(inputs["input_ids"].shape))   # shape: (batch=1, seq_len=5)
 

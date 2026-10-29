@@ -77,7 +77,7 @@ def generate(start, n_tokens, greedy=True, seed=0):
 
 print("\ngreedy  :", generate("the", 8, greedy=True))
 print("sampled :", generate("the", 8, greedy=False, seed=1))
-print("sampled :", generate("the", 8, greedy=False, seed=2))
+print("sampled :", generate("the", 8, greedy=False, seed=3))
 
 # ---------------------------------------------------------------------------
 # 6. Why this toy is NOT enough -> why transformers exist.

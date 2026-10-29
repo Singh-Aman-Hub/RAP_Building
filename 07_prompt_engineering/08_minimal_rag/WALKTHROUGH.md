@@ -94,4 +94,6 @@ Embed documents with one method and the query with another (e.g. TF-IDF docs, Mi
 ## The new problem (cliffhanger)
 The model can now answer from your facts. But it can only *talk*. Ask it "cancel order 1234" or "save this note" and the best it can do is describe how. It has no hands: nothing in this pipeline can run code, read a file or call a service. Giving the brain hands means a loop that lets the model request a tool, runs it safely, and feeds the result back. Next: [08_agent_harness](../../08_agent_harness/).
 
+**Deep dive:** every stage of this 20-line demo (chunking, embeddings, vector indexes, BM25 and hybrid search, re-ranking, evaluation) is expanded step by step in [14_rag_and_retrieval](../../14_rag_and_retrieval/README.md).
+
 > **Say it aloud (interview box):** RAG means I retrieve the few documents most similar to the question, using embeddings and cosine similarity, and paste them into the prompt so a frozen model answers from facts instead of guessing. Its failure modes are retrieval misses and irrelevant chunks, so I set a similarity threshold and allow an explicit "I don't know". It fixes missing knowledge without retraining, but it only lets the model talk, not act.

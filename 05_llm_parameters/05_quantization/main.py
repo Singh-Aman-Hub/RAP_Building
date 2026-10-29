@@ -7,7 +7,7 @@ RUN:    from this folder:  python main.py
 EXPECTED OUTPUT (short): int8 is 4x smaller with tiny error; int4 is 8x smaller with ~18x bigger
         error; distilgpt2 loss barely moves at int8 but degrades badly at int4 per-tensor (group-wise rescues it).
 NEEDS:  numpy, torch, transformers (distilgpt2 cached). ~20 s.
-
+k
 Quantization = store each weight with FEWER BITS.  float32 uses 32 bits (4 bytes); int8 uses 8 bits.
 Smaller weights -> less memory, less memory bandwidth (usually the bottleneck for LLM inference),
 so faster and cheaper - at the price of some rounding error.

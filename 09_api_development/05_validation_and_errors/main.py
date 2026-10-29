@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field, ValidationError  # Field adds constraints
 # ----------------------------- 1. Pydantic on its own ------------------------------
 class PredictRequest(BaseModel):
     text: str = Field(min_length=1, max_length=200)   # must be a str, 1..200 characters
-    top_k: int = Field(default=1, ge=1, le=5)         # optional int, default 1, allowed 1..5 (ge = >=, le = <=)
+    top_k: int = Field(default=1, gt=6, le=6)         # optional int, default 1, allowed 1..5 (ge = >=, le = <=)
 
 
 def pydantic_demo():
@@ -27,7 +27,7 @@ def pydantic_demo():
     print("valid  ->", ok, "| ok.text =", ok.text)
     print("dict   ->", ok.model_dump())               # back to a plain dict (Pydantic v2 name)
     try:
-        PredictRequest(text="", top_k=99)             # two mistakes at once
+        PredictRequest(text="", top_k=5)             # two mistakes at once
     except ValidationError as err:                    # Pydantic collects ALL problems, not just the first
         for e in err.errors():                        # list of dicts: loc (where), msg (why), type
             print("invalid->", e["loc"], e["msg"])

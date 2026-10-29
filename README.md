@@ -57,6 +57,7 @@ See [shared/llm_client.py](shared/llm_client.py) — it is short and worth readi
 | [11_docker](11_docker/) | 7 Docker | Dockerfile, Compose, networking, health checks |
 | [12_streamlit_gradio](12_streamlit_gradio/) | 8 UI | Streamlit and Gradio apps calling the API |
 | [13_capstone_project](13_capstone_project/) | integration | whole stack, explained end to end |
+| [14_rag_and_retrieval](14_rag_and_retrieval/) | RAG deep dive (extends 07/08_minimal_rag) | chunking, embeddings, vector index, IVF/HNSW/PQ, BM25 + hybrid, re-ranking, full pipeline, evaluation, vector DBs |
 | [vocabulary](vocabulary/index.md) | vocabulary files | searchable dictionary: definition, plain English, analogy, snippet |
 | [mock_interviews](mock_interviews/) | interview readiness | question banks, live-coding & debugging drills, scorecard |
 | [shared](shared/) | helper | `llm_client.py` used by modules 07/08 |
