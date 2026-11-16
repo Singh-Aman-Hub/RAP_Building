@@ -39,7 +39,20 @@ See [shared/llm_client.py](shared/llm_client.py) — it is short and worth readi
 
 ---
 
-## Folder map (in learning order)
+## Recommended reading order (Nov 2026 curriculum)
+
+Folder numbers are kept stable (so links and notes never break); this is the order to **read** them in. Full rationale and dependency graph: [ROADMAP.md](ROADMAP.md).
+
+```
+00 Python → 01 Debugging            (02 DSA daily, in parallel)
+03 ML foundations → 15 Neural networks → 04 LLM fundamentals → 05 LLM parameters
+→ 16 Modern LLM architecture → 21 LLM inference engineering → 06 Training & LoRA
+→ 17 Fine-tuning, alignment & benchmarks → 07 Prompting → 14 RAG
+→ 18 OCR & document parsing → 19 Chunking → 08 Agents → 09 API → 20 LLM system LLD
+→ 10 ML architecture → 11 Docker → 12 UI → 13 Capstone (+ Track A document QA, Track B inference report) → mock interviews
+```
+
+## Folder map (by folder number)
 
 | Folder | Syllabus topic | What's inside |
 |--------|----------------|---------------|
@@ -49,17 +62,26 @@ See [shared/llm_client.py](shared/llm_client.py) — it is short and worth readi
 | [03_ml_foundations](03_ml_foundations/) | prerequisite (ML basics) | gradient descent, PyTorch loop, sklearn pipeline |
 | [04_llm_fundamentals](04_llm_fundamentals/) | 1 LLM basics | tokenizer, vectors, embeddings, attention, transformer block, logits, generation |
 | [05_llm_parameters](05_llm_parameters/) | 2 LLM parameters | lr/batch/epochs, temperature/top-k/top-p, quantization |
-| [06_llm_training_and_fast_inference](06_llm_training_and_fast_inference/) | 1 (training + inference) | datasets, training loop, LoRA/QLoRA, KV cache, vLLM |
+| [06_llm_training_and_lora](06_llm_training_and_lora/) | 1 (training) | datasets, training loop, perplexity & checkpoints, LoRA (NumPy + peft), QLoRA reference. *Inference steps moved to 21.* |
 | [07_prompt_engineering](07_prompt_engineering/) | 4 Prompt engineering | roles, few-shot, JSON, injection, prompt tests |
 | [08_agent_harness](08_agent_harness/) | 3 Agent harness | loop, tools, validation, memory, safety — no frameworks |
 | [09_api_development](09_api_development/) | 6 Flask/FastAPI | routes, Pydantic, WSGI/ASGI, Gunicorn/Uvicorn |
 | [10_ml_system_architecture](10_ml_system_architecture/) | 5 ML architecture | pipeline, serving, registry, monitoring |
 | [11_docker](11_docker/) | 7 Docker | Dockerfile, Compose, networking, health checks |
 | [12_streamlit_gradio](12_streamlit_gradio/) | 8 UI | Streamlit and Gradio apps calling the API |
-| [13_capstone_project](13_capstone_project/) | integration | whole stack, explained end to end |
+| [13_capstone_project](13_capstone_project/) | integration | whole stack, explained end to end; Track A: document-intelligence QA (18 → 19 → 14/20 → API); Track B: inference report (21) |
 | [14_rag_and_retrieval](14_rag_and_retrieval/) | RAG deep dive (extends 07/08_minimal_rag) | chunking, embeddings, vector index, IVF/HNSW/PQ, BM25 + hybrid, re-ranking, full pipeline, evaluation, vector DBs |
+| [15_neural_networks](15_neural_networks/) | NN deep dive (bridges 03 → 04) | neuron, MLP + backprop by hand, tiny autograd, activations, init & norms, optimizers, regularization, CNN, RNN/LSTM, precision & stability |
+| [16_modern_llm_architecture](16_modern_llm_architecture/) | how a 2026 LLM differs from GPT-2 + its LLD | BPE from scratch, RoPE/ALiBi/YaRN, RMSNorm + SwiGLU, MHA/MQA/GQA/MLA + KV cache, FlashAttention, MoE, a mini Llama, real config, 2026 landscape (speculative decoding moved to 21) |
+| [17_finetuning_alignment_and_benchmarks](17_finetuning_alignment_and_benchmarks/) | post-training → benchmarks | chat templates, SFT with loss masking, PEFT family, reward model, DPO, PPO vs GRPO (RLVR), distillation & merging, eval from scratch, LLM-as-judge, 2026 benchmarks, TRL / lm-eval references |
+| [18_ocr_and_document_parsing](18_ocr_and_document_parsing/) | OCR + document AI | pixels, Otsu, deskew, segmentation, CNN + CRNN/CTC, CER/WER, reading order (XY-cut), tables, PDF routing, 2026 VLM parsers (PaddleOCR-VL, Docling, MinerU, olmOCR, DeepSeek-OCR) |
+| [19_chunking_deep_dive](19_chunking_deep_dive/) | detailed RAG chunking | token-based, recursive rebuilt, structure-aware, semantic, late, contextual retrieval, parent-child/RAPTOR, propositions, layout-aware, evaluation, chunker LLD |
+| [20_llm_system_lld](20_llm_system_lld/) | low-level design of LLM/RAG systems | SOLID, domain model, ingestion & query pipelines, design patterns, resilience, caching, gateway & streaming, observability, LLD interview problems, versioning/guardrails/budgets (tested `ragkit` package) |
+| [21_llm_inference_engineering](21_llm_inference_engineering/) | **inference & optimization (top priority)** | safetensors/mmap/sharding/HF cache, GGUF, memory calculator, quantization math, calibration/SmoothQuant/QAT, GPTQ/AWQ, KV-cache quantization, prefill vs decode roofline, TTFT/ITL benchmarking, PagedAttention, continuous batching & prefix caching, speculative decoding, parallelism, serving engines (vLLM, SGLang, TensorRT-LLM, llama.cpp, Ollama), cost per token, inference report |
+| [CONFUSABLES.md](CONFUSABLES.md) | terms side by side | 380+ "same thing, different names" and look-alike pairs across every topic |
+| [TECH_RADAR_2026.md](TECH_RADAR_2026.md) | current tools (Nov 2026) | what is used today, latest versions seen, sources |
 | [vocabulary](vocabulary/index.md) | vocabulary files | searchable dictionary: definition, plain English, analogy, snippet |
-| [mock_interviews](mock_interviews/) | interview readiness | question banks, live-coding & debugging drills, scorecard |
+| [mock_interviews](mock_interviews/) | interview readiness | question banks (00–14 and 15–21), live-coding & debugging drills, 45-min mock scripts, scorecard |
 | [shared](shared/) | helper | `llm_client.py` used by modules 07/08 |
 
 ### What every module contains
@@ -72,6 +94,16 @@ NN_module/
 └── solutions/         worked answers (try first!)
 ```
 `WALKTHROUGH.md` follows the syllabus's 10-step loop: goal → syntax → libraries → execution trace → experiments → debugging → rebuild → say it aloud.
+
+**How to read a WALKTHROUGH (every step, modules 00–20):**
+1. **Story** — the pain point, the spark, the goal.
+2. **Theory** — exact definitions and formulas, plus what is used in practice in 2026.
+3. **Same thing, different names** — a table of synonyms and look-alikes that are easy to confuse (the full cross-topic list is in [CONFUSABLES.md](CONFUSABLES.md)).
+4. **Code, step by step** — the code in small blocks, in order. Each block has three bullets:
+   - **In simple words** — what it does, in plain language.
+   - **Exactly** — the precise meaning: types, shapes and real values from a real run.
+   - **Why it is here** — what breaks without it.
+5. **Syntax / libraries tables**, the **real execution trace**, **experiments**, a **debugging drill**, a **rebuild checklist** and a **say-it-aloud** interview box.
 
 ### Build / refresh the vocabulary dictionaries
 Terms are written in `vocabulary/_drafts/*.md` and compiled into the four dictionaries plus the index:
@@ -94,7 +126,7 @@ Tick as you pass each gate from [ROADMAP.md §7](ROADMAP.md#7-readiness-checks).
 | [ ] | 03 ML foundations | P1 | 9 h | | | [ ] | [ ] |
 | [ ] | 04 LLM fundamentals | P0 | 11 h | | | [ ] | [ ] |
 | [ ] | 05 LLM parameters | P1 | 7 h | | | [ ] | [ ] |
-| [ ] | 06 Training & fast inference | P1 | 9 h | | | [ ] | [ ] |
+| [ ] | 06 Training & LoRA | P1 | 7 h | | | [ ] | [ ] |
 | [ ] | 07 Prompt engineering | P1 | 7 h | | | [ ] | [ ] |
 | [ ] | 08 Agent harness | P0 | 12 h | | | [ ] | [ ] |
 | [ ] | 09 API development | P0 | 13 h | | | [ ] | [ ] |
@@ -102,9 +134,17 @@ Tick as you pass each gate from [ROADMAP.md §7](ROADMAP.md#7-readiness-checks).
 | [ ] | 11 Docker | P1 | 9 h | | | [ ] | [ ] |
 | [ ] | 12 Streamlit / Gradio | P2 | 5 h | | | [ ] | [ ] |
 | [ ] | 13 Capstone | P2 | 7 h | | | [ ] | [ ] |
+| [ ] | 14 RAG & retrieval | P0 | 10 h | | | [ ] | [ ] |
+| [ ] | 15 Neural networks | P1 | 10 h | | | [ ] | [ ] |
+| [ ] | 16 Modern LLM architecture | P0 | 12 h | | | [ ] | [ ] |
+| [ ] | 17 Fine-tuning, alignment & benchmarks | P1 | 12 h | | | [ ] | [ ] |
+| [ ] | 18 OCR & document parsing | P2 | 9 h | | | [ ] | [ ] |
+| [ ] | 19 Chunking deep dive | P1 | 9 h | | | [ ] | [ ] |
+| [ ] | 20 LLM system LLD | P1 | 11 h | | | [ ] | [ ] |
+| [ ] | 21 LLM inference engineering | P0 | 18 h | | | [ ] | [ ] |
 | [ ] | Mock interviews | — | 5 h | | | | |
 
-Gates: [ ] A (00–01) · [ ] B (03–06) · [ ] C (07–08) · [ ] D (09–12) · [ ] E (13 + mocks)
+Gates: [ ] A (00–01) · [ ] B (03–06) · [ ] C (07–08) · [ ] D (09–12) · [ ] E (13 + mocks) · [ ] F (14–21 deep dives)
 
 ---
 

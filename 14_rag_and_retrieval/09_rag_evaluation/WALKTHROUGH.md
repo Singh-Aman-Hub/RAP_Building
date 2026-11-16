@@ -50,6 +50,290 @@ Compute standard retrieval metrics for four retrievers, calibrate the refusal th
 LLM_BACKEND=local .venv/bin/python 14_rag_and_retrieval/09_rag_evaluation/main.py
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| hit@k vs recall@k vs precision@k | "found in top k" | Related | hit@k: any gold chunk in the top k; recall@k: share of all gold chunks found; precision@k: share of the top k that are gold. With one gold chunk, hit@k equals recall@k |
+| MRR vs nDCG@k vs MAP | rank-aware retrieval metrics | No | MRR looks only at the first correct hit (`1/rank`); nDCG discounts every hit by `1/log2(rank+1)`; MAP averages precision at each hit |
+| Faithfulness vs groundedness vs correctness | "is it supported?", "is it right?" | No | Faithful = supported by the cited context; correct = matches the gold answer. A faithful answer can still be wrong |
+| Retrieval error vs generation error | where did it fail | No | Retrieval: the gold chunk never reached the context; generation: it was there but the answer is wrong |
+| LLM-as-judge vs human evaluation vs reference-based metric | grading methods | No | A model scores answers with a rubric; humans label; reference metrics compare to a gold string. Validate the judge against human labels |
+| False refusal vs false answer | threshold errors | No | Refusing an answerable question vs answering an unanswerable one; the threshold trades one for the other |
+| Golden set vs eval set vs test set | labelled questions | Same idea | The fixed set of questions with known gold chunks used to compare versions |
+
+## Code, step by step
+
+### 1. Docstring  (`main.py` lines 1–16)
+```python
+"""
+GOAL:  Evaluate RAG the way you would before shipping it, on 29 labelled questions (24 answerable, 5 not):
+         A) RETRIEVAL metrics for four retrievers: hit@1, recall@3, recall@5, MRR, nDCG@5
+         B) REFUSAL calibration: sweep the re-rank threshold, trade false refusals against false answers
+         C) GENERATION metrics on the full pipeline: correctness, faithfulness (is every answer sentence
+            supported by its cited chunk?), citation validity, and an LLM-as-judge prompt template
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/09_rag_evaluation/main.py
+EXPECTED OUTPUT (shortened):
+    retriever            hit@1  recall@3  recall@5   MRR  nDCG@5
+    BM25 ... dense ... hybrid RRF ... hybrid + re-rank ...
+    threshold  answered(of 24)  refused(of 5)
+    end-to-end: correct x/24 | faithful x/x | citations valid x/x | correct refusals x/5
+NEEDS: torch, transformers (cached MiniLM + cross-encoder).  ~30 s.
+"""
+```
+- **In simple words:** What is measured: retrieval, refusal and end-to-end answers on 29 labelled questions.
+- **Exactly:** 24 are answerable (they have gold chunk ids) and 5 are not. Part A: four retrievers with hit@1, recall@3, recall@5, MRR, nDCG@5. Part B: sweep the refusal threshold. Part C: correctness, faithfulness, citation validity and an LLM-as-judge template.
+- **Why it is here:** This is how you decide whether a change helped before shipping.
+
+### 2. Imports and path setup  (`main.py` lines 18–28)
+```python
+import importlib.util
+import math
+import re
+import sys
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+from common import load_eval_set, tokenize   # noqa: E402
+```
+- **In simple words:** Load tools and the eval helper.
+- **Exactly:** `importlib.util` loads a file by path; `math` for `log2`; `re` for citation numbers. `load_eval_set` reads the 29 questions; `tokenize` is reused for the faithfulness proxy.
+- **Why it is here:** Later steps reuse code from `common`.
+
+### 3. Load the step-08 pipeline by file path  (`main.py` lines 30–33)
+```python
+# Re-use the pipeline from step 08 (loaded by file path, because folder names start with digits).
+spec = importlib.util.spec_from_file_location("rag08", HERE.parent / "08_rag_pipeline_end_to_end" / "main.py")
+rag08 = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rag08)
+```
+- **In simple words:** Reuse the pipeline class written in step 08.
+- **Exactly:** Folder names starting with digits cannot be imported normally, so `spec_from_file_location` creates a module `rag08` from `08_rag_pipeline_end_to_end/main.py` and `exec_module` runs it. The `if __name__ == "__main__"` guard in step 08 stops its demo from running.
+- **Why it is here:** No duplicated code: the pipeline you evaluate is the pipeline you built.
+
+### 4. Build the pipeline and split the questions  (`main.py` lines 35–39)
+```python
+rag = rag08.RAGPipeline(rag08.build_chunks())
+ids = [c["chunk_id"] for c in rag.chunks]
+eval_set = load_eval_set()
+answerable = [x for x in eval_set if x["gold"]]
+unanswerable = [x for x in eval_set if not x["gold"]]
+```
+- **In simple words:** Create the pipeline and separate answerable from unanswerable questions.
+- **Exactly:** `rag` is a `RAGPipeline` over 36 chunks; `ids` are chunk ids in row order; `answerable` (24 items with a non-empty `gold`) and `unanswerable` (5 items with `gold == []`).
+- **Why it is here:** Unanswerable questions test whether the system refuses.
+
+### 5. Metrics: hit@k, recall@k, reciprocal rank  (`main.py` lines 42–59)
+```python
+# =========================================================================================================
+# Metric functions. `ranked` = list of chunk ids, best first. `gold` = set of relevant chunk ids.
+# =========================================================================================================
+def hit_at_k(ranked, gold, k):
+    return float(any(r in gold for r in ranked[:k]))
+
+
+def recall_at_k(ranked, gold, k):
+    """Share of ALL relevant chunks found in the top k (equals hit@k when there is one gold chunk)."""
+    return len(set(ranked[:k]) & gold) / len(gold)
+
+
+def reciprocal_rank(ranked, gold):
+    """1/rank of the FIRST relevant chunk, 0 if none: rewards putting the answer at the very top."""
+    for i, r in enumerate(ranked, 1):
+        if r in gold:
+            return 1 / i
+    return 0.0
+```
+- **In simple words:** Three small functions that score one ranked list.
+- **Exactly:** `ranked` = chunk ids best first; `gold` = set of relevant ids. `hit_at_k` is 1.0 if any gold in the top k. `recall_at_k = |top-k and gold| / |gold|`. `reciprocal_rank` returns `1/rank` of the first gold hit (ranks start at 1), else 0.
+- **Why it is here:** Plain functions are easy to test and to explain.
+
+### 6. Metric: nDCG@k  (`main.py` lines 62–66)
+```python
+def ndcg_at_k(ranked, gold, k):
+    """Discounted cumulative gain: a hit at rank i is worth 1/log2(i+1); divided by the best possible."""
+    dcg = sum(1 / math.log2(i + 1) for i, r in enumerate(ranked[:k], 1) if r in gold)
+    ideal = sum(1 / math.log2(i + 1) for i in range(1, min(len(gold), k) + 1))
+    return dcg / ideal
+```
+- **In simple words:** A score that rewards putting relevant chunks near the top, and is 1.0 when perfect.
+- **Exactly:** `dcg = sum(1/log2(i+1))` over positions `i` (1-based) holding a gold chunk; `ideal` is the best possible dcg for `min(|gold|, k)` gold chunks; the ratio is in 0 to 1. With binary relevance: rank 1 gives 1.0, rank 2 gives 0.63, rank 3 gives 0.5.
+- **Why it is here:** MRR cares about the first hit only; nDCG also handles several relevant chunks.
+
+### 7. dense_only retriever  (`main.py` lines 72–74)
+```python
+def dense_only(q, k=20):
+    s = rag.matrix @ rag.embedder.encode([q])[0]
+    return [(int(j), float(s[j])) for j in np.argsort(-s)[:k]]
+```
+- **In simple words:** A retriever using meaning only.
+- **Exactly:** Same as before: matrix product with the query vector, top 20 as `(row, score)`.
+- **Why it is here:** Needed to compare against hybrid and reranked.
+
+### 8. The four retrievers  (`main.py` lines 77–82)
+```python
+retrievers = {
+    "BM25": lambda q: rag.bm25.search(q, 20),
+    "dense": dense_only,
+    "hybrid RRF": rag.retrieve,
+    "hybrid + re-rank": lambda q: rag.rerank(q, rag.retrieve(q)),
+}
+```
+- **In simple words:** BM25, dense, hybrid RRF, and hybrid plus reranking, behind one interface.
+- **Exactly:** A dict name to function question to `[(row, score), ...]`.
+- **Why it is here:** The same loop evaluates all of them.
+
+### 9. Evaluate retrieval  (`main.py` lines 83–93)
+```python
+print(f"A) RETRIEVAL on {len(answerable)} answerable questions")
+print(f"   {'retriever':<18}{'hit@1':>7}{'recall@3':>10}{'recall@5':>10}{'MRR':>7}{'nDCG@5':>8}")
+for name, fn in retrievers.items():
+    rows = []
+    for x in answerable:
+        ranked, gold = [ids[j] for j, _ in fn(x["question"])], set(x["gold"])
+        rows.append((hit_at_k(ranked, gold, 1), recall_at_k(ranked, gold, 3), recall_at_k(ranked, gold, 5),
+                     reciprocal_rank(ranked, gold), ndcg_at_k(ranked, gold, 5)))
+    m = np.mean(rows, axis=0)
+    print(f"   {name:<18}{m[0]:>7.2f}{m[1]:>10.2f}{m[2]:>10.2f}{m[3]:>7.2f}{m[4]:>8.2f}")
+print("   With 24 questions one question = 0.04. Differences smaller than ~0.1 are noise, not progress.")
+```
+- **In simple words:** Average the five metrics over the 24 questions for each retriever.
+- **Exactly:** `rows` has one 5-tuple per question; `np.mean(rows, axis=0)` averages each column. Real: BM25 0.71 / 0.88 / 0.92 / 0.79 / 0.82; dense 0.83 / 0.96 / 0.96 / 0.90 / 0.91; hybrid RRF 0.83 / 0.92 / 0.92 / 0.88 / 0.89; hybrid + re-rank 0.88 / 0.96 / 0.96 / 0.92 / 0.93. One question is 0.04, so differences under about 0.1 are noise.
+- **Why it is here:** Without a table of numbers, "better" is an opinion.
+
+### 10. Best reranker score per question  (`main.py` lines 95–98)
+```python
+# =========================================================================================================
+# B) Refusal threshold: the best re-rank score decides "answer" or "I don't know"
+# =========================================================================================================
+best = {x["id"]: rag.rerank(x["question"], rag.retrieve(x["question"]))[0][1] for x in eval_set}
+```
+- **In simple words:** For every question, take the highest reranker score.
+- **Exactly:** `best[id]` is the top logit after retrieve and rerank. This is the number the refusal guard compares with its threshold.
+- **Why it is here:** Needed to calibrate the threshold.
+
+### 11. Sweep the refusal threshold  (`main.py` lines 99–108)
+```python
+print(f"\nB) REFUSAL threshold on the best re-rank logit ({len(answerable)} answerable, {len(unanswerable)} unanswerable)")
+print(f"   {'threshold':>9} {'answered (of 24)':>17} {'refused (of 5)':>15}  verdict")
+for th in (-12, -9, -7.5, -6.5, -5, -3, 0):
+    answered = sum(best[x["id"]] >= th for x in answerable)
+    refused = sum(best[x["id"]] < th for x in unanswerable)
+    verdict = "answers everything (hallucination risk)" if refused == 0 else \
+        "refuses everything unknown, but loses real answers" if refused == len(unanswerable) and answered < 22 else ""
+    print(f"   {th:>9} {answered:>17} {refused:>15}  {verdict}")
+print("   unanswerable scores:", sorted(round(best[x["id"]], 1) for x in unanswerable))
+print("   lowest answerable  :", sorted(round(best[x["id"]], 1) for x in answerable)[:4], "<- they overlap: no perfect threshold")
+```
+- **In simple words:** Try several cut-offs and count how many answerable questions still get answered and how many unanswerable ones are refused.
+- **Exactly:** Real: at -12 answers 24 and refuses 0 (hallucination risk); at -6.5 answers 22 and refuses 4; at -3 answers 18 and refuses 5 (loses real answers); at 0 answers 16. Unanswerable scores are `[-11.1, -10.4, -9.3, -7.1, -4.8]`; the lowest answerable are `[-10.9, -9.5, -6.0, -4.9]`: they overlap, so there is no perfect threshold.
+- **Why it is here:** Shows that the threshold is a business decision (false refusals vs false answers), set on labelled data.
+
+### 12. supported(): a faithfulness proxy  (`main.py` lines 113–116)
+```python
+def supported(sentence, source_text, min_overlap=0.6):
+    """Faithfulness proxy: share of the sentence's content words that also appear in the cited chunk."""
+    words = set(tokenize(re.sub(r"\[\d+\]", "", sentence)))
+    return bool(words) and len(words & set(tokenize(source_text))) / len(words) >= min_overlap
+```
+- **In simple words:** Check whether the words of a sentence appear in the chunk it cites.
+- **Exactly:** Content words of the sentence (citation markers removed, stopwords dropped) must overlap the source tokens by at least `min_overlap=0.6`. A cheap proxy, not a proof; an LLM or NLI model judge is stronger.
+- **Why it is here:** Catches answers that say things not in the source.
+
+### 13. Counters for the end-to-end run  (`main.py` lines 119–121)
+```python
+chunk_text = {c["chunk_id"]: c["text"] for c in rag.chunks}
+correct = faithful = cited_ok = answered = right_refusal = 0
+failures = []
+```
+- **In simple words:** Set up the totals and a list for failures.
+- **Exactly:** `chunk_text` maps chunk id to text; counters start at 0; `failures` collects tuples for error analysis.
+- **Why it is here:** You learn more from reading failures than from averages.
+
+### 14. End-to-end loop: handle unanswerable and refused  (`main.py` lines 122–131)
+```python
+for x in eval_set:
+    out = rag.answer(x["question"])
+    if not x["gold"]:
+        right_refusal += out["refused"]
+        if not out["refused"]:
+            failures.append(("answered an unanswerable question", x["question"], out["answer"]))
+        continue
+    if out["refused"]:
+        failures.append(("refused an answerable question", x["question"], out["answer"]))
+        continue
+```
+- **In simple words:** Run the full pipeline on every question and classify refusals.
+- **Exactly:** For an unanswerable question a refusal counts as correct (`right_refusal`); answering it is a failure. For an answerable question a refusal is a failure ("refused an answerable question").
+- **Why it is here:** Both kinds of mistake are tracked.
+
+### 15. End-to-end loop: correctness, citations, faithfulness  (`main.py` lines 132–142)
+```python
+    answered += 1
+    is_correct = x["answer"].lower() in out["answer"].lower()
+    correct += is_correct
+    cited_ok += out["citations_valid"]
+    nums = [int(n) for n in re.findall(r"\[(\d+)\]", out["answer"])]
+    sources = [chunk_text[out["sources"][n - 1]] for n in nums if 1 <= n <= len(out["sources"])]
+    faithful += bool(sources) and supported(out["answer"], " ".join(sources))
+    if not is_correct:
+        where = "gold chunk WAS in the context -> generation problem" if x["gold"][0] in out["sources"] \
+            else "gold chunk NOT in the context -> retrieval problem"
+        failures.append((f"wrong answer ({where})", x["question"], out["answer"]))
+```
+- **In simple words:** For each answered question, check correctness, citations and support.
+- **Exactly:** Correct = the gold `answer` string occurs in the reply (case-insensitive). `cited_ok` counts valid citations. The numbers cited are mapped to source chunk texts; `faithful` counts replies supported by their cited text. A wrong answer is labelled "gold chunk WAS in the context -> generation problem" or "NOT in the context -> retrieval problem".
+- **Why it is here:** Separates retrieval failures from generation failures, so you fix the right component.
+
+### 16. Print the end-to-end result and failures  (`main.py` lines 144–151)
+```python
+print(f"\nC) END-TO-END ({rag08.os.getenv('LLM_BACKEND', 'mock simulator')})")
+print(f"   answered {answered}/{len(answerable)} | correct {correct}/{len(answerable)} | faithful {faithful}/{answered} "
+      f"| citations valid {cited_ok}/{answered} | correct refusals {right_refusal}/{len(unanswerable)}")
+print("   failures to read one by one (error analysis beats staring at averages):")
+for kind, q, a in failures:
+    print(f"   - {kind}: {q!r}\n       -> {a[:110]}")
+print("   Faithful is not the same as correct: a true sentence from the context can still miss the question.")
+print("   Here most errors are generation errors: the word-overlap simulator picks the wrong sentence of the right chunk.")
+```
+- **In simple words:** Print the totals and each failure.
+- **Exactly:** Real (mock simulator): answered 22/24, correct 16/24, faithful 22/22, citations valid 22/22, correct refusals 4/5. Failures include wrong sentences chosen from the right chunk (generation) and two answerable questions refused (London, pay later). "Who is the founder?" was answered instead of refused.
+- **Why it is here:** Faithful 22/22 but correct 16/24: faithful is not correct.
+
+### 17. LLM-as-judge prompt template  (`main.py` lines 153–162)
+```python
+JUDGE_PROMPT = """You are grading a RAG answer.
+Question: {question}
+Retrieved context: {context}
+Answer: {answer}
+Score each from 1 to 5 and reply as JSON {{"faithfulness": n, "answer_relevance": n, "context_relevance": n}}:
+- faithfulness: is every claim in the answer supported by the context?
+- answer_relevance: does the answer address the question?
+- context_relevance: is the retrieved context about the question?"""
+print("\n   LLM-as-judge template (run it with a STRONG model; validate it against ~50 human labels first):")
+print("   " + JUDGE_PROMPT.splitlines()[0], "...", JUDGE_PROMPT.splitlines()[-3].strip())
+```
+- **In simple words:** A ready prompt asking a strong model to grade answers from 1 to 5.
+- **Exactly:** Three scores: faithfulness, answer relevance, context relevance, returned as JSON (`{{` and `}}` are escaped braces for `str.format`). Must be validated against about 50 human labels before you trust it.
+- **Why it is here:** Scales evaluation beyond hand checking, but a judge has its own errors.
+
+### 18. Exercises as comments  (`main.py` lines 164–167)
+```python
+# TRY IT: add 5 new questions to data/eval_questions.json (including 2 unanswerable) and re-run. Do the tables move?
+# TRY IT: set min_overlap in supported() to 0.9 and 0.3. How sensitive is this faithfulness proxy?
+# TRY IT: re-run with rag08.RAGPipeline(..., top_k=1). Which metric changes: retrieval or end-to-end?
+# BREAK IT: compute MRR with ranks starting at 0 (enumerate(ranked)) -> ZeroDivisionError for a top-1 hit.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: ranks from 0 in MRR cause `ZeroDivisionError` for a top-1 hit.
+- **Why it is here:** Metrics bugs make you ship the wrong thing.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|
@@ -158,3 +442,5 @@ It crashes as soon as any gold chunk sits at position 0 (rank 1), before even th
 Now we can *measure*. The measurements point at specific gaps: London is lost because the question's words ("cousin in London") do not match the document's ("international shipping"); generation picks the wrong sentence; and a real deployment needs a proper vector database, not a NumPy matrix. Next: the advanced techniques that target exactly these gaps, and the vector DB landscape: [step 10, advanced RAG and vector databases](../10_advanced_rag_and_vector_dbs/WALKTHROUGH.md).
 
 > **Say it aloud (interview box):** I evaluate RAG in two halves on a labelled golden set that includes paraphrases, exact codes, hard negatives and unanswerable questions: retrieval with hit@k, recall@k, MRR and nDCG, and generation with correctness, faithfulness to the cited context, answer relevance and correct refusals. For every wrong answer I check whether the gold chunk was in the context, which tells me whether to fix retrieval or generation; here all six wrong answers were generation errors and the two false refusals came from an overlapping refusal threshold. I keep sample size in mind, since one question out of 24 is 0.04, validate any LLM judge against human labels for position and verbosity bias, and run the suite in CI alongside online signals like thumbs and resolution rate.
+
+Deep dive: evaluating *chunking* strategies (offset-based relevance, context-token cost, ingestion cost, bootstrap noise) → [19/10 chunking evaluation](../../19_chunking_deep_dive/10_chunking_evaluation/WALKTHROUGH.md)

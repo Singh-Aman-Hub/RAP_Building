@@ -93,4 +93,4 @@ if __name__ == "__main__":
     print("min_subarray_len(7, [2,3,1,2,4,3]) =", min_subarray_len(7, [2, 3, 1, 2, 4, 3]))
     print("All sliding-window tests passed.")
     # TRY IT: in longest_unique remove the `>= left` check and test "abba". Expected 2, you'll get 3. Why?
-    # BREAK IT: call min_subarray_len with negatives like (3, [2, -1, 2]). The pattern assumes non-negatives.
+    # BREAK IT: call min_subarray_len with negatives like (1, [-2, 1]): it returns 0 but the answer is 1. The pattern assumes non-negatives.

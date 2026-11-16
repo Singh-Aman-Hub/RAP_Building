@@ -15,7 +15,7 @@ Interviewers for ML Engineer roles rarely stop at "I trained a model". They ask:
 **Builds on**
 - [03_ml_foundations](../03_ml_foundations/) — train/validation/test split, metrics, the sklearn text classifier and its saved artifact. Module 10 repackages the same stages as *system components*.
 - [09_api_development](../09_api_development/) — the API is the "serving" box; `MODEL_PATH` loads artifacts produced here (verified with this module's `02_.../artifacts/model.joblib` and module 03's artifact); `/slow` + Gunicorn power the load test; workers/memory ideas feed scalability.
-- [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/) — latency/throughput/GPU-memory vocabulary; the same batching and capacity ideas apply to LLM serving.
+- [06_llm_training_and_lora](../06_llm_training_and_lora/) — latency/throughput/GPU-memory vocabulary; the same batching and capacity ideas apply to LLM serving.
 - [01_debugging_and_environment](../01_debugging_and_environment/) — version mismatches, tracebacks, environment issues reappear as serialization and skew bugs.
 
 **Leads to**
@@ -101,6 +101,21 @@ Total ≈ **11–12 hours** + [exercises](exercises.md). Step 01 first; steps 02
 - [ ] I can compute PSI and KS between a reference and a live window read from the prediction log, and name the alert threshold.
 - [ ] I can answer "traffic doubled / latency rose — what do you do?" with an ordered list.
 - [ ] I can use the design template to answer an open design question in ≤ 8 minutes.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Training pipeline vs inference pipeline | offline vs online, build vs serve | No | Training reads data and writes an artifact; inference loads the artifact and answers requests. |
+| Model artifact | model file, checkpoint, bundle, serialised model | Near-synonyms | The saved file handed from training to serving; a checkpoint is strictly a mid-training snapshot. |
+| Training/serving skew | train-serve skew, preprocessing mismatch | Same idea | Different transformations at train and serve time; not the same as drift. |
+| Data drift | covariate shift, input drift | Near-synonyms | The live data's distribution moves away from training data; concept drift is the input-to-label relationship changing. |
+| Model registry | model store, model catalogue (MLflow, W&B, HF Hub) | Near-synonyms | Numbered immutable versions + metadata + movable aliases. |
+| Alias vs version | stage, tag, label vs model ID, revision | No | A version never changes; an alias (`production`) is a pointer you move. |
+| Batch vs real-time (online) inference | offline scoring vs serving, synchronous vs asynchronous | No | Batch scores many rows on a schedule; real-time answers one request in milliseconds. |
+| Logging vs monitoring vs observability | logs, metrics, traces | No | Logs are records of events, metrics are numbers over time, monitoring watches them and alerts, observability is being able to ask new questions of them. |
+| Latency vs throughput | response time vs requests per second | No | Time for one request vs requests handled per second; improving one can hurt the other. |
+| Horizontal vs vertical scaling | scale out vs scale up | No | More machines vs a bigger machine. |
 
 ## 8. Interview questions
 1. **Walk me through an ML system end to end.** Data collection → preprocessing → features → train/evaluate → artifact in a registry → API loads it → validate/preprocess/predict/postprocess → log → monitor → retrain. Mention that preprocessing code is shared. *Trade-off:* each box adds operational cost; start with the minimum.

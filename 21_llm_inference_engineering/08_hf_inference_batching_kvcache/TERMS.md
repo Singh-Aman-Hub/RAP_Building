@@ -1,9 +1,9 @@
 # Terms — Fast Inference with Hugging Face
 
-Folder: `06_llm_training_and_fast_inference/07_hf_inference_batching_kvcache` · Files covered: `main.py`, `WALKTHROUGH.md`
-Back to module: [06 README](../README.md)
+Folder: `21_llm_inference_engineering/08_hf_inference_batching_kvcache` · Files covered: `main.py`, `WALKTHROUGH.md`
+Back to module: [21 README](../README.md)
 
-**Terms in this folder:** [Inference](#inference) · [time.perf_counter](#timeperf_counter) · [Warm-up call](#warm-up-call) · [Bytes per parameter (dtype size)](#bytes-per-parameter-dtype-size) · [**kwargs and `**` unpacking](#kwargs-and--unpacking) · [Underscore `_` as a throwaway name](#underscore-_-as-a-throwaway-name) · [torch.no_grad](#torchno_grad) · [model.generate arguments](#modelgenerate-arguments) · [tokenizer.batch_decode](#tokenizerbatch_decode) · [KV cache](#kv-cache) · [use_cache](#use_cache) · [Padding side (left vs right)](#padding-side-left-vs-right) · [Decoder-only model](#decoder-only-model) · [Batching](#batching) · [Throughput vs latency](#throughput-vs-latency) · [dtype (bfloat16 / fp16 / fp32)](#dtype-bfloat16--fp16--fp32) · [element_size](#element_size) · [Quadratic cost of recomputation](#quadratic-cost-of-recomputation) · [Silent warning bug (right padding)](#silent-warning-bug-right-padding)
+**Terms in this folder:** [Inference](#inference) · [time.perf_counter](#timeperf_counter) · [Warm-up call](#warm-up-call) · [Bytes per parameter (dtype size)](#bytes-per-parameter-dtype-size) · [**kwargs and `**` unpacking](#kwargs-and--unpacking) · [Underscore `_` as a throwaway name](#underscore-_-as-a-throwaway-name) · [torch.no_grad](#torchno_grad) · [model.generate arguments](#modelgenerate-arguments) · [tokenizer.batch_decode](#tokenizerbatch_decode) · [KV cache](#kv-cache) · [use_cache](#use_cache) · [Padding side (left vs right)](#padding-side-left-vs-right) · [Decoder-only model](#decoder-only-model) · [Batching](#batching) · [Throughput vs latency](#throughput-vs-latency) · [dtype (bfloat16 / fp16 / fp32)](#dtype-bfloat16--fp16--fp32) · [element_size](#element_size) · [Quadratic cost of recomputation](#quadratic-cost-of-recomputation) · [Silent warning bug (right padding)](#silent-warning-bug-right-padding) · [Prefill](#prefill) · [Decode](#decode)
 
 ---
 
@@ -16,7 +16,7 @@ Back to module: [06 README](../README.md)
 ## time.perf_counter  `(standard library)`
 **1. Definition:** `time.perf_counter()` returns a high-resolution clock value in seconds, suitable for measuring short durations by subtracting two readings.
 **2. In plain words:** It's a stopwatch. Take one reading before and one after, then subtract. The script runs on CPU so the timing is honest; GPUs run asynchronously and need synchronising before you stop the clock.
-**3. Example to quote:** > "I wrap `generate` between two `perf_counter()` calls: 100 tokens took 3.5 s with the cache and 8.5 s without."
+**3. Example to quote:** > "I wrap `generate` between two `perf_counter()` calls: 100 tokens took 1.6 s with the cache and 4.2 s without."
 ```python
 import time
 t0 = time.perf_counter(); do_work(); print(time.perf_counter() - t0)
@@ -71,8 +71,8 @@ f(a=1, b=2)   # {'a': 1, 'b': 2}
 
 ## KV cache  `(concept)`
 **1. Definition:** The KV cache stores the attention keys (K) and values (V) already computed for earlier tokens so each new token only computes its own K and V.
-**2. In plain words:** Without it, every step re-processes the whole sequence. The measured result: 100 tokens in 3.5 s with the cache versus 8.5 s without (timings vary by machine). The price is memory that grows with sequence length and batch size (see step 08).
-**3. Example to quote:** > "With the KV cache on, 100 tokens took 3.5 s; off, 8.5 s, because every step recomputed the entire sequence."
+**2. In plain words:** Without it, every step re-processes the whole sequence. The measured result: 100 tokens in 1.6 s with the cache versus 4.2 s without (timings vary by machine). The price is memory that grows with sequence length and batch size (formula: step 03).
+**3. Example to quote:** > "With the KV cache on, 100 tokens took 1.6 s; off, 4.2 s, because every step recomputed the entire sequence."
 **Seen in:** `main.py`, section 1
 
 ## use_cache  `(concept)`
@@ -95,8 +95,8 @@ f(a=1, b=2)   # {'a': 1, 'b': 2}
 
 ## Batching  `(concept)`
 **1. Definition:** Batching processes several prompts together in one forward pass.
-**2. In plain words:** The hardware does more useful work per pass. Four prompts one by one took 4.3 s; as one batch 1.2 s. Time grows sub-linearly at first, then linearly once the hardware is saturated.
-**3. Example to quote:** > "Batching four prompts cut total time from 4.3 s to 1.2 s on the same machine."
+**2. In plain words:** The hardware does more useful work per pass. Four prompts one by one took 2.1 s; as one batch 0.8 s. Time grows sub-linearly at first, then linearly once the hardware is saturated.
+**3. Example to quote:** > "Batching four prompts cut total time from 2.1 s to 0.8 s on the same machine."
 **Seen in:** `main.py`, section 3
 
 ## Throughput vs latency  `(concept)`
@@ -128,3 +128,22 @@ f(a=1, b=2)   # {'a': 1, 'b': 2}
 **2. In plain words:** Read warnings, and compare a batch result against single-prompt results; batch size 1 should match.
 **3. Example to quote:** > "There was no traceback, just a warning and strange output, so I compared the batch result with the single-prompt result and found the padding side."
 **Seen in:** `WALKTHROUGH.md`, Debugging practice
+
+## Prefill  `(concept)`
+**1. Definition:** The first forward pass of generation: all prompt tokens are processed together and the KV cache is filled.
+**2. In plain words:** Reading the whole question at once.
+**3. Example to quote:** > "Prefill handles many tokens in one pass; decode handles one per pass."
+```python
+out = model(**prompt, use_cache=True)
+```
+**Seen in:** `main.py` section 1b
+
+## Decode  `(concept)`
+**1. Definition:** Every forward pass after prefill: one new token is computed, attending to the cached keys and values, and its own K,V are appended.
+**2. In plain words:** Writing the answer one word at a time.
+**3. Example to quote:** > "Each decode step reads the whole cache for a single new token (why that is slow: step 09)."
+```python
+model(input_ids=nxt, past_key_values=out.past_key_values)
+```
+**Seen in:** `main.py` section 1b
+

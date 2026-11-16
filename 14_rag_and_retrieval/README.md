@@ -19,7 +19,7 @@ This is a deep dive into the 20-line demo at the end of Act IV, [07_prompt_engin
 - [04_llm_fundamentals/02_vectors_and_similarity](../04_llm_fundamentals/02_vectors_and_similarity/) and [03_embeddings](../04_llm_fundamentals/03_embeddings/): dot product, cosine, embeddings. Step 03 here turns them into sentence embeddings.
 - [04_llm_fundamentals/01_tokenizer](../04_llm_fundamentals/01_tokenizer/): tokens, which are the unit of context windows, truncation and cost (steps 01, 02).
 - [05_llm_parameters/04_max_new_tokens_and_context_window](../05_llm_parameters/04_max_new_tokens_and_context_window/): why you cannot paste everything in (step 01).
-- [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/): fine-tuning changes *behaviour*, while RAG adds *knowledge*. PQ in step 05 is quantisation again.
+- [06_llm_training_and_lora](../06_llm_training_and_lora/): fine-tuning changes *behaviour*, while RAG adds *knowledge*. PQ in step 05 is quantisation again.
 - [07_prompt_engineering](../07_prompt_engineering/): templates, structured output, prompt injection (steps 08, 09).
 
 **Leads to**
@@ -47,6 +47,8 @@ ONLINE (per question)
 ```
 
 ## 4. Study path
+Shared helpers used by every step are walked line by line once in [COMMON_WALKTHROUGH.md](COMMON_WALKTHROUGH.md); step 11 (Qdrant fundamentals) has its own [WALKTHROUGH.md](11_qdrant_fundamentals/WALKTHROUGH.md).
+
 | Step | Folder | You learn | Run | Time |
 |---|---|---|---|---|
 | 1 | [01_documents_and_why_rag](01_documents_and_why_rag/) | why RAG, loading, cleaning, metadata, token arithmetic | `python main.py` | 40 min |
@@ -141,6 +143,20 @@ Evaluate retrieval and generation separately.
 - [ ] I can write a RAG prompt with numbered sources, citations, refusal and an injection guard.
 - [ ] I can define hit@k, recall@k, MRR, nDCG and faithfulness, and tell a retrieval failure from a generation failure.
 - [ ] I can name four advanced techniques and when each one helps.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Embedding model vs bi-encoder vs sentence encoder | "dense retriever", "text embedder" | Same idea | All map text to a fixed vector independently; "bi-encoder" names the two-tower training/architecture |
+| Bi-encoder vs cross-encoder | retriever vs reranker | No | Bi-encoder embeds query and document separately (fast, ANN-searchable); cross-encoder reads the pair together (accurate, slow) |
+| Vector DB vs vector index vs ANN library | Qdrant, FAISS, HNSW | No | Index = data structure; library (FAISS) = index code; vector DB = index plus storage, filters, CRUD, persistence, server |
+| BM25 vs TF-IDF vs keyword/sparse search | lexical retrieval | Related | BM25 is TF-IDF with term-frequency saturation and length normalisation |
+| Hybrid search vs RRF | fusion | No | Hybrid = using dense + sparse together; RRF is one way to merge their ranked lists (`1/(k+rank)`) |
+| Recall@k vs hit rate vs precision@k vs MRR vs nDCG | retrieval metrics | No | Recall = share of relevant docs found; hit rate = at least one found; precision = share of results relevant; MRR/nDCG reward higher ranks |
+| Reranking vs re-scoring vs second-stage retrieval | cross-encoder step | Mostly | All reorder the top-N candidates with a stronger model |
+| RAG vs fine-tuning vs long context | "give the model knowledge" | No | RAG retrieves at query time; fine-tuning changes weights; long context pastes everything into the prompt |
+| Chunk vs passage vs node | split piece | Mostly | Same unit of text indexed; "node" is LlamaIndex wording |
 
 ## 8. Interview questions (short answers in [INTERVIEW_GIST.md](INTERVIEW_GIST.md) §12)
 1. Walk me through building a RAG system over 10,000 PDFs.

@@ -1,7 +1,7 @@
 # Terms — PagedAttention and memory fragmentation
 
-Folder: `06_llm_training_and_fast_inference/11_paged_attention_fragmentation` · Files covered: `main.py`, `WALKTHROUGH.md`
-Back to module: [06 README](../README.md)
+Folder: `21_llm_inference_engineering/11_paged_attention_fragmentation` · Files covered: `main.py`, `WALKTHROUGH.md`
+Back to module: [21 README](../README.md)
 
 **Terms in this folder:** [Internal fragmentation](#internal-fragmentation) · [External fragmentation](#external-fragmentation) · [Contiguous pre-allocation](#contiguous-pre-allocation) · [Block (page) size](#block-page-size) · [Block table](#block-table) · [Free list and first-fit](#free-list-and-first-fit) · [Preemption](#preemption) · [Memory utilisation](#memory-utilisation) · [np.searchsorted](#npsearchsorted) · [Ceiling division](#ceiling-division)
 

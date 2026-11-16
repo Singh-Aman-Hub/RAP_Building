@@ -3,7 +3,7 @@ GOAL:  Measure how good the model is on data it did NOT train on (validation los
        then save a checkpoint and prove that the reloaded model behaves identically.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/03_eval_perplexity_checkpoints/main.py
+RUN (from repo root):         .venv/bin/python 06_llm_training_and_lora/03_eval_perplexity_checkpoints/main.py
 EXPECTED OUTPUT (shortened):
     train blocks: 20 | validation blocks: 5
     BEFORE  val_loss 4.72  perplexity 112.2

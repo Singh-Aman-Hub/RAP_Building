@@ -59,6 +59,216 @@ cd 14_rag_and_retrieval/03_embeddings_bi_encoder
 python main.py       # ~10 s on CPU; two cached models (MiniLM, multilingual-e5-small), no network
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Embedding vs vector vs representation | "dense vector", "sentence embedding", "latent" | Same idea | A list of numbers (384 here) that stands for the meaning of a text |
+| Bi-encoder vs sentence transformer vs dual encoder | two-tower | Mostly | Encodes query and document separately with the same (or paired) network, so document vectors can be precomputed |
+| Mean pooling vs CLS pooling vs max pooling | token to sentence vector | No | Mean = average of real token vectors (used here); CLS = take the first token; max = element-wise maximum |
+| Cosine similarity vs dot product | similarity score | Same on unit vectors | After L2 normalisation, dot product equals cosine; without it, vector length contaminates the dot product |
+| Dense vs sparse (TF-IDF, BM25) | semantic vs lexical | No | Dense: every dimension has a value, similar meaning is near; sparse: mostly zeros, counts shared words |
+| `query:` / `passage:` prefixes vs instructions | asymmetric models (e5, bge) | Related | Prefixes tell the model whether the text is a question or a document; some models use longer instruction strings |
+
+## Code, step by step
+
+### 1. Docstring  (`main.py` lines 1–13)
+```python
+"""
+GOAL:  Turn text into meaning vectors with a bi-encoder (all-MiniLM-L6-v2): tokens -> hidden states ->
+       mean pooling -> L2 normalisation.  Compare with TF-IDF on paraphrases, see truncation, and see why
+       some models need "query:" / "passage:" prefixes.
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/03_embeddings_bi_encoder/main.py
+EXPECTED OUTPUT (shortened):
+    hidden states (2, 15, 384) -> pooled (2, 384) -> norms [1. 1.]
+    pair                                         MiniLM  TF-IDF
+    paraphrase, no shared words                     0.46    0.0x
+NEEDS: torch, transformers, scikit-learn; cached all-MiniLM-L6-v2 and multilingual-e5-small.  ~10 s.
+"""
+```
+- **In simple words:** What the file shows: how a sentence becomes a vector and where that goes wrong.
+- **Exactly:** Pipeline: tokens to hidden states to mean pooling to L2 normalisation. Compares with TF-IDF, shows truncation and prefixes. Needs torch, transformers, scikit-learn.
+- **Why it is here:** Maps the five sections of the file.
+
+### 2. Imports and path setup  (`main.py` lines 15–24)
+```python
+import sys
+from pathlib import Path
+
+import numpy as np
+import torch
+from sklearn.feature_extraction.text import TfidfVectorizer
+from transformers import AutoModel, AutoTokenizer
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import EMBED_MODEL, build_chunks, chunk_for_embedding   # noqa: E402  (also sets HF offline)
+```
+- **In simple words:** Load numeric and model libraries and our shared constants.
+- **Exactly:** `torch` runs the network; `TfidfVectorizer` is the sparse baseline; `AutoTokenizer` and `AutoModel` load MiniLM. `from common import EMBED_MODEL, build_chunks, chunk_for_embedding` also sets the Hugging Face offline flags.
+- **Why it is here:** Importing `common` before loading models keeps the run offline.
+
+### 3. Load tokenizer and model  (`main.py` lines 26–28)
+```python
+tok = AutoTokenizer.from_pretrained(EMBED_MODEL)
+model = AutoModel.from_pretrained(EMBED_MODEL).eval()
+print(f"model: {EMBED_MODEL} | {sum(p.numel() for p in model.parameters()) / 1e6:.1f}M params | dim {model.config.hidden_size}")
+```
+- **In simple words:** Download (from cache) the dictionary and the neural network.
+- **Exactly:** `AutoTokenizer.from_pretrained(EMBED_MODEL)` loads the WordPiece vocabulary; `AutoModel...eval()` loads weights and switches dropout off. Real output: `22.7M params | dim 384`.
+- **Why it is here:** `.eval()` makes outputs deterministic; without it dropout adds noise.
+
+### 4. The embed function, tensor by tensor  (`main.py` lines 31–41)
+```python
+# ---- 1. The pipeline, one tensor at a time ------------------------------------------------------------
+def embed(texts, max_length=256, verbose=False):
+    batch = tok(texts, padding=True, truncation=True, max_length=max_length, return_tensors="pt")
+    with torch.no_grad():
+        hidden = model(**batch).last_hidden_state                  # (n_texts, n_tokens, 384): one vector PER TOKEN
+    mask = batch["attention_mask"].unsqueeze(-1).float()           # (n_texts, n_tokens, 1): 0 on padding
+    pooled = (hidden * mask).sum(dim=1) / mask.sum(dim=1)          # mean over REAL tokens -> (n_texts, 384)
+    unit = torch.nn.functional.normalize(pooled, dim=1)            # length 1 -> dot product == cosine
+    if verbose:
+        print(f"hidden states {tuple(hidden.shape)} -> pooled {tuple(pooled.shape)} -> norms {unit.norm(dim=1).numpy().round(3)}")
+    return unit.numpy()
+```
+- **In simple words:** Turn a list of sentences into one unit-length vector each.
+- **Exactly:** `tok(...)` returns `input_ids` and `attention_mask` of shape `(n_texts, n_tokens)`; padding fills the shorter ones. `hidden` has shape `(n_texts, n_tokens, 384)`: one vector per token. `mask` shape `(n_texts, n_tokens, 1)` is 0 on padding. `(hidden*mask).sum(1)/mask.sum(1)` is the mean over real tokens: `(n_texts, 384)`. `normalize(dim=1)` gives length 1. Real: `hidden states (2, 15, 384) -> pooled (2, 384) -> norms [1. 1.]`.
+- **Why it is here:** Mask and normalise are the two lines people forget; without them similarity is wrong.
+
+### 5. Run it on two sentences  (`main.py` lines 44–44)
+```python
+embed(["Refunds are issued within 9 days.", "Shipping is free above 799 rupees for every order."], verbose=True)
+```
+- **In simple words:** Embed two example sentences with printing switched on.
+- **Exactly:** Prints the shapes shown above. The two sentences have 15 tokens after padding to the longest.
+- **Why it is here:** Seeing the shapes once makes the rest of the file easy to read.
+
+### 6. Five test pairs  (`main.py` lines 47–54)
+```python
+refund = "Refunds are issued within 9 days of delivery if the seal is unbroken."
+pairs = [
+    ("How long can I wait before asking for my money back?", refund, "paraphrase, no shared words"),
+    ("How many days do I have for a refund?", refund, "paraphrase, shared words"),
+    ("Refunds are issued within 9 days.", "Shipping is issued within 9 days.", "same words, different meaning"),
+    ("Which teas will not keep me awake?", "Chamomile Calm is caffeine free.", "needs world knowledge"),
+    ("How do I brew green tea?", "Our office is closed on Sundays.", "unrelated"),
+]
+```
+- **In simple words:** Pairs of sentences with a label for what each pair is testing.
+- **Exactly:** Paraphrase without shared words; paraphrase with shared words; same words but different meaning (refund vs shipping); needs world knowledge (awake vs caffeine free); unrelated.
+- **Why it is here:** Each pair probes a different strength or weakness of embeddings.
+
+### 7. Compare MiniLM with TF-IDF  (`main.py` lines 55–63)
+```python
+tfidf = TfidfVectorizer().fit([t for p in pairs for t in p[:2]])
+print(f"\n{'pair':<48}{'MiniLM':>8}{'TF-IDF':>8}")
+for a, b, label in pairs:
+    dense = float(embed([a])[0] @ embed([b])[0])
+    va, vb = tfidf.transform([a]).toarray()[0], tfidf.transform([b]).toarray()[0]
+    sparse = float(va @ vb / (np.linalg.norm(va) * np.linalg.norm(vb) + 1e-9))
+    print(f"{label:<48}{dense:>8.2f}{sparse:>8.2f}")
+print("Dense vectors score paraphrases and world knowledge; TF-IDF needs shared words (rows 1 and 4 score 0).")
+print("Row 3: dense similarity stays high for 'refunds' vs 'shipping' -> embeddings blur exact details.")
+```
+- **In simple words:** Score every pair with dense vectors and with word counts.
+- **Exactly:** `TfidfVectorizer().fit(...)` learns a vocabulary from the ten sentences; cosine of TF-IDF vectors is `va @ vb / (|va||vb| + 1e-9)`. Real: row 1 MiniLM 0.46 vs TF-IDF 0.00; row 2 0.60 vs 0.06; row 3 0.56 vs 0.50; row 4 0.47 vs 0.00; row 5 0.07 vs 0.00. Row 3 shows dense vectors blur exact details.
+- **Why it is here:** Shows both why dense retrieval exists (rows 1 and 4) and why it needs help (row 3).
+
+### 8. Truncation  (`main.py` lines 65–71)
+```python
+# ---- 3. Truncation: text beyond max_length is silently ignored --------------------------------------
+filler = "Our teas are packed with care in Pune. " * 60                  # ~600 tokens of filler
+tail = " The refund window is 9 days."
+v_full = embed([filler + tail], max_length=256)[0]
+v_without = embed([filler], max_length=256)[0]
+print(f"\ntruncation: cosine(text WITH the answer at the end, text WITHOUT it) = {float(v_full @ v_without):.4f}")
+print("1.0000 means the model never saw the last sentence. Chunk BEFORE embedding; keep chunks short.")
+```
+- **In simple words:** Put the answer at the end of a very long text and see whether the model notices.
+- **Exactly:** `filler` is about 600 tokens; `max_length=256` cuts everything after token 256. The cosine between "with answer" and "without answer" is `1.0000`: the model never saw the tail.
+- **Why it is here:** Long chunks silently lose their end. Chunk before embedding.
+
+### 9. Load a second model (e5)  (`main.py` lines 73–75)
+```python
+# ---- 4. Asymmetric models want prefixes (e5, bge, nomic ...) -----------------------------------------
+e5_name = "intfloat/multilingual-e5-small"
+e5_tok, e5 = AutoTokenizer.from_pretrained(e5_name), AutoModel.from_pretrained(e5_name).eval()
+```
+- **In simple words:** Load an embedding model that expects prefixes.
+- **Exactly:** `intfloat/multilingual-e5-small`, also 384-dim, loaded the same way.
+- **Why it is here:** To show that different models have different input formats.
+
+### 10. e5_embed: the same pipeline in compact form  (`main.py` lines 78–83)
+```python
+def e5_embed(texts):
+    b = e5_tok(texts, padding=True, truncation=True, max_length=256, return_tensors="pt")
+    with torch.no_grad():
+        h = e5(**b).last_hidden_state
+    m = b["attention_mask"].unsqueeze(-1).float()
+    return torch.nn.functional.normalize((h * m).sum(1) / m.sum(1), dim=1).numpy()
+```
+- **In simple words:** The same embedding steps in one function for e5.
+- **Exactly:** Tokenise, forward, mean-pool with mask, normalise. Same recipe as `embed`.
+- **Why it is here:** The model changes, the recipe does not.
+
+### 11. Prefixes: with and without  (`main.py` lines 86–94)
+```python
+q = "What is the money back window?"
+passages = [refund, "Shipping is free on orders above 799 rupees."]
+plain = e5_embed([q] + passages)
+prefixed = e5_embed(["query: " + q] + ["passage: " + p for p in passages])
+print(f"\ne5 without prefixes: refund {plain[0] @ plain[1]:.3f} | shipping {plain[0] @ plain[2]:.3f} "
+      f"| gap {plain[0] @ plain[1] - plain[0] @ plain[2]:.3f}")
+print(f"e5 with prefixes   : refund {prefixed[0] @ prefixed[1]:.3f} | shipping {prefixed[0] @ prefixed[2]:.3f} "
+      f"| gap {prefixed[0] @ prefixed[1] - prefixed[0] @ prefixed[2]:.3f}")
+print("Use the format the model was trained with; mixing formats between indexing and querying hurts.")
+```
+- **In simple words:** Embed the same texts with and without `query:` and `passage:`.
+- **Exactly:** Real: without prefixes refund 0.793, shipping 0.766, gap 0.027; with prefixes refund 0.770, shipping 0.738, gap 0.032. The gap between right and wrong passage grows slightly with prefixes on this tiny example. Use the format used in training; follow the model card.
+- **Why it is here:** Wrong prefixes quietly reduce quality; no error is raised.
+
+### 12. Embed the whole knowledge base  (`main.py` lines 96–100)
+```python
+# ---- 5. Embed the whole knowledge base -----------------------------------------------------------------
+chunks = build_chunks()
+matrix = embed([chunk_for_embedding(c) for c in chunks])               # (36, 384)
+print(f"\nknowledge base: {len(chunks)} chunks -> matrix {matrix.shape}, {matrix.nbytes:,} bytes (float32)")
+print(f"1M chunks would need {1_000_000 * matrix.shape[1] * 4 / 1e9:.2f} GB of float32 vectors")
+```
+- **In simple words:** Turn all 36 chunks into vectors and see how much memory that takes.
+- **Exactly:** `chunk_for_embedding` adds title and section. Matrix shape `(36, 384)`, `55,296` bytes (`36 * 384 * 4`). 1M chunks would need `1_000_000 * 384 * 4 / 1e9 = 1.54 GB`.
+- **Why it is here:** Memory planning starts with this multiplication.
+
+### 13. Two real queries  (`main.py` lines 101–107)
+```python
+for question in ["Which teas will not keep me awake at night?", "Can you send tea to my cousin in London?"]:
+    qv = embed([question])[0]                                            # (384,)
+    print(f"Q: {question}")
+    for i in np.argsort(-(matrix @ qv))[:3]:
+        print(f"  {float(matrix[i] @ qv):.3f}  {chunks[i]['chunk_id']}")
+print("The second question misses 'International shipping' (the chunk says 'outside India', the query says 'London').")
+print("Fixes come later: hybrid search (06), re-ranking (07), query rewriting (10).")
+```
+- **In simple words:** Ask two questions and print the three most similar chunks.
+- **Exactly:** `matrix @ qv` is `(36, 384) @ (384,)` = 36 cosine scores; `argsort(-scores)[:3]`. Q1 top: `allergens_and_ingredients#Caffeine` 0.570. Q2 "cousin in London" does not find International shipping (top score 0.375, wrong chunks): the chunk says "outside India", the query says "London".
+- **Why it is here:** Shows a real failure that later steps fix (hybrid search, reranking, query rewriting).
+
+### 14. Exercises as comments  (`main.py` lines 109–114)
+```python
+# TRY IT: in embed(), replace mean pooling by the first token only: pooled = hidden[:, 0]. Do the scores change?
+# TRY IT: remove the normalize line and print the vector norms: they differ (4.65 to 7.28 in one run), so raw dot
+#         products mix 'how similar' with 'how long the vector is'. Normalising removes that.
+# TRY IT: add your own pair to `pairs`, e.g. a question in Hindi vs the English refund rule (use e5_embed: it is multilingual).
+# BREAK IT: compare a MiniLM vector with an e5 vector (both 384-dim!). No error, but the score is meaningless:
+#           different models live in different vector spaces, so the index and the query MUST use the same model.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: comparing MiniLM and e5 vectors (both 384-dim) gives no error but a meaningless score; different models live in different vector spaces.
+- **Why it is here:** Index and query must use the same model and the same version.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

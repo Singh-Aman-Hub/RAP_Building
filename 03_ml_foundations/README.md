@@ -12,7 +12,7 @@ An LLM is "just" a very large model trained with the loop you write here. If you
 **Leads to:**
 - [../04_llm_fundamentals/](../04_llm_fundamentals/): softmax (step 06) is how a model turns logits into a next-token distribution; tensors and `nn.Module` (03/04) are how Hugging Face models are built; embeddings are learned parameters like `w`.
 - [../05_llm_parameters/](../05_llm_parameters/): learning rate, batch size, epochs, optimizer, loss (steps 02/04); temperature rescales the logits you printed in step 06.
-- [../06_llm_training_and_fast_inference/](../06_llm_training_and_fast_inference/): the exact loop from step 04, plus overfitting/early stopping (05) when fine-tuning on small data; parameter counting (`numel`) leads to the GPU-memory arithmetic.
+- [../06_llm_training_and_lora/](../06_llm_training_and_lora/): the exact loop from step 04, plus overfitting/early stopping (05) when fine-tuning on small data; parameter counting (`numel`) leads to the GPU-memory arithmetic.
 - [../09_api_development/](../09_api_development/) and [../10_ml_system_architecture/](../10_ml_system_architecture/): the saved pipeline from step 08 is the model they serve, version and monitor; metrics (07) are what monitoring tracks.
 - [../13_capstone_project/](../13_capstone_project/): reuses `predict_texts`.
 
@@ -79,6 +79,23 @@ An LLM is "just" a very large model trained with the loop you write here. If you
 - [ ] I can compute softmax and cross-entropy by hand
 - [ ] I can compute precision/recall/F1 from a confusion matrix
 - [ ] I can save/load a pipeline and explain why preprocessing is included
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Feature | input, predictor, independent variable, `X` | Yes | The ML word for one input column |
+| Label | target, ground truth, `y`, dependent variable | Yes | The known right answer |
+| Parameters vs hyperparameters | weights vs settings | No | Learned by training vs chosen by you (learning rate, batch size, epochs) |
+| Loss | cost, objective, error function | Mostly | Loss is per sample or batch; cost often means the dataset average |
+| Epoch vs step vs iteration | pass vs update | No | An epoch is a full pass over the data; a step is one parameter update |
+| Gradient descent vs backpropagation | optimisation vs gradient computation | No | Backprop computes gradients; gradient descent uses them to update weights |
+| Validation vs test set | dev set vs final exam | No | Validation is used to tune; the test set is touched once at the end |
+| Overfitting vs underfitting | high variance vs high bias | Close | Train good / validation bad vs both bad |
+| Logits vs probabilities | scores vs softmax output | No | Logits are unbounded; softmax makes them positive and sum to 1 |
+| Cross-entropy | log loss, negative log-likelihood | Same for one-hot targets | `-log p(correct class)` |
+| Recall vs precision | sensitivity vs positive predictive value | No | Recall = caught real positives; precision = flagged items that were right |
+| TF-IDF vs bag of words | weighted vs raw counts | Related | TF-IDF down-weights words that appear in many documents |
 
 ## Interview questions
 1. **What is a loss function?** A single number measuring prediction error that training minimises. MSE (regression), cross-entropy (classification). *Trade-off:* the loss you optimise isn't always the metric you care about.

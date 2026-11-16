@@ -56,6 +56,302 @@ cd 14_rag_and_retrieval/05_ann_ivf_and_hnsw
 python main.py       # numpy only; about 15 s in this run (docstring says 20-40 s); timings vary
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| ANN vs kNN vs exact search | approximate vs exact nearest neighbour | No | kNN is the exact answer; ANN returns almost the same neighbours much faster |
+| IVF vs IVF-Flat vs IVF-PQ | inverted file | Related | IVF = cluster and search only some cells; Flat keeps full vectors in cells; PQ compresses them |
+| `nlist` vs `nprobe` | cells vs cells searched | No | `nlist` = how many clusters at build time; `nprobe` = how many are scanned per query |
+| `M` vs `ef` vs `efConstruction` (HNSW) | graph parameters | No | `M` = edges per node; `efConstruction` = beam width while building; `ef`/`efSearch` = beam width while querying |
+| NSW vs HNSW | navigable small world, hierarchical | No | HNSW adds sparse upper layers with long-range links on top of an NSW-style graph |
+| PQ vs scalar quantisation (SQ) vs binary quantisation | vector compression | No | PQ stores codebook ids per sub-vector; SQ stores each number in fewer bits (int8, float16); binary keeps 1 bit per dimension |
+| Recall@k vs precision@k | accuracy of search | No | Here recall@10 = share of the true top-10 that the ANN also returned |
+
+## Code, step by step
+
+### 1. Docstring: three ANN ideas  (`main.py` lines 1–16)
+```python
+"""
+GOAL:  Approximate nearest-neighbour (ANN) search from scratch, the three ideas inside FAISS / Milvus /
+       Qdrant / pgvector:
+         A) IVF  (inverted file)       : cluster the vectors, search only the nprobe closest clusters
+         B) Graph search (NSW / HNSW)  : walk a k-nearest-neighbour graph greedily towards the query
+         C) PQ   (product quantisation): compress each vector to a few bytes, compare via lookup tables
+       Every method is scored by recall@10 against exact brute force: speed is only worth it if recall holds.
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/05_ann_ivf_and_hnsw/main.py
+EXPECTED OUTPUT (shortened, numbers depend on the machine):
+    A) IVF nlist=256:  nprobe 1 -> recall@10 0.92 scanning 0.5% ... nprobe 4 -> recall 1.00 scanning 1.6%
+    B) graph search: plain kNN graph -> recall stuck low; NSW with long-range edges -> recall 0.9+ scanning ~6-11% of n
+    C) PQ: 512 bytes -> 16 bytes per vector (32x smaller), recall@10 ~0.4 alone, ~0.95 with exact re-rank
+NEEDS: numpy only.  ~15-20 s.
+"""
+```
+- **In simple words:** Introduces the three tricks behind every big vector database.
+- **Exactly:** IVF (cluster and search only near clusters), graph search (HNSW idea) and product quantisation (compression). Each is scored by recall@10 against exact brute force. Needs only numpy, about 40 s in the real run on this machine.
+- **Why it is here:** Speed is useless if the right answer is lost, so recall is measured every time.
+
+### 2. Imports and random generator  (`main.py` lines 18–22)
+```python
+import time
+
+import numpy as np
+
+rng = np.random.default_rng(0)
+```
+- **In simple words:** Load tools and fix the random numbers.
+- **Exactly:** `default_rng(0)` makes every run reproducible.
+- **Why it is here:** Comparable runs.
+
+### 3. unit(): scale to length 1  (`main.py` lines 25–26)
+```python
+def unit(x):
+    return x / np.linalg.norm(x, axis=-1, keepdims=True)
+```
+- **In simple words:** A helper that turns vectors into unit vectors.
+- **Exactly:** Divides by `np.linalg.norm(x, axis=-1, keepdims=True)`; works on one vector or a matrix.
+- **Why it is here:** With unit vectors, dot product equals cosine (step 04).
+
+### 4. Simulated clustered data  (`main.py` lines 32–35)
+```python
+N, D, TOPICS, NQ, K = 50_000, 128, 200, 200, 10
+centers = unit(rng.normal(size=(TOPICS, D)))
+data = unit(centers[rng.integers(TOPICS, size=N)] + 0.35 * rng.normal(size=(N, D)) / np.sqrt(D) * 4).astype(np.float32)
+queries = unit(centers[rng.integers(TOPICS, size=NQ)] + 0.35 * rng.normal(size=(NQ, D)) / np.sqrt(D) * 4).astype(np.float32)
+```
+- **In simple words:** Make 50,000 fake embeddings that group into 200 topics, plus 200 queries.
+- **Exactly:** `N, D, TOPICS, NQ, K = 50_000, 128, 200, 200, 10`. `centers` has shape `(200, 128)`. Each data vector is a random centre plus Gaussian noise, normalised: `data` shape `(50000, 128)` float32; `queries` shape `(200, 128)` from the same topics.
+- **Why it is here:** Real embeddings cluster by topic; uniform random noise would make IVF look bad (TRY IT at the bottom).
+
+### 5. Exact answers as ground truth  (`main.py` lines 37–40)
+```python
+t0 = time.perf_counter()
+truth = np.argsort(-(queries @ data.T), axis=1)[:, :K]             # exact top-10 for every query: (NQ, K)
+exact_ms = (time.perf_counter() - t0) / NQ * 1000
+print(f"data {data.shape}, {NQ} queries | exact brute force: {exact_ms:.2f} ms/query, scans 100% of vectors")
+```
+- **In simple words:** Find the real top 10 for every query by checking everything.
+- **Exactly:** `queries @ data.T` is `(200, 50000)` dot products; `argsort(-...)[:, :K]` gives `truth` of shape `(200, 10)`. Real: 6.17 ms per query, scanning 100 percent.
+- **Why it is here:** You cannot measure recall without the true answers.
+
+### 6. recall_at_k  (`main.py` lines 43–45)
+```python
+def recall_at_k(found, k=K):
+    """Fraction of the true top-k that the approximate method also returned (averaged over queries)."""
+    return np.mean([len(set(f[:k]) & set(t)) / k for f, t in zip(found, truth)])
+```
+- **In simple words:** Score how many of the true neighbours an approximate method found.
+- **Exactly:** For each query, `len(set(found[:k]) & set(truth)) / k`, averaged. 1.0 = perfect.
+- **Why it is here:** The single number that says whether an ANN index is safe to use.
+
+### 7. k-means clustering  (`main.py` lines 48–59)
+```python
+def kmeans(x, k, iters=10, seed=0):
+    """Plain Lloyd's k-means with dot-product assignment (x are unit vectors). Returns centroids, labels."""
+    r = np.random.default_rng(seed)
+    cent = x[r.choice(len(x), k, replace=False)].copy()
+    for _ in range(iters):
+        labels = np.argmax(x @ cent.T, axis=1) if x.shape[1] > 16 else \
+            np.argmin(((x[:, None, :] - cent[None]) ** 2).sum(-1), axis=1)   # small sub-vectors (PQ): use L2
+        for c in range(k):
+            members = x[labels == c]
+            if len(members):
+                cent[c] = members.mean(0)
+    return cent, labels
+```
+- **In simple words:** Group vectors into k clusters by repeating "assign, then re-centre".
+- **Exactly:** Start from k random data points. Each iteration: assign every vector to the nearest centroid (max dot product for 128-dim; L2 distance for the small 8-dim PQ sub-vectors), then set each centroid to the mean of its members (skipping empty clusters). 10 iterations by default.
+- **Why it is here:** Clusters are the cells of IVF and the codebooks of PQ.
+
+### 8. IVF: build the cells  (`main.py` lines 65–70)
+```python
+NLIST = 256
+t0 = time.perf_counter()
+centroids, labels = kmeans(data, NLIST)
+centroids = unit(centroids)
+lists = [np.where(labels == c)[0] for c in range(NLIST)]              # the "inverted lists": cell -> vector ids
+print(f"\nA) IVF: trained {NLIST} cells in {time.perf_counter() - t0:.1f} s (avg {N // NLIST} vectors per cell)")
+```
+- **In simple words:** Cluster the data into 256 cells and remember which vectors are in which.
+- **Exactly:** `centroids` shape `(256, 128)`, re-normalised. `lists[c]` is the array of row ids with label `c`: the "inverted list". Real: trained in 0.8 s, about 195 vectors per cell.
+- **Why it is here:** This is the index; queries will only open a few lists.
+
+### 9. IVF: search with different nprobe  (`main.py` lines 71–82)
+```python
+print(f"   {'nprobe':>6} {'recall@10':>10} {'% scanned':>10} {'ms/query':>9}")
+for nprobe in (1, 2, 4, 8, 16, 32):
+    found, scanned = [], 0
+    t0 = time.perf_counter()
+    for q in queries:
+        cells = np.argsort(-(centroids @ q))[:nprobe]                 # nearest cells to the query
+        cand = np.concatenate([lists[c] for c in cells])
+        scanned += len(cand)
+        found.append(cand[np.argsort(-(data[cand] @ q))[:K]])
+    ms = (time.perf_counter() - t0) / NQ * 1000
+    print(f"   {nprobe:>6} {recall_at_k(found):>10.3f} {100 * scanned / (NQ * N):>9.1f}% {ms:>9.2f}")
+print("   nprobe is the speed/recall dial. Vectors near a cell border are missed at small nprobe.")
+```
+- **In simple words:** For each query, look only into the nearest few cells and see how good the result is.
+- **Exactly:** `argsort(-(centroids @ q))[:nprobe]` finds the nearest cells; candidates are the concatenated lists; the top 10 are chosen among candidates by exact dot product. Real: nprobe 1 gives recall 0.919 scanning 0.5 percent; nprobe 2: 0.986 at 0.8; nprobe 4: 1.000 at 1.6 percent in 0.19 ms (versus 6.17 ms exact).
+- **Why it is here:** `nprobe` is the speed versus recall dial; vectors near a cell border are missed when it is small.
+
+### 10. Graph: smaller data and its truth  (`main.py` lines 88–90)
+```python
+GN, M = 10_000, 16                                                   # smaller set: building the graph is O(n^2) here
+gdata = data[:GN]
+gtruth = np.argsort(-(queries @ gdata.T), axis=1)[:, :K]
+```
+- **In simple words:** Use 10,000 vectors for the graph part because building the graph is slow here.
+- **Exactly:** `GN, M = 10_000, 16`; `gdata` is the first 10,000 vectors; `gtruth` recomputes the exact top 10 on that subset.
+- **Why it is here:** Recall must be measured against the same set the graph contains.
+
+### 11. Graph: build an exact kNN graph  (`main.py` lines 91–97)
+```python
+t0 = time.perf_counter()
+knn = np.zeros((GN, M), dtype=np.int64)
+for start in range(0, GN, 2000):                                     # exact kNN graph, in blocks to save memory
+    sims = gdata[start:start + 2000] @ gdata.T
+    np.fill_diagonal(sims[:, start:start + 2000], -np.inf)
+    knn[start:start + 2000] = np.argpartition(-sims, M, axis=1)[:, :M]
+print(f"\nB) graph: {GN:,} nodes, {M} nearest neighbours each, built in {time.perf_counter() - t0:.1f} s")
+```
+- **In simple words:** For every vector, find its 16 nearest neighbours.
+- **Exactly:** In blocks of 2000 rows: `sims` is `(2000, 10000)`; `fill_diagonal(..., -inf)` stops a vector being its own neighbour; `argpartition(-sims, M)[:, :M]` takes the M best. `knn` shape `(10000, 16)`. Real: built in 3.0 s.
+- **Why it is here:** This graph is what the search walks along.
+
+### 12. Graph: two versions, directed and NSW  (`main.py` lines 99–106)
+```python
+# Graph 1: plain directed kNN graph.  Graph 2 (NSW, "navigable small world"): edges made two-way, plus a few
+# random LONG-RANGE edges per node, so a walk can jump between distant regions instead of getting stuck.
+directed = [list(map(int, row)) for row in knn]
+undirected = [set(row) for row in directed]
+for i, row in enumerate(directed):
+    for j in row:
+        undirected[j].add(i)                                         # reverse edge j -> i
+nsw = [list(nbrs) + list(map(int, rng.integers(GN, size=4))) for nbrs in undirected]
+```
+- **In simple words:** Make the graph two-way and add a few random long jumps.
+- **Exactly:** `directed` is the kNN lists. `undirected` adds the reverse edge `j -> i`. `nsw` = undirected neighbours plus 4 random long-range edges per node (`rng.integers(GN, size=4)`).
+- **Why it is here:** Long-range links are what make a graph "small world" and navigable.
+
+### 13. Graph: greedy best-first search  (`main.py` lines 109–131)
+```python
+def graph_search(graph, q, ef, entry):
+    """Best-first search. Returns (top-K ids, number of distance computations)."""
+    visited = {entry}
+    cand = [(float(gdata[entry] @ q), entry)]                         # frontier to expand
+    best = list(cand)                                                 # the ef best seen so far
+    computed = 1
+    while cand:
+        cand.sort(reverse=True)
+        score, node = cand.pop(0)                                     # most promising node
+        if len(best) >= ef and score < min(best)[0]:
+            break                                                     # nothing on the frontier can improve `best`
+        for nb in graph[node]:
+            if nb in visited:
+                continue
+            visited.add(nb)
+            s = float(gdata[nb] @ q)
+            computed += 1
+            if len(best) < ef or s > min(best)[0]:
+                cand.append((s, nb))
+                best.append((s, nb))
+                if len(best) > ef:
+                    best.remove(min(best))
+    return [n for _, n in sorted(best, reverse=True)[:K]], computed
+```
+- **In simple words:** Start somewhere, keep walking to the most promising neighbour, stop when nothing looks better.
+- **Exactly:** `visited` set avoids repeats; `cand` is the frontier (score, node); `best` holds the `ef` best seen. Pop the best candidate; if `best` is full and the candidate scores below the worst in `best`, stop. Otherwise score its unvisited neighbours (one dot product each, `computed += 1`) and add those that improve `best`; if `best` grows past `ef`, drop the worst. Returns the top K ids and the number of distance computations.
+- **Why it is here:** `ef` is the beam width: higher means more recall and more work.
+
+### 14. Graph: compare the two graphs  (`main.py` lines 134–143)
+```python
+print(f"   {'graph':<34}{'ef':>4} {'recall@10':>10} {'distances':>10} {'% of n':>7}")
+for label, graph in (("directed kNN only", directed), ("NSW: two-way + 4 long-range edges", nsw)):
+    for ef in (10, 50, 100):
+        res = [graph_search(graph, q, ef, entry=int(rng.integers(GN))) for q in queries]
+        rec = np.mean([len(set(f) & set(t)) / K for (f, _), t in zip(res, gtruth)])
+        comp = np.mean([c for _, c in res])
+        print(f"   {label:<34}{ef:>4} {rec:>10.3f} {comp:>10.0f} {100 * comp / GN:>6.1f}%")
+print("   The plain kNN graph traps the greedy walk in the wrong neighbourhood (a local optimum).")
+print("   Long-range edges make the graph 'small world'. HNSW goes further: sparse UPPER layers hold the")
+print("   long-range links, the search starts at the top and descends, and ef trades recall for speed.")
+```
+- **In simple words:** Run both graphs at three `ef` values and print recall and cost.
+- **Exactly:** Real: directed kNN only: ef 10 gives recall 0.045, ef 100 gives 0.354 (4.2 percent of vectors). NSW: ef 10 gives 0.356, ef 50 gives 0.911 (5.6 percent), ef 100 gives 0.978 (10.4 percent). Random entry points per query.
+- **Why it is here:** Shows why a plain kNN graph is not enough and why HNSW adds layers.
+
+### 15. PQ: split each vector into 16 parts  (`main.py` lines 149–150)
+```python
+SUB, KS = 16, 256
+ds = D // SUB
+```
+- **In simple words:** Cut each 128-number vector into 16 pieces of 8 numbers.
+- **Exactly:** `SUB, KS = 16, 256`; `ds = D // SUB = 8`.
+- **Why it is here:** Small pieces can be coded with a small codebook.
+
+### 16. PQ: train codebooks and encode every vector  (`main.py` lines 151–157)
+```python
+t0 = time.perf_counter()
+codebooks, codes = [], np.zeros((N, SUB), dtype=np.uint8)
+for s in range(SUB):
+    part = data[:, s * ds:(s + 1) * ds]
+    cb, _ = kmeans(part[:5_000], KS, iters=6, seed=s)              # train on a sample, like FAISS does
+    codebooks.append(cb)
+    codes[:, s] = np.argmin(((part[:, None, :] - cb[None]) ** 2).sum(-1), axis=1)
+```
+- **In simple words:** For each piece, learn 256 typical shapes and store only the number of the closest one.
+- **Exactly:** For each sub-space: k-means on a sample of 5,000 (like FAISS) gives `cb` of shape `(256, 8)`. `codes[:, s]` stores the nearest centroid id (`uint8`, 1 byte). `codes` shape `(50000, 16)`. Real: trained in 24 s.
+- **Why it is here:** This is the compression.
+
+### 17. PQ: memory saved  (`main.py` lines 158–159)
+```python
+print(f"\nC) PQ: trained {SUB} codebooks x {KS} centroids in {time.perf_counter() - t0:.1f} s")
+print(f"   memory: {data.nbytes / N:.0f} bytes -> {codes.nbytes / N:.0f} bytes per vector ({data.nbytes / codes.nbytes:.0f}x smaller)")
+```
+- **In simple words:** Print how much smaller the data is.
+- **Exactly:** 512 bytes (128 float32) becomes 16 bytes per vector: 32 times smaller.
+- **Why it is here:** Lets 10 times more vectors fit in memory.
+
+### 18. PQ: asymmetric distance search and re-rank  (`main.py` lines 161–168)
+```python
+found_pq, found_rerank = [], []
+for q in queries:
+    # asymmetric distance: build one lookup table per sub-space (q_sub . centroid), then sum table entries
+    tables = np.stack([codebooks[s] @ q[s * ds:(s + 1) * ds] for s in range(SUB)])   # (SUB, KS)
+    approx = tables[np.arange(SUB), codes].sum(axis=1)                               # (N,) approximate dot products
+    short = np.argsort(-approx)[:100]
+    found_pq.append(short[:K])
+    found_rerank.append(short[np.argsort(-(data[short] @ q))[:K]])                   # re-score 100 with full vectors
+```
+- **In simple words:** Score everything quickly from lookup tables, then recheck the best 100 with full vectors.
+- **Exactly:** `tables` shape `(16, 256)` holds the dot product of each query piece with each centroid. `tables[np.arange(16), codes]` picks, for every vector, 16 table entries and `.sum(axis=1)` gives approximate dot products of shape `(50000,)`. The top 100 are re-scored with the true vectors.
+- **Why it is here:** Compressed search is fast but lossy; re-ranking recovers accuracy.
+
+### 19. PQ: results  (`main.py` lines 169–170)
+```python
+print(f"   recall@10 PQ only: {recall_at_k(found_pq):.3f} | PQ shortlist of 100 + exact re-rank: {recall_at_k(found_rerank):.3f}")
+print("   Production combines them: IVF-PQ (FAISS), HNSW + PQ/SQ, or HNSW over float16 vectors.")
+```
+- **In simple words:** Print recall without and with re-rank.
+- **Exactly:** Real: recall@10 0.362 for PQ alone, 0.952 with a shortlist of 100 and exact re-rank.
+- **Why it is here:** In production this is combined with IVF or HNSW.
+
+### 20. Exercises as comments  (`main.py` lines 172–176)
+```python
+# TRY IT: change NLIST to 64 and 1024. Fewer, bigger cells -> higher recall at nprobe=1 but more scanning.
+# TRY IT: change M (edges per node) to 4 and 32 in B. Fewer edges -> worse recall; more edges -> more memory.
+# TRY IT: use uniform random data (data = unit(rng.normal(size=(N, D)))). IVF recall drops: no cluster structure.
+# TRY IT: change the 4 random long-range edges in `nsw` to 0, 1 and 8. Watch recall and the distance count.
+# BREAK IT: in graph_search remove the `if nb in visited` check -> the same nodes are scored again and again.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: remove the `if nb in visited` check and the same nodes are scored again and again.
+- **Why it is here:** Visited-set logic is what makes graph search finite and cheap.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

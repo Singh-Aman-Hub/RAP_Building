@@ -1,0 +1,220 @@
+[
+ {
+  "id": "c1",
+  "question": "Within how many days are refunds issued after delivery?",
+  "answer": "nine days",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 1
+   },
+   {
+    "doc_id": "mixed_pdf",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "c2",
+  "question": "Can opened tea tins be returned?",
+  "answer": "cannot be returned",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "c3",
+  "question": "How long does shipping inside India take?",
+  "answer": "three to five working days",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "c4",
+  "question": "What is the price of Green Tea?",
+  "answer": "Price: 320",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "c5",
+  "question": "How many Tulsi Blend tins are in stock?",
+  "answer": "Stock: 0",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "c6",
+  "question": "How many loyalty points does a member earn for every ten rupees spent?",
+  "answer": "one point",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "c7",
+  "question": "What is the fee for the Gold plan?",
+  "answer": "Fee: 999",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "c8",
+  "question": "When is support open on weekdays?",
+  "answer": "nine to six",
+  "gold": [
+   {
+    "doc_id": "chai_kitchen_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "m1",
+  "question": "What is the invoice number for Chai Kitchen?",
+  "answer": "4821",
+  "gold": [
+   {
+    "doc_id": "mixed_pdf",
+    "page": 2
+   },
+   {
+    "doc_id": "mixed_pdf",
+    "page": 3
+   }
+  ]
+ },
+ {
+  "id": "m2",
+  "question": "What is the total due on the invoice?",
+  "answer": "1250 rupees",
+  "gold": [
+   {
+    "doc_id": "mixed_pdf",
+    "page": 2
+   },
+   {
+    "doc_id": "mixed_pdf",
+    "page": 3
+   }
+  ]
+ },
+ {
+  "id": "m3",
+  "question": "How was the invoice paid?",
+  "answer": "card",
+  "gold": [
+   {
+    "doc_id": "mixed_pdf",
+    "page": 2
+   },
+   {
+    "doc_id": "mixed_pdf",
+    "page": 3
+   }
+  ]
+ },
+ {
+  "id": "u1",
+  "question": "What was the uptime of Dublin in September?",
+  "answer": "99.93",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "u2",
+  "question": "Which service's cost grew the most compared with Q2?",
+  "answer": "+18%",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "u3",
+  "question": "Who owns the multi-region failover test and when is it due?",
+  "answer": "30 June",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 2
+   },
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 3
+   }
+  ]
+ },
+ {
+  "id": "u4",
+  "question": "What is the due date of the combined dashboard?",
+  "answer": "5 April",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "u5",
+  "question": "How much of compute capacity is reserved?",
+  "answer": "60 percent",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 2
+   }
+  ]
+ },
+ {
+  "id": "u6",
+  "question": "What happened to queue depth during the quarter?",
+  "answer": "20 jobs",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 1
+   }
+  ]
+ },
+ {
+  "id": "u7",
+  "question": "How often is uptime measured?",
+  "answer": "30 seconds",
+  "gold": [
+   {
+    "doc_id": "lumen_q3_report",
+    "page": 3
+   }
+  ]
+ }
+]

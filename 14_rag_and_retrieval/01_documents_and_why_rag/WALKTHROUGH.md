@@ -63,6 +63,171 @@ cd 14_rag_and_retrieval/01_documents_and_why_rag
 python main.py       # ~5 s, loads only the cached MiniLM tokenizer
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Document vs source vs record | file, page, item | Related | A document is one whole file we load; "source" is its path kept as metadata for citations |
+| Metadata vs payload vs fields | doc_id, title, source | Same idea | Extra facts stored next to the text; vector DBs call them payload |
+| Token vs word vs character | tokenisation | No | A token is a model-specific piece (often a word piece); the knowledge base here is 1,502 MiniLM tokens for about 964 words |
+| Context window vs max sequence length | limit | Related | Context window = how much an LLM can read; max sequence length (256 for this embedder) = how much the embedder reads before cutting |
+| Cleaning vs normalising vs preprocessing | text prep | Overlapping | Cleaning removes junk (HTML, boilerplate); normalising makes forms consistent (whitespace, unicode) |
+| RAG vs "stuff everything in the prompt" | long-context prompting | No | RAG sends only the retrieved pieces; stuffing sends all text every time |
+
+## Code, step by step
+
+### 1. Docstring: goal, run, expected output  (`main.py` lines 1–13)
+```python
+"""
+GOAL:  Load a private knowledge base, clean it, attach metadata, and count its tokens.  Then do the
+       arithmetic that motivates RAG: why not paste every document into every prompt?
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/01_documents_and_why_rag/main.py
+EXPECTED OUTPUT (shortened):
+    loaded 9 documents from data/kb
+    cleaned text: 'Refund policy: Refunds are issued within 9 days. Contact help@... for help.'
+    whole knowledge base: ~1,5xx tokens
+    a company wiki of 20,000 such pages: ~3.xM tokens -> does not fit any context window
+NEEDS: transformers (only the cached MiniLM tokenizer).  A few seconds.
+"""
+```
+- **In simple words:** A note on what the file does and what it prints.
+- **Exactly:** Goal: load a knowledge base, clean it, count tokens, then do the arithmetic that motivates RAG. Needs only the cached MiniLM tokenizer.
+- **Why it is here:** Orients you before the code.
+
+### 2. Imports and path setup  (`main.py` lines 15–23)
+```python
+import html
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import KB_DIR, EMBED_MODEL   # noqa: E402
+
+from transformers import AutoTokenizer   # noqa: E402
+```
+- **In simple words:** Load tools, and tell Python where `common.py` lives.
+- **Exactly:** `html`, `re`, `sys`, `Path` are standard library. `sys.path.insert(0, str(Path(__file__).resolve().parents[1]))` adds the module folder `14_rag_and_retrieval` to the import path. `from common import KB_DIR, EMBED_MODEL` takes the knowledge-base folder and the model name. `AutoTokenizer` comes from `transformers`.
+- **Why it is here:** Folder names starting with digits cannot be imported as packages, so the path is inserted by hand.
+
+### 3. Load every file as a record with metadata  (`main.py` lines 25–35)
+```python
+# ---- 1. Load: every file becomes a dict with text + metadata ------------------------------------------
+docs = []
+for path in sorted(KB_DIR.glob("*.md")):                 # sorted -> same order every run
+    text = path.read_text(encoding="utf-8")
+    docs.append({
+        "doc_id": path.stem,                              # stable id: used for citations and updates
+        "title": text.splitlines()[0].lstrip("# ").strip(),
+        "source": str(path.relative_to(KB_DIR.parents[1])),
+        "n_sections": text.count("\n## "),
+        "text": text,
+    })
+```
+- **In simple words:** Read each Markdown file and put its text with a few facts about it into a dictionary.
+- **Exactly:** `sorted(KB_DIR.glob("*.md"))` gives a fixed order. `path.stem` is the file name without `.md`. Title is the first line minus `# `. `source` is the path relative to the repo module folder. `text.count("\n## ")` counts sections. `read_text(encoding="utf-8")` is explicit, so Windows defaults cannot corrupt characters. Result: a list of 9 dicts.
+- **Why it is here:** The `doc_id` and `source` let you cite where an answer came from; sorting keeps results identical on every machine.
+
+### 4. Print what was loaded  (`main.py` lines 36–38)
+```python
+print(f"loaded {len(docs)} documents from {KB_DIR.relative_to(KB_DIR.parents[1])}")
+for d in docs:
+    print(f"  {d['doc_id']:<28} title={d['title']!r:<34} sections={d['n_sections']}")
+```
+- **In simple words:** Show the list of documents.
+- **Exactly:** `loaded 9 documents from data/kb` then one line per document, each with `sections=4`. The `!r` format shows the title with quotes; `:<28` pads to 28 characters.
+- **Why it is here:** A quick sanity check that loading worked before anything is built on it.
+
+### 5. A deliberately messy sample  (`main.py` lines 40–43)
+```python
+# ---- 2. Clean: real documents come from HTML, PDFs and wikis and are messy ----------------------------
+messy = """<div class="policy"><h2>Refund&nbsp;policy:</h2>   Refunds are issued
+within 9 days.   Contact <a href="mailto:help@chaikitchen.example">help@chaikitchen.example</a>
+for help.</div>   Page 3 of 12   """
+```
+- **In simple words:** A small dirty text like real web pages produce.
+- **Exactly:** A string with HTML tags, an `&nbsp;` entity, extra spaces and the footer "Page 3 of 12".
+- **Why it is here:** Real data is never clean; this shows what cleaning must handle.
+
+### 6. The clean function, five steps  (`main.py` lines 46–52)
+```python
+def clean(raw: str) -> str:
+    text = html.unescape(raw)                             # &nbsp; -> real character
+    text = re.sub(r"<[^>]+>", " ", text)                  # drop HTML tags, keep their inner text
+    text = re.sub(r"Page \d+ of \d+", " ", text)          # boilerplate that would pollute every chunk
+    text = text.replace("\u00a0", " ")                    # non-breaking spaces -> normal spaces
+    text = re.sub(r"\s+", " ", text)                      # collapse all whitespace runs
+    return text.strip()
+```
+- **In simple words:** Remove the junk in five small steps.
+- **Exactly:** `html.unescape` turns `&nbsp;` into a non-breaking space character. `re.sub(r"<[^>]+>", " ", ...)` replaces tags with a space (keeps inner text). `Page \d+ of \d+` removes the footer. `replace(" ", " ")` turns non-breaking spaces into plain ones. `re.sub(r"\s+", " ", ...)` collapses all whitespace runs, then `strip()`.
+- **Why it is here:** Without it every chunk would start with tags and end with "Page 3 of 12", polluting embeddings and search.
+
+### 7. Show before and after  (`main.py` lines 55–56)
+```python
+print("\nraw text    :", repr(messy[:70]) + "...")
+print("cleaned text:", repr(clean(messy)))
+```
+- **In simple words:** Print the messy and the clean version.
+- **Exactly:** Real output: `cleaned text: 'Refund policy: Refunds are issued within 9 days. Contact help@chaikitchen.example for help.'`
+- **Why it is here:** Always look at your cleaned text: that is the cheapest RAG debugging there is.
+
+### 8. Count tokens  (`main.py` lines 58–65)
+```python
+# ---- 3. Count tokens: the unit that context windows and API bills are measured in ---------------------
+tok = AutoTokenizer.from_pretrained(EMBED_MODEL)
+token_counts = {d["doc_id"]: len(tok(d["text"])["input_ids"]) for d in docs}
+total = sum(token_counts.values())
+print(f"\nwhole knowledge base: {total:,} tokens (MiniLM tokenizer; an LLM tokenizer gives similar numbers)")
+print(f"largest document    : {max(token_counts, key=token_counts.get)} with {max(token_counts.values())} tokens")
+print(f"tokenizer limit: {tok.model_max_length} tokens, but sentence-transformers truncates this model at 256 "
+      "(it was trained on 128) -> longer text is silently cut off")
+```
+- **In simple words:** Count how many tokens the whole knowledge base has.
+- **Exactly:** `AutoTokenizer.from_pretrained(EMBED_MODEL)` loads MiniLM's WordPiece tokenizer. `tok(text)["input_ids"]` is the token list (including `[CLS]` and `[SEP]`). Real: total `1,502` tokens, largest document `product_catalog` with 231. `model_max_length` prints 512, but sentence-transformers truncates at 256.
+- **Why it is here:** Tokens are the unit of context windows and bills; text beyond the embedder's limit is silently cut off.
+
+### 9. Scale up to a company wiki  (`main.py` lines 67–70)
+```python
+# ---- 4. Why not just paste everything into the prompt? -------------------------------------------------
+pages = 20_000                                              # a mid-size company wiki
+wiki_tokens = total / len(docs) * pages
+print(f"\na company wiki of {pages:,} such pages: ~{wiki_tokens / 1e6:.1f}M tokens -> does not fit any context window")
+```
+- **In simple words:** How big would a real company's wiki be?
+- **Exactly:** Average tokens per document (`1502 / 9`, about 167) times 20,000 pages = about 3.3M tokens (real output). Larger than any context window.
+- **Why it is here:** Shows that "just paste everything" cannot work at real scale.
+
+### 10. Cost of stuffing vs retrieving  (`main.py` lines 72–79)
+```python
+price_per_m = 3.0                                           # illustrative $ per million input tokens
+queries_per_day = 10_000
+stuff_cost = total * queries_per_day * price_per_m / 1e6
+rag_tokens = 3 * 120                                        # RAG: about 3 chunks of ~120 tokens
+rag_cost = rag_tokens * queries_per_day * price_per_m / 1e6
+print(f"even our tiny KB, pasted into {queries_per_day:,} prompts/day: ${stuff_cost:,.0f}/day "
+      f"vs RAG with 3 chunks: ${rag_cost:,.0f}/day")
+print("=> retrieve only the few relevant pieces; that is the R in RAG.")
+```
+- **In simple words:** Compare the daily cost of sending everything with sending 3 chunks.
+- **Exactly:** Illustrative price of $3 per million input tokens and 10,000 queries a day: stuffing the whole KB costs `1502 * 10000 * 3 / 1e6 = $45/day`; RAG with 3 chunks of about 120 tokens costs `360 * 10000 * 3 / 1e6 = $11/day` (real output: 45 and 11, rounded). The price is illustrative; check current provider pricing.
+- **Why it is here:** Even a tiny KB shows the cost and latency gap that grows with size: that is the R in RAG.
+
+### 11. Exercises as comments  (`main.py` lines 81–85)
+```python
+# TRY IT: add a new file data/kb/gift_cards.md with a '# Gift Cards' title and two '## ' sections; re-run.
+# TRY IT: change `pages` to 500. Would 'stuff everything' now fit a 200k-token context window? Is it still wise?
+# BREAK IT: remove `sorted(...)` around glob - the order may change between machines, so ids/positions are unstable.
+# BREAK IT: add a '₹' sign to a KB file and read it with encoding="cp1252" (a common Windows default): no error,
+#           just mojibake ('â‚¹'). With encoding="ascii" you get UnicodeDecodeError. Always pass encoding="utf-8".
+```
+- **In simple words:** Ideas to try and to break.
+- **Exactly:** TRY IT: add a file; change `pages`. BREAK IT: drop `sorted`, or read with the wrong encoding (mojibake `â‚¹`, or `UnicodeDecodeError` with ascii).
+- **Why it is here:** Encoding bugs are silent; knowing them saves hours.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

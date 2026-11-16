@@ -13,7 +13,7 @@ RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/11_qdrant_fu
 EXPECTED OUTPUT (shortened):
     A) collection 'kb' created: size=384 distance=Cosine
     C) 36 points upserted; upsert again -> still 36 (uuid5 ids are stable)
-    E) top-1 for 'How long does delivery take?' -> shipping_and_delivery#Delivery times
+    E) top-1 for 'How long does delivery take?' -> shipping_and_delivery#Tracking an order (0.471; 'Delivery times' is 2nd, 0.459)
     F) reopened from disk -> 36 points
 NEEDS: qdrant-client, sentence-transformers (cached all-MiniLM-L6-v2).  ~10 s.
 """

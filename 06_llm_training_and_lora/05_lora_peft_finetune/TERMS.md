@@ -1,6 +1,6 @@
 # Terms — LoRA Fine-tuning with peft
 
-Folder: `06_llm_training_and_fast_inference/05_lora_peft_finetune` · Files covered: `main.py`, `WALKTHROUGH.md`
+Folder: `06_llm_training_and_lora/05_lora_peft_finetune` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [06 README](../README.md)
 
 **Terms in this folder:** [peft (Parameter-Efficient Fine-Tuning)](#peft-parameter-efficient-fine-tuning) · [LoraConfig](#loraconfig) · [r (rank)](#r-rank) · [lora_alpha](#lora_alpha) · [lora_dropout](#lora_dropout) · [target_modules](#target_modules) · [fan_in_fan_out](#fan_in_fan_out) · [task_type="CAUSAL_LM"](#task_typecausal_lm) · [get_peft_model](#get_peft_model) · [print_trainable_parameters](#print_trainable_parameters) · [requires_grad and trainable vs frozen parameters](#requires_grad-and-trainable-vs-frozen-parameters) · [named_parameters and numel](#named_parameters-and-numel) · [Optimizer over trainable parameters only](#optimizer-over-trainable-parameters-only) · [Higher learning rate for LoRA](#higher-learning-rate-for-lora) · [disable_adapter](#disable_adapter) · [Adapter (saved separately)](#adapter-saved-separately) · [PeftModel.from_pretrained](#peftmodelfrom_pretrained) · [merge_and_unload](#merge_and_unload) · [type(x).__name__](#typexname) · [Generator expression in sum()](#generator-expression-in-sum) · [ValueError: target modules not found](#valueerror-target-modules-not-found)

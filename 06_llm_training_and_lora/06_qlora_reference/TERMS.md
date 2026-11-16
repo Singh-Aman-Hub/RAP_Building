@@ -1,6 +1,6 @@
 # Terms — QLoRA (Reference)
 
-Folder: `06_llm_training_and_fast_inference/06_qlora_reference` · Files covered: `qlora_reference.py`, `WALKTHROUGH.md` (reference only, not executed; needs an NVIDIA GPU)
+Folder: `06_llm_training_and_lora/06_qlora_reference` · Files covered: `qlora_reference.py`, `WALKTHROUGH.md` (reference only, not executed; needs an NVIDIA GPU)
 Back to module: [06 README](../README.md)
 
 **Terms in this folder:** [QLoRA](#qlora) · [bitsandbytes](#bitsandbytes) · [Quantization (4-bit)](#quantization-4-bit) · [BitsAndBytesConfig](#bitsandbytesconfig) · [load_in_4bit](#load_in_4bit) · [NF4 (NormalFloat4)](#nf4-normalfloat4) · [Double quantization](#double-quantization) · [bnb_4bit_compute_dtype and bfloat16](#bnb_4bit_compute_dtype-and-bfloat16) · [quantization_config](#quantization_config) · [device_map="auto"](#device_mapauto) · [prepare_model_for_kbit_training](#prepare_model_for_kbit_training) · [Paged optimizer (paged_adamw_8bit)](#paged-optimizer-paged_adamw_8bit) · [De-quantisation on the fly](#de-quantisation-on-the-fly) · [Training memory: full vs LoRA vs QLoRA](#training-memory-full-vs-lora-vs-qlora) · [py_compile](#py_compile)

@@ -7,7 +7,7 @@ RUN:    from this folder:  python main.py
 EXPECTED OUTPUT (short): int8 is 4x smaller with tiny error; int4 is 8x smaller with ~18x bigger
         error; distilgpt2 loss barely moves at int8 but degrades badly at int4 per-tensor (group-wise rescues it).
 NEEDS:  numpy, torch, transformers (distilgpt2 cached). ~20 s.
-k
+
 Quantization = store each weight with FEWER BITS.  float32 uses 32 bits (4 bytes); int8 uses 8 bits.
 Smaller weights -> less memory, less memory bandwidth (usually the bottleneck for LLM inference),
 so faster and cheaper - at the price of some rounding error.
@@ -18,7 +18,7 @@ Symmetric quantization recipe (per tensor):
     w_hat  = q * scale          (de-quantize when you need real numbers)
 This file SIMULATES quantization (quantize -> de-quantize, stored as float) so you can measure the
 error on any laptop. Real engines (bitsandbytes, GPTQ, AWQ, llama.cpp) store the integers and use
-special kernels - see 06_llm_training_and_fast_inference for QLoRA.
+special kernels - see 06_llm_training_and_lora for QLoRA.
 """
 
 import copy

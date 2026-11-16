@@ -1,6 +1,6 @@
 # Master Reading Guide - the story of building an LLM system
 
-One narrative, 25 chapters, 5 acts. Every chapter follows the same arc:
+One narrative, 25 core chapters in 5 acts, plus Act VI (deep dives, modules 15–21). Every chapter follows the same arc:
 
 1. **Pain point** - what broke before this existed.
 2. **Spark** - the common-sense idea that fixes it.
@@ -36,13 +36,13 @@ One narrative, 25 chapters, 5 acts. Every chapter follows the same arc:
 | 12 | The Endless Loop (generation, KV cache) | `04/08_generation_loop` | DONE | Greedy loops and repeats; and the cache eats memory. -> Act III |
 | 13 | The Life Cycle (pretrain / fine-tune / inference) | `04/09_pretrain_vs_finetune_vs_inference` | DONE | We can run a model; can we control it, shrink it, specialise it? |
 
-## Act III - Taming the Model (`05_llm_parameters`, `06_llm_training_and_fast_inference`)
+## Act III - Taming the Model (`05_llm_parameters`, `06_llm_training_and_lora`)
 | Ch | Title | Read | Status | Cliffhanger |
 |---|---|---|---|---|
 | 14 | Rolling the Dice (temperature, top-k, top-p) | `05/01_config_file`, `05/02_sampling_from_scratch`, `05/03`, `05/04` | DONE | Great output, but the model will not fit on our GPU. |
-| 15 | Squeezing into VRAM (quantization) | `05/05_quantization`, `06/08_gpu_memory_calculator` | DONE | Inference fits. Fine-tuning needs gradients and optimizer state: 4-16x more memory. |
+| 15 | Squeezing into VRAM (quantization) | `05/05_quantization`, `21/03_gpu_memory_calculator` | DONE | Inference fits. Fine-tuning needs gradients and optimizer state: 4-16x more memory. |
 | 16 | The Surgical Fine-Tune (LoRA, QLoRA) | `06/01-06` (data, loop, eval, `04_lora_math_numpy`, `05_lora_peft`, `06_qlora`) | DONE | Tuned model works; one user at a time is too slow. |
-| 17 | Production Speed (KV/batching, vLLM, PagedAttention) | `06/07`, `06/09`, `06/10`, `06/11_paged_attention_fragmentation` | DONE (fragmentation demo NEW) | The model is fast, but a raw model only completes text. How do we instruct it? -> Act IV |
+| 17 | Production Speed (KV/batching, vLLM, PagedAttention) | `21/08_hf_inference_batching_kvcache`, `21/10_latency_throughput_benchmark`, `21/15_serving_engines_landscape`, `21/11_paged_attention_fragmentation` (deep version: all of module 21) | DONE (fragmentation demo NEW) | The model is fast, but a raw model only completes text. How do we instruct it? -> Act IV |
 
 ## Act IV - Expanding the Mind (`07_prompt_engineering`, `08_agent_harness`)
 | Ch | Title | Read | Status | Cliffhanger |
@@ -62,6 +62,22 @@ One narrative, 25 chapters, 5 acts. Every chapter follows the same arc:
 
 ---
 
+## Act VI - Deep dives (modules 15–21, Nov 2026)
+Folder numbers stay stable; read them interleaved with Acts I–V in this order: **03 → 15 → 04 → 05 → 16 → 21 → 06 → 17 → 07 → 14 → 18 → 19 → 08 → 09 → 20 → 10 → 11 → 12 → 13**.
+
+| Ch | Title | Read | Placed after | Cliffhanger |
+|---|---|---|---|---|
+| 26 | Inside the Neuron (perceptron, logistic regression, backprop, autograd, init, norms, optimizers, CNN, RNN) | `15_neural_networks/01-10` | Act I | RNNs forget long context; attention fixes it -> Act II |
+| 27 | The 2026 Blueprint (BPE, RoPE, RMSNorm, SwiGLU, GQA/MLA, FlashAttention, MoE, mini Llama) | `16_modern_llm_architecture/01-08,10` | Act II + ch. 14 | The model is designed; now it must load, fit and run fast -> 28 |
+| 28 | The Speed of Thought (loading, quantization, prefill/decode, TTFT/ITL, batching, PagedAttention, prefix caching, speculative decoding, parallelism, engines, cost) | `21_llm_inference_engineering/01-17` | ch. 27 | It runs fast; now specialise it -> ch. 16 (LoRA) |
+| 29 | Teaching Manners (chat templates, SFT masking, PEFT family, reward model, DPO, GRPO, distillation, evaluation, benchmarks) | `17_finetuning_alignment_and_benchmarks/01-11` | ch. 16 | Tuned and measured; now give it knowledge -> Act IV |
+| 30 | Retrieval Done Right (embeddings, indexes, hybrid search, reranking, RAG eval) | `14_rag_and_retrieval/01-11` | ch. 19 | Real documents are scans and PDFs -> 31 |
+| 31 | Reading the Page (pixels, OCR, CTC, layout, reading order, tables, PDF routing, parsed-document handoff) | `18_ocr_and_document_parsing/01-10` | ch. 30 | Parsed pages must be cut into retrievable pieces -> 32 |
+| 32 | The Art of the Cut (token, recursive, structure, semantic, late, contextual, hierarchical, layout-aware chunking + evaluation) | `19_chunking_deep_dive/01-11` | ch. 31 | Pieces work; the system around them needs a design -> 33 |
+| 33 | The Blueprint Room (SOLID, domain model, pipelines, patterns, resilience, caching, gateway, observability, versioning, guardrails, budgets) | `20_llm_system_lld/01-11` | ch. 21 | Design done; ship and integrate -> Act V / capstone tracks |
+
+Integration: [13 capstone Track A](13_capstone_project/) (18 -> 19 -> 14/20 -> API) and Track B (21 inference report).
+
 ## What changed in this pass
 | Gap | Resolution |
 |---|---|
@@ -71,7 +87,7 @@ One narrative, 25 chapters, 5 acts. Every chapter follows the same arc:
 | No RAG | `07/08_minimal_rag` |
 | No SSE streaming | `09/10_streaming_sse` |
 | Drift was only mentioned | `10/09_drift_monitoring` (PSI/KS on logged inputs) |
-| No PagedAttention demo | `06/11_paged_attention_fragmentation` |
+| No PagedAttention demo | `21/11_paged_attention_fragmentation` (moved from 06/11 in the Nov 2026 restructure) |
 | Pydantic errors not shown | `07/04_structured_json` prints a real `ValidationError` and a retry message built from it |
 | 5-part arc, shape comments, interview box | applied to every step in modules 03-13; capstone README has a chapter-to-file map |
 

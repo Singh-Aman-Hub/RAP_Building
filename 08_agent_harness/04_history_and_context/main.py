@@ -2,7 +2,7 @@
 GOAL   : Keep the conversation inside the model's CONTEXT WINDOW: estimate tokens, trim old turns,
          and summarise what is dropped.
 RUN    : cd 08_agent_harness/04_history_and_context && python main.py
-EXPECTED OUTPUT: token counts before/after two strategies (truncate, summarise) on a 40-message chat.
+EXPECTED OUTPUT: token counts before/after two strategies (truncate, summarise) on a 39-message chat.
 NEEDS  : nothing (token estimate = characters / 4; a real tokenizer is in module 04_llm_fundamentals).
 """
 import sys

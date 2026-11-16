@@ -1,0 +1,12 @@
+# Track A runtime dependencies (the repo-root requirements.txt is the superset used for local study).
+fastapi
+uvicorn[standard]
+pydantic
+numpy
+scipy
+Pillow
+torch
+transformers
+# tests only:
+pytest
+httpx

@@ -56,4 +56,4 @@ Change **one** thing at a time; predict, run, compare. Worked answers: [solution
 ## Integration tasks (connect the modules)
 1. Train in step 02, serve the artifact with the module-09 FastAPI app via `MODEL_PATH`, send 20 requests, and store each result with `PredictionLog` (write a tiny client script).
 2. Draw (by hand) the architecture for **your** capstone from [diagram 1](diagrams/01_end_to_end_pipeline.md) and label the file/folder that implements each box.
-3. Write your own answer to the design template ([05](diagrams/05_design_interview_answer_template.md)) for "an LLM summariser used by 1000 employees", and compare with [module 06](../06_llm_training_and_fast_inference/)'s latency/throughput notes.
+3. Write your own answer to the design template ([05](diagrams/05_design_interview_answer_template.md)) for "an LLM summariser used by 1000 employees", and compare with [module 06](../06_llm_training_and_lora/)'s latency/throughput notes.

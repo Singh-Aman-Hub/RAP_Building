@@ -3,7 +3,7 @@ GOAL:  Fine-tune distilgpt2 with LoRA using the `peft` library: freeze the base 
        save only the adapter (a few hundred KB), reload it, and merge it for fast inference.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/05_lora_peft_finetune/main.py
+RUN (from repo root):         .venv/bin/python 06_llm_training_and_lora/05_lora_peft_finetune/main.py
 EXPECTED OUTPUT (shortened):
     trainable params: 147,456 || all params: 82,060,032 || trainable%: 0.1797
     epoch 1 loss 4.57 ... epoch 25 loss 1.40

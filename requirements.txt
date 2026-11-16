@@ -22,3 +22,14 @@ gradio
 pytest
 python-dotenv
 anthropic          # optional: only for LLM_BACKEND=anthropic
+
+# ---- Optional extras for the deep-dive modules' *_reference.py files (NOT needed for any main.py) ----
+# Install only what you want to try on a real machine/GPU; versions change fast, see TECH_RADAR_2026.md.
+# trl                 # 17: SFT / DPO / GRPO trainers (reference scripts)
+# lm-eval             # 17: lm-evaluation-harness benchmark runner
+# bitsandbytes        # 06/17: 4-bit QLoRA (CUDA)
+# vllm                # 06: high-throughput serving (Linux + GPU)
+# pytesseract         # 18: needs the tesseract binary (brew install tesseract)
+# paddleocr           # 18: PaddleOCR / PaddleOCR-VL
+# docling             # 18/19: document conversion + HybridChunker
+# pymupdf  pypdf      # 18: PDF text-layer extraction

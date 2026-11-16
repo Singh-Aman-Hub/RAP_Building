@@ -3,7 +3,7 @@ GOAL:  Understand LoRA with pure NumPy: instead of updating a huge weight matrix
        matrices B and A whose product B @ A is the update.  Count the savings and watch it learn.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/04_lora_math_numpy/main.py
+RUN (from repo root):         .venv/bin/python 06_llm_training_and_lora/04_lora_math_numpy/main.py
 EXPECTED OUTPUT (shortened):
     full update parameters : 4,194,304 (2048 x 2048)
     LoRA   parameters (r=8): 32,768   -> 0.78% of full

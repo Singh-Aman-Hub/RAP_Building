@@ -115,6 +115,6 @@ print(f"\nSaved {out.name}")
 
 # WHAT THIS PROVES (mock): the harness - fixed set, parser, per-category scoring, repeatable runs.
 # WHAT IT DOES NOT PROVE : that v3 beats v1 for a real model. Run with LLM_BACKEND=local/anthropic and
-#                          compare. Small test sets are noisy: 12 cases = each case moves accuracy by 8%.
+#                          compare. Small test sets are noisy: 13 cases = each case moves accuracy by ~8%.
 # TRY IT: add three new tests of your own (a negation: "not bad at all"). Which version breaks?
 # TRY IT: temperature=0.0 -> 0.9 with a real backend and run twice: are the tables identical?

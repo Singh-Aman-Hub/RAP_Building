@@ -1,8 +1,10 @@
 # Python Syntax, Standard Library, Debugging and DSA Terms
 
-120 terms, alphabetical. Back to [index](index.md).
+151 terms, alphabetical. Back to [index](index.md).
 
 - [.env file](#env-file)
+- [Abstract base class (ABC)](#abstract-base-class-abc)
+- [Adapter pattern](#adapter-pattern)
 - [args and kwargs](#args-and-kwargs)
 - [Assertion](#assertion)
 - [Assertion (assert)](#assertion-assert)
@@ -13,21 +15,28 @@
 - [Boolean](#boolean)
 - [Breakpoint](#breakpoint)
 - [Brute force](#brute-force)
+- [Chain of Responsibility](#chain-of-responsibility)
+- [Chunk ID (content hash)](#chunk-id-content-hash)
 - [Class](#class)
 - [Classmethod](#classmethod)
 - [Complement lookup](#complement-lookup)
+- [Composition root](#composition-root)
 - [Comprehension](#comprehension)
 - [Conditional (if/elif/else)](#conditional-ifelifelse)
 - [Configuration file](#configuration-file)
 - [ConnectionError](#connectionerror)
 - [Context manager (with)](#context-manager-with)
 - [Counter](#counter)
+- [Data contract (pydantic validation)](#data-contract-pydantic-validation)
 - [Data type](#data-type)
 - [Dataclass](#dataclass)
 - [Decorator](#decorator)
+- [Decorator pattern](#decorator-pattern)
 - [Default argument](#default-argument)
 - [defaultdict](#defaultdict)
 - [Dependency conflict](#dependency-conflict)
+- [Dependency injection](#dependency-injection)
+- [device_map](#device_map)
 - [Dictionary](#dictionary)
 - [Dictionary merge ({**a, **b})](#dictionary-merge-a-b)
 - [Docker container logs](#docker-container-logs)
@@ -45,6 +54,7 @@
 - [FileNotFoundError](#filenotfounderror)
 - [Fixture](#fixture)
 - [Frequency counting](#frequency-counting)
+- [Frozen dataclass (slots)](#frozen-dataclass-slots)
 - [Function](#function)
 - [Generator](#generator)
 - [Generator expression](#generator-expression)
@@ -54,26 +64,32 @@
 - [Hash map (dict)](#hash-map-dict)
 - [Hash set](#hash-set)
 - [Hashing](#hashing)
+- [Heading tree](#heading-tree)
 - [HTTP status code](#http-status-code)
 - [ImportError / ModuleNotFoundError](#importerror-modulenotfounderror)
 - [In-place algorithm](#in-place-algorithm)
 - [Inheritance](#inheritance)
+- [Injectable clock (fake clock)](#injectable-clock-fake-clock)
 - [Input validation](#input-validation)
 - [Iterator](#iterator)
 - [joblib](#joblib)
 - [JSON](#json)
 - [JSON (config format)](#json-config-format)
 - [JSONL](#jsonl)
+- [keep_separator](#keep_separator)
 - [KeyError](#keyerror)
 - [Keyword argument](#keyword-argument)
 - [Keyword arguments (**kwargs)](#keyword-arguments-kwargs)
 - [Lambda](#lambda)
+- [length_function](#length_function)
 - [List](#list)
 - [List comprehension](#list-comprehension)
 - [Literal type](#literal-type)
 - [Log level](#log-level)
 - [Logging](#logging)
 - [Loop (for/while)](#loop-forwhile)
+- [Low-level design (LLD)](#low-level-design-lld)
+- [LRU eviction](#lru-eviction)
 - [Main guard](#main-guard)
 - [Method](#method)
 - [Minimal reproducible example](#minimal-reproducible-example)
@@ -81,14 +97,20 @@
 - [Module shadowing](#module-shadowing)
 - [Mutable default argument trap](#mutable-default-argument-trap)
 - [Mutable vs immutable](#mutable-vs-immutable)
+- [Observer (event bus)](#observer-event-bus)
 - [pathlib.Path](#pathlibpath)
+- [Peak RSS](#peak-rss)
 - [Pickle](#pickle)
+- [Pickle deserialization attack](#pickle-deserialization-attack)
 - [pip](#pip)
 - [Prefix sum](#prefix-sum)
 - [Print debugging](#print-debugging)
+- [Protocol (typing.Protocol)](#protocol-typingprotocol)
 - [Pydantic model](#pydantic-model)
+- [Pydantic v2 (BaseModel)](#pydantic-v2-basemodel)
 - [pytest](#pytest)
 - [Raise](#raise)
+- [Registry and Factory](#registry-and-factory)
 - [Regression test](#regression-test)
 - [Regular expression](#regular-expression)
 - [requirements.txt](#requirementstxt)
@@ -97,19 +119,26 @@
 - [Runtime error](#runtime-error)
 - [Serialization](#serialization)
 - [Set](#set)
+- [Sidecar metadata file](#sidecar-metadata-file)
 - [Slicing](#slicing)
 - [Sliding window](#sliding-window)
+- [SOLID](#solid)
 - [Sorting (stable)](#sorting-stable)
 - [Space complexity](#space-complexity)
 - [Stack frame](#stack-frame)
 - [str.format](#strformat)
+- [Strategy pattern](#strategy-pattern)
+- [Strategy registry (Protocol)](#strategy-registry-protocol)
 - [string.Template](#stringtemplate)
 - [Subarray](#subarray)
 - [SyntaxError](#syntaxerror)
 - [sys.path](#syspath)
+- [Template Method](#template-method)
 - [Time complexity](#time-complexity)
 - [Timeout](#timeout)
 - [Traceback](#traceback)
+- [Train/eval mode](#traineval-mode)
+- [TTL and LRU](#ttl-and-lru)
 - [Tuple](#tuple)
 - [Two pointers](#two-pointers)
 - [Two sum](#two-sum)
@@ -118,8 +147,10 @@
 - [TypeError](#typeerror)
 - [Valid anagram](#valid-anagram)
 - [ValidationError](#validationerror)
+- [Value object](#value-object)
 - [Variable](#variable)
 - [Virtual environment](#virtual-environment)
+- [weights_only (torch.load)](#weights_only-torchload)
 - [Working directory](#working-directory)
 - [zip](#zip)
 
@@ -138,6 +169,39 @@ load_dotenv()   # real env vars win unless override=True
 ```
 - **Snippet explained:** Loads .env into os.environ without overriding variables already set.
 - **Related terms:** [Environment variable](python_syntax.md#environment-variable), [Configuration](api_and_deployment_terms.md#configuration)
+
+---
+
+### Abstract base class (ABC)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A class deriving from `abc.ABC` with `@abstractmethod` members; subclasses must implement them or cannot be instantiated.
+- **Plain English:** A form with mandatory fields.
+- **Example / analogy:** `BaseChunker` fixes the algorithm and forces subclasses to implement `_groups`.
+- **Snippet:**
+```python
+class BaseChunker(ABC):
+    @abstractmethod
+    def _groups(self, elements): ...
+```
+- **Snippet explained:** Instantiating a subclass that forgot `_groups` raises TypeError immediately.
+- **Related terms:** [Protocol (typing.Protocol)](python_syntax.md#protocol-typingprotocol), [Template Method](python_syntax.md#template-method)
+
+---
+
+### Adapter pattern
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A class that converts one interface into another that callers expect, without changing the wrapped class.
+- **Plain English:** A travel plug adapter.
+- **Example / analogy:** `QdrantStore` makes Qdrant's client satisfy `VectorStore`; `Module14Embedder` renames `encode` to `embed`.
+- **Snippet:**
+```python
+class Module14Embedder:
+    def embed(self, texts): return self._inner.encode(list(texts))
+```
+- **Snippet explained:** Translates the method name; the wrapped class is untouched.
+- **Related terms:** [Decorator pattern](python_syntax.md#decorator-pattern), [Protocol (typing.Protocol)](python_syntax.md#protocol-typingprotocol)
 
 ---
 
@@ -303,6 +367,36 @@ for i in range(len(nums)):
 
 ---
 
+### Chain of Responsibility
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A sequence of handlers where each processes the request and either passes it on or stops the chain.
+- **Plain English:** Airport security lanes.
+- **Example / analogy:** Normalize, RedactPII, MaxLength and InjectionGuard run before the model sees a question.
+- **Snippet:**
+```python
+chain = build_chain(Normalize(), RedactPII(), MaxLength(500), InjectionGuard())
+```
+- **Snippet explained:** Links the handlers in order; any can set `ctx.blocked` to stop.
+- **Related terms:** [Decorator pattern](python_syntax.md#decorator-pattern), [Observer (event bus)](python_syntax.md#observer-event-bus)
+
+---
+
+### Chunk ID (content hash)
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** A stable identifier derived from the chunk's content and the chunker's identity (hash of doc_id, chunker id, version, config hash, text, occurrence) rather than its position.
+- **Plain English:** The same text always gets the same ID, so editing one paragraph does not rename every chunk after it.
+- **Example / analogy:** A fingerprint instead of a queue number.
+- **Snippet:**
+```python
+chunk_id = sha256(f"{doc_id}|{chunker}|{version}|{config_hash}|{sha(text)}|{occ}")[:20]
+```
+- **Snippet explained:** Enables idempotent re-chunking and diffing: only added/removed ids need embedding/deleting.
+- **Related terms:** [Idempotent re-chunking](llm_terms.md#idempotent-re-chunking), [Versioned index (alias switch)](llm_terms.md#versioned-index-alias-switch)
+
+---
+
 ### Class
 *From module: 00_python_foundations*
 
@@ -352,6 +446,21 @@ if complement in seen:
 ```
 - **Snippet explained:** Constant-time dict check replaces an inner loop in Two Sum.
 - **Related terms:** [Hash map (dict)](python_syntax.md#hash-map-dict), [Brute force](python_syntax.md#brute-force), [Two sum](python_syntax.md#two-sum)
+
+---
+
+### Composition root
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** The single place in a program where concrete implementations are chosen and wired together.
+- **Plain English:** The electrical panel of a house.
+- **Example / analogy:** `build_system(config)` reads names from a config dict and returns a ready `System`.
+- **Snippet:**
+```python
+system = build_system({'store': {'type': 'qdrant'}}, loader)
+```
+- **Snippet explained:** Changing the store is a one-word config change; no other module names Qdrant.
+- **Related terms:** [Registry and Factory](python_syntax.md#registry-and-factory), [Dependency injection](python_syntax.md#dependency-injection)
 
 ---
 
@@ -458,6 +567,21 @@ print(c.most_common(1))   # [(1, 2)]
 
 ---
 
+### Data contract (pydantic validation)
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** A strict typed schema (pydantic BaseModel) validated where data crosses a pipeline boundary.
+- **Plain English:** A schema both sides sign, checked on arrival.
+- **Example / analogy:** One model accepted both our parsed_document.json and module 19's sample.
+- **Snippet:**
+```python
+ParsedDocument.model_validate(json.loads(text))
+```
+- **Snippet explained:** Parses, coerces and raises ValidationError with the error path.
+- **Related terms:** [Parsed document (layout elements)](llm_terms.md#parsed-document-layout-elements), [Sidecar metadata file](python_syntax.md#sidecar-metadata-file)
+
+---
+
 ### Data type
 *From module: 00_python_foundations*
 
@@ -511,6 +635,21 @@ def g(): ...
 
 ---
 
+### Decorator pattern
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A wrapper implementing the same interface as the wrapped object that adds behaviour (cache, retry, timing, tracing) before or after delegating.
+- **Plain English:** Gift wrap: still a gift.
+- **Example / analogy:** `CachingEmbedder`, `RetryingGenerator`, `TracedGenerator` stack around a `Generator`.
+- **Snippet:**
+```python
+TracedGenerator(RetryingGenerator(real_generator), tracer)
+```
+- **Snippet explained:** Each layer has the same `generate` method; order decides what each layer sees.
+- **Related terms:** [Adapter pattern](python_syntax.md#adapter-pattern), [Chain of Responsibility](python_syntax.md#chain-of-responsibility)
+
+---
+
 ### Default argument
 *From module: 00_python_foundations*
 
@@ -557,6 +696,37 @@ python -m pip check
 ```
 - **Snippet explained:** Reports installed packages whose requirements are not met.
 - **Related terms:** [pip](python_syntax.md#pip), [Virtual environment](python_syntax.md#virtual-environment)
+
+---
+
+### Dependency injection
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Passing a class the objects it depends on (usually through its constructor) instead of letting it create them.
+- **Plain English:** A chef is handed ingredients rather than growing them.
+- **Example / analogy:** `Summarizer(generator)` works with a fake LLM in tests and a real API in production.
+- **Snippet:**
+```python
+class Summarizer:
+    def __init__(self, generator): self.generator = generator
+```
+- **Snippet explained:** The dependency is a parameter, so any object with the right method can be passed.
+- **Related terms:** [Composition root](python_syntax.md#composition-root), [Protocol (typing.Protocol)](python_syntax.md#protocol-typingprotocol)
+
+---
+
+### device_map
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** Hugging Face from_pretrained argument (and model.hf_device_map attribute) that maps each module to a device (GPU index, 'cpu' or 'disk'); 'auto' computes it from max_memory.
+- **Plain English:** A dict saying which layer lives where.
+- **Example / analogy:** A seating chart for layers.
+- **Snippet:**
+```python
+print(model.hf_device_map)
+```
+- **Snippet explained:** Shows the module-to-device placement Accelerate chose.
+- **Related terms:** [Offloading (CPU / disk)](llm_terms.md#offloading-cpu-disk), [-ngl (n-gpu-layers)](llm_terms.md#-ngl-n-gpu-layers)
 
 ---
 
@@ -844,6 +1014,24 @@ print(Counter('banana'))   # Counter({'a': 3, 'n': 2, 'b': 1})
 
 ---
 
+### Frozen dataclass (slots)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** `@dataclass(frozen=True, slots=True)`: fields cannot be re-assigned, `__hash__` is generated, and fields live in slots (no per-instance `__dict__`). Frozen is shallow.
+- **Plain English:** A laminated card: readable, shareable, not editable.
+- **Example / analogy:** Chunks, requests and answers are frozen so caches and threads can share them safely.
+- **Snippet:**
+```python
+@dataclass(frozen=True, slots=True)
+class Chunk:
+    chunk_id: str
+    text: str
+```
+- **Snippet explained:** Assigning `chunk.text = ...` raises FrozenInstanceError; the object is hashable.
+- **Related terms:** [Value object](python_syntax.md#value-object), [Pydantic v2 (BaseModel)](python_syntax.md#pydantic-v2-basemodel)
+
+---
+
 ### Function
 *From module: 00_python_foundations*
 
@@ -990,6 +1178,23 @@ print(hash('abc') == hash('abc'))   # True within one run
 
 ---
 
+### Heading tree
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** A tree whose nodes are sections: a heading of level L closes all open sections of level >= L and becomes a child of the nearest shallower section.
+- **Plain English:** The outline of the document as a tree.
+- **Example / analogy:** The table of contents with indentation.
+- **Snippet:**
+```python
+while stack[-1].level >= b.level:
+    stack.pop()
+sec = Section(b.level, b.title, parent=stack[-1])
+```
+- **Snippet explained:** A stack of open sections; pop until the parent is shallower than the new heading.
+- **Related terms:** [Structure-aware chunking (heading-aware, markdown-aware)](llm_terms.md#structure-aware-chunking-heading-aware-markdown-aware), [Breadcrumb header (section path)](llm_terms.md#breadcrumb-header-section-path)
+
+---
+
 ### HTTP status code
 *From module: 01_debugging_and_environment*
 
@@ -1050,6 +1255,21 @@ class B(A):
 ```
 - **Snippet explained:** B overrides `hi` but reuses A's version.
 - **Related terms:** [Class](python_syntax.md#class), [Method](python_syntax.md#method)
+
+---
+
+### Injectable clock (fake clock)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Passing a time source as a parameter so tests control time; the fake's sleep advances time instantly.
+- **Plain English:** A remote control for time.
+- **Example / analogy:** A 30-second breaker timeout is tested in microseconds.
+- **Snippet:**
+```python
+clock = FakeClock(); clock.advance(30)
+```
+- **Snippet explained:** Time moves only when the test says so.
+- **Related terms:** [Circuit breaker](api_and_deployment_terms.md#circuit-breaker), [Token bucket](api_and_deployment_terms.md#token-bucket)
 
 ---
 
@@ -1150,6 +1370,22 @@ with open("trace.jsonl", "a") as f:
 
 ---
 
+### keep_separator
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** Option of recursive splitters controlling whether the separator is dropped, kept at the start of the next piece ("start") or at the end of the previous one ("end").
+- **Plain English:** Whether the "## " or the blank line stays with the text it introduced.
+- **Example / analogy:** A heading should stay with its section, not with the section above.
+- **Snippet:**
+```python
+parts = re.split(f"({sep})", text)
+pieces = [parts[0]] + [parts[i] + parts[i + 1] for i in range(1, len(parts), 2)]   # keep="start"
+```
+- **Snippet explained:** A capture group keeps the separators in the split result; they are then glued to the following piece.
+- **Related terms:** [Recursive character splitting](llm_terms.md#recursive-character-splitting), [Language-specific separators](llm_terms.md#language-specific-separators)
+
+---
+
 ### KeyError
 *From module: 01_debugging_and_environment*
 
@@ -1210,6 +1446,21 @@ sorted(words, key=lambda w: len(w))
 ```
 - **Snippet explained:** The lambda tells sort to order words by length.
 - **Related terms:** [Sorting (stable)](python_syntax.md#sorting-stable), [List comprehension](python_syntax.md#list-comprehension)
+
+---
+
+### length_function
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** The callable a splitter uses to measure text size. Default len (characters); should be the embedding model's token counter.
+- **Plain English:** The ruler. If it measures characters, your "128" is not 128 tokens.
+- **Example / analogy:** A shop that sells by weight but measures by the number of items.
+- **Snippet:**
+```python
+RecursiveSplitter(128, 0, length_function=count_tokens)
+```
+- **Snippet explained:** Now chunk_size=128 means at most 128 MiniLM tokens.
+- **Related terms:** [Token (vs character vs word)](llm_terms.md#token-vs-character-vs-word), [Recursive character splitting](llm_terms.md#recursive-character-splitting)
 
 ---
 
@@ -1305,6 +1556,37 @@ for i in range(3):
 ```
 - **Snippet explained:** Prints 0, 1, 2; `range(3)` stops before 3.
 - **Related terms:** [Conditional (if/elif/else)](python_syntax.md#conditional-ifelifelse), [Iterator](python_syntax.md#iterator)
+
+---
+
+### Low-level design (LLD)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** The design of the classes, interfaces, methods and collaborations inside one service, including patterns, failure handling and tests.
+- **Plain English:** The blueprint of one machine, not the map of the factory.
+- **Example / analogy:** HLD picks the services; LLD decides that `RagService` receives a `Retriever`, a `Reranker` and a `Generator` and nothing else.
+- **Snippet:**
+```python
+class RagService:
+    def __init__(self, retriever, reranker, generator): ...
+```
+- **Snippet explained:** The service never constructs its collaborators, so tests can pass fakes.
+- **Related terms:** [Dependency injection](python_syntax.md#dependency-injection), [SOLID](python_syntax.md#solid)
+
+---
+
+### LRU eviction
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** Evicting the least recently used entry; OrderedDict.move_to_end plus popitem(last=False).
+- **Plain English:** Throw out what you touched longest ago.
+- **Example / analogy:** A cache smaller than the working set thrashes.
+- **Snippet:**
+```python
+d.move_to_end(k); d.popitem(last=False)
+```
+- **Snippet explained:** Touch moves to the end; evict pops the front.
+- **Related terms:** [RadixAttention (radix tree prefix cache)](llm_terms.md#radixattention-radix-tree-prefix-cache)
 
 ---
 
@@ -1427,6 +1709,21 @@ a = [1]; b = a; b.append(2); print(a)
 
 ---
 
+### Observer (event bus)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Producers emit named events; subscribers register interest and are called without the producer knowing them. A subscriber error must not break the producer.
+- **Plain English:** Subscribing to a newsletter.
+- **Example / analogy:** `RagService` emits `retrieved`, `reranked`, `generated`; metrics subscribe.
+- **Snippet:**
+```python
+bus.subscribe('refused', fn); bus.emit('refused', {...})
+```
+- **Snippet explained:** `emit` calls each subscriber inside try/except.
+- **Related terms:** [Chain of Responsibility](python_syntax.md#chain-of-responsibility), [Online eval hook](llm_terms.md#online-eval-hook)
+
+---
+
 ### pathlib.Path
 *From module: 00_python_foundations*
 
@@ -1444,6 +1741,21 @@ cfg = HERE / 'config.json'
 
 ---
 
+### Peak RSS
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** Maximum resident set size of a process (resource.getrusage ru_maxrss; bytes on macOS, KB on Linux), monotonic within one process.
+- **Plain English:** The most RAM a process ever held.
+- **Example / analogy:** Measure each loader in a fresh process.
+- **Snippet:**
+```python
+resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+```
+- **Snippet explained:** Reads the high-water mark.
+- **Related terms:** [Memory-mapped loading (mmap)](llm_terms.md#memory-mapped-loading-mmap)
+
+---
+
 ### Pickle
 *From module: 10_ml_system_architecture*
 
@@ -1457,6 +1769,21 @@ with open('m.pkl', 'wb') as f:
 ```
 - **Snippet explained:** Writes the object in binary mode.
 - **Related terms:** [Serialization](python_syntax.md#serialization), [joblib](python_syntax.md#joblib), [safetensors](ml_terms.md#safetensors)
+
+---
+
+### Pickle deserialization attack
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** Loading a pickle executes callables named in the file (via __reduce__/REDUCE), so an untrusted pickle can run arbitrary code.
+- **Plain English:** A booby-trapped recipe: reading it makes you do things.
+- **Example / analogy:** Why .bin/.pt checkpoints from strangers are risky and safetensors exists.
+- **Snippet:**
+```python
+pickle.loads(pickle.dumps(obj_with_reduce))
+```
+- **Snippet explained:** Builds a pickle whose __reduce__ names print; loads runs it.
+- **Related terms:** [safetensors](ml_terms.md#safetensors), [weights_only (torch.load)](python_syntax.md#weights_only-torchload)
 
 ---
 
@@ -1510,6 +1837,23 @@ print(type(x), repr(x), len(x))
 
 ---
 
+### Protocol (typing.Protocol)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A structural interface: any object with the declared methods satisfies it, without inheriting. With `@runtime_checkable`, `isinstance` checks attribute names only, not signatures.
+- **Plain English:** A plug shape: if it fits the socket, it works.
+- **Example / analogy:** A 3-line test fake and a vendor wrapper both satisfy `Generator`.
+- **Snippet:**
+```python
+@runtime_checkable
+class Generator(Protocol):
+    def generate(self, system: str, user: str) -> str: ...
+```
+- **Snippet explained:** Declares the contract; any class with `generate(system, user)` is accepted.
+- **Related terms:** [Abstract base class (ABC)](python_syntax.md#abstract-base-class-abc), [Dependency injection](python_syntax.md#dependency-injection), [Adapter pattern](python_syntax.md#adapter-pattern)
+
+---
+
 ### Pydantic model
 *From module: 01_debugging_and_environment*
 
@@ -1525,6 +1869,22 @@ R(n='5')
 ```
 - **Snippet explained:** The string '5' is coerced to 5; `-1` would raise ValidationError.
 - **Related terms:** [Input validation](python_syntax.md#input-validation), [Type hint](python_syntax.md#type-hint)
+
+---
+
+### Pydantic v2 (BaseModel)
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A library that validates and coerces data from type hints, reports all errors at once and generates JSON Schema.
+- **Plain English:** A strict form that corrects '3' to 3 or rejects it.
+- **Example / analogy:** ChunkModel(position='3') gives 3; a negative position raises ValidationError.
+- **Snippet:**
+```python
+class AskRequest(BaseModel):
+    question: str = Field(min_length=3)
+```
+- **Snippet explained:** Declares constraints; construction validates them.
+- **Related terms:** [Frozen dataclass (slots)](python_syntax.md#frozen-dataclass-slots), [Tool spec (tool-call schema)](llm_terms.md#tool-spec-tool-call-schema)
 
 ---
 
@@ -1556,6 +1916,22 @@ raise ValueError('bad value')
 ```
 - **Snippet explained:** Stops normal flow with a ValueError unless caught.
 - **Related terms:** [Exception](python_syntax.md#exception)
+
+---
+
+### Registry and Factory
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A registry maps names to constructors; a factory builds objects from a name and keyword arguments, so plugins are chosen by config.
+- **Plain English:** A menu and a kitchen.
+- **Example / analogy:** `STORES.create('qdrant', dim=128)`; an unknown name lists the valid ones.
+- **Snippet:**
+```python
+@STORES.register('memory')
+def make(**_): return InMemoryVectorStore()
+```
+- **Snippet explained:** Registration records the constructor under a name; `create` looks it up.
+- **Related terms:** [Composition root](python_syntax.md#composition-root), [Strategy pattern](python_syntax.md#strategy-pattern)
 
 ---
 
@@ -1688,6 +2064,21 @@ seen = {1, 2, 2}
 
 ---
 
+### Sidecar metadata file
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** A companion file next to the data that holds fields the strict schema forbids, such as OCR confidence.
+- **Plain English:** Notes that must not break the contract.
+- **Example / analogy:** Confidence travels in parsed_document.ocr_meta.json keyed by element id.
+- **Snippet:**
+```python
+meta[element_id] = {'confidence': 0.79}
+```
+- **Snippet explained:** Maps element ids to OCR confidence.
+- **Related terms:** [Data contract (pydantic validation)](python_syntax.md#data-contract-pydantic-validation)
+
+---
+
 ### Slicing
 *From module: 00_python_foundations*
 
@@ -1716,6 +2107,21 @@ window += nums[right] - nums[right - k]
 ```
 - **Snippet explained:** One element enters, one leaves; the sum updates in O(1).
 - **Related terms:** [Two pointers](python_syntax.md#two-pointers), [Prefix sum](python_syntax.md#prefix-sum)
+
+---
+
+### SOLID
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Five object-design principles: single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
+- **Plain English:** Five habits that keep code easy to change.
+- **Example / analogy:** A new retriever is added by registering it; `RagService` is not edited (open/closed).
+- **Snippet:**
+```python
+RETRIEVERS.register('dense_top1')(make_retriever)
+```
+- **Snippet explained:** Registration extends the system without modifying `build_system`.
+- **Related terms:** [Dependency injection](python_syntax.md#dependency-injection), [Strategy pattern](python_syntax.md#strategy-pattern), [Protocol (typing.Protocol)](python_syntax.md#protocol-typingprotocol)
 
 ---
 
@@ -1782,6 +2188,38 @@ for fr in traceback.extract_tb(err.__traceback__):
 
 ---
 
+### Strategy pattern
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A family of interchangeable algorithms behind one interface, one of which is injected.
+- **Plain English:** Choosing a route in a map app.
+- **Example / analogy:** Dense, BM25 and hybrid retrievers all satisfy `Retriever`.
+- **Snippet:**
+```python
+HybridRetriever([DenseRetriever(emb, store), BM25Retriever(store)])
+```
+- **Snippet explained:** The hybrid retriever is itself a retriever composed of two strategies.
+- **Related terms:** [Registry and Factory](python_syntax.md#registry-and-factory), [Template Method](python_syntax.md#template-method)
+
+---
+
+### Strategy registry (Protocol)
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** A typing.Protocol describing the chunker interface plus a name-to-class dict filled by a decorator, so strategies are selected from config by name.
+- **Plain English:** A menu of chunkers that all plug into the same socket.
+- **Example / analogy:** USB: any device that follows the standard works.
+- **Snippet:**
+```python
+@register("recursive")
+class RecursiveChunker: ...
+chunker = create("recursive", config, count_tokens)
+```
+- **Snippet explained:** The decorator stores the class under a name; create() builds it with the config and the injected token counter.
+- **Related terms:** [Chunk ID (content hash)](python_syntax.md#chunk-id-content-hash), [Chunking](llm_terms.md#chunking)
+
+---
+
 ### string.Template
 *From module: 07_prompt_engineering*
 
@@ -1844,6 +2282,22 @@ print(sys.path[:2])
 
 ---
 
+### Template Method
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A base class defines a fixed algorithm and calls overridable hook methods that subclasses implement.
+- **Plain English:** A form with one blank to fill in.
+- **Example / analogy:** `BaseChunker.chunk()` dedupes and assigns ids; subclasses only implement `_groups()`.
+- **Snippet:**
+```python
+def chunk(self, doc, elements):
+    for section, text in self._groups(elements): ...
+```
+- **Snippet explained:** The template calls the hook; each chunker only decides how to group text.
+- **Related terms:** [Abstract base class (ABC)](python_syntax.md#abstract-base-class-abc), [Strategy pattern](python_syntax.md#strategy-pattern)
+
+---
+
 ### Time complexity
 *From module: 02_dsa_arrays_hashmaps*
 
@@ -1888,6 +2342,37 @@ f()
 ```
 - **Snippet explained:** Last line `KeyError: 'x'`; the frame above points to the `return` line.
 - **Related terms:** [Exception](python_syntax.md#exception), [Stack frame](python_syntax.md#stack-frame)
+
+---
+
+### Train/eval mode
+*From module: 15_neural_networks*
+
+- **Technical definition:** model.train() and model.eval() set module.training, changing the behaviour of dropout and batch normalization (batch statistics vs running statistics).
+- **Plain English:** A switch that must be set to eval before predicting.
+- **Example / analogy:** Forgetting eval() gives noisy predictions.
+- **Snippet:**
+```python
+model.eval()
+with torch.no_grad(): y = model(x)
+```
+- **Snippet explained:** Inference setup: eval mode and no graph.
+- **Related terms:** [Dropout](ml_terms.md#dropout), [Batch normalization](ml_terms.md#batch-normalization), [Layer normalization](ml_terms.md#layer-normalization)
+
+---
+
+### TTL and LRU
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** TTL: entries expire after a time limit. LRU: when full, the least recently used entry is evicted.
+- **Plain English:** A best-before date and a shelf that drops the longest-unused item.
+- **Example / analogy:** A 60 s TTL expired an entry at 61 s; capacity 2 evicted the unused key.
+- **Snippet:**
+```python
+d.move_to_end(k); d.popitem(last=False)
+```
+- **Snippet explained:** OrderedDict keeps recency order: last = newest, first = oldest.
+- **Related terms:** [Exact cache key and scope](llm_terms.md#exact-cache-key-and-scope), [Semantic cache](llm_terms.md#semantic-cache)
 
 ---
 
@@ -2027,6 +2512,21 @@ except ValidationError as e:
 
 ---
 
+### Value object
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** An object defined by its field values, equal when they are equal, normally immutable.
+- **Plain English:** A banknote: any 10-rupee note is as good as another.
+- **Example / analogy:** Two `Chunk` objects with equal fields are the same chunk.
+- **Snippet:**
+```python
+Chunk('a','d','t') == Chunk('a','d','t')  # True
+```
+- **Snippet explained:** Equality by value lets chunks be set members and dict keys.
+- **Related terms:** [Frozen dataclass (slots)](python_syntax.md#frozen-dataclass-slots), [Content-hash id](ml_terms.md#content-hash-id)
+
+---
+
 ### Variable
 *From module: 00_python_foundations*
 
@@ -2057,6 +2557,21 @@ python -m pip install requests
 ```
 - **Snippet explained:** Creates, activates and installs packages only into that project.
 - **Related terms:** [pip](python_syntax.md#pip), [Dependency conflict](python_syntax.md#dependency-conflict)
+
+---
+
+### weights_only (torch.load)
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** torch.load flag restricting unpickling to tensors and simple containers; default True since torch 2.6.
+- **Plain English:** A filter that blocks code in checkpoint files.
+- **Example / analogy:** torch.load(path) now refuses arbitrary objects.
+- **Snippet:**
+```python
+torch.load('m.pt', weights_only=True)
+```
+- **Snippet explained:** Loads only plain tensors and containers.
+- **Related terms:** [Pickle deserialization attack](python_syntax.md#pickle-deserialization-attack)
 
 ---
 

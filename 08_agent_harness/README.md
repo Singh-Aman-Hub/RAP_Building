@@ -114,6 +114,19 @@ One JSON object per event (`start`, `llm_reply`, `tool_call`, `end`) with run id
 - [ ] I can write a JSONL trace and use it to find a failing step.
 - [ ] I solved all 5 broken drills without AI.
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Agent loop | ReAct loop, tool loop, run loop | Same idea | Model decides, harness runs a tool, result goes back, repeat until final. |
+| Tool | function, action, skill (loosely), plugin | Mostly same | A function the model may ask your code to run. |
+| Tool calling | function calling, tool use | Same idea, vendor naming | Anthropic: `tool_use`/`tool_result`; OpenAI: `tool_calls`/tool message. |
+| Harness | scaffold, runtime, agent framework | Near-same | The non-model code (loop, validation, safety, tracing) around the model. |
+| Observation | tool result, `tool_result`, function output | Same | The text fed back after a tool runs. |
+| Memory | short-term = context/message list; long-term = persistent store | Two different things | Short-term dies with the run; long-term is saved outside the model. |
+| Trace | log, audit trail, span log (OpenTelemetry, Langfuse) | Near-same | Ordered, structured events for one run, tied by a `run_id`. |
+| Sandbox | permission gate, allowlist, container | Not the same | A path check in code is not a container/VM security boundary. |
+
 ## Interview questions
 1. **What is an agent?** A loop where an LLM chooses actions (tool calls) that code executes, feeding results back until it answers or a limit is hit.
 2. **How does the model "call" a tool?** It emits structured output (JSON text or a native `tool_use` block); my code validates and runs the function, then returns the result as a message.

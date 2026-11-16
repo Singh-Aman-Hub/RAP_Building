@@ -86,7 +86,8 @@ The ten syllabus topics are **one pipeline** viewed from both ends. The running 
    03 ML foundations     (loss, gradients, training loop)               Phase 2
    04 LLM fundamentals   (tokens, embeddings, attention, logits)
    05 LLM parameters     (lr, batch, temperature, top-p, quantization)
-   06 Training & fast inference (datasets, LoRA, KV cache, vLLM)
+   06 Training & LoRA    (datasets, training loop, LoRA/QLoRA)
+   21 Inference engineering (loading, quantization, KV cache, batching, engines, cost)
         │
         ├── 07 Prompt engineering   (talk to the model)               Phase 3
         ├── 08 Agent harness        (loop + tools, no frameworks)
@@ -115,15 +116,24 @@ If you can narrate that one line and drill into any arrow, you can answer most i
 | 2 | [03 ML foundations](03_ml_foundations/) | prerequisite | P1 | M | Train a model by gradient descent; save/load a classifier |
 | 2 | [04 LLM fundamentals](04_llm_fundamentals/) | 1 | **P0** | L | Go from text to tokens to logits to a generated token |
 | 2 | [05 LLM parameters](05_llm_parameters/) | 2 | P1 | M | Explain and tune training and generation parameters |
-| 2 | [06 Training & fast inference](06_llm_training_and_fast_inference/) | 1 | P1 | L | Fine-tune with LoRA; reason about speed and GPU memory |
+| 2 | [06 Training & LoRA](06_llm_training_and_lora/) | 1 | P1 | M | Prepare data, train, evaluate, fine-tune with LoRA/QLoRA (inference steps moved to 21) |
 | 3 | [07 Prompt engineering](07_prompt_engineering/) | 4 | P1 | M | Write, structure, test and defend prompts |
 | 3 | [08 Agent harness](08_agent_harness/) | 3 | **P0** | L | Build a tool-calling agent loop with no framework |
 | 4 | [09 API development](09_api_development/) | 6 | **P0** | L | Build and serve Flask and FastAPI model APIs |
 | 4 | [10 ML system architecture](10_ml_system_architecture/) | 5 | P1 | M | Design and explain an ML system end to end |
 | 4 | [11 Docker & Compose](11_docker/) | 7 | P1 | M | Containerise and orchestrate the API |
 | 4 | [12 Streamlit / Gradio](12_streamlit_gradio/) | 8 | P2 | S | Build a UI that talks to the API |
-| 5 | [13 Capstone](13_capstone_project/) | integration | P2 | M | Run and explain the whole stack |
+| 5 | [13 Capstone](13_capstone_project/) | integration | P2 | M | Run and explain the whole stack; Track A document-QA, Track B inference report |
 | 5 | [mock_interviews](mock_interviews/) + [vocabulary](vocabulary/index.md) | readiness | — | S | Turn knowledge into spoken answers |
+| 6 | [14 RAG & retrieval](14_rag_and_retrieval/) | RAG deep dive | **P0** | L | Build, measure and defend a RAG pipeline |
+| 6 | [15 Neural networks](15_neural_networks/) | NN deep dive | P1 | L | Derive backprop, pick init/norm/optimizer, explain CNN/RNN → attention |
+| 6 | [16 Modern LLM architecture](16_modern_llm_architecture/) | 2026 LLM internals + LLD | **P0** | L | Explain RoPE, RMSNorm, SwiGLU, GQA/MLA, MoE, FlashAttention; build a mini Llama |
+| 6 | [17 Fine-tuning → benchmarks](17_finetuning_alignment_and_benchmarks/) | post-training & evaluation | P1 | L | Run SFT/DPO/GRPO by hand, score benchmarks correctly, read a leaderboard critically |
+| 6 | [18 OCR & document parsing](18_ocr_and_document_parsing/) | OCR / document AI | P2 | M | Explain classic and VLM OCR, measure CER/WER, produce RAG-ready elements |
+| 6 | [19 Chunking deep dive](19_chunking_deep_dive/) | advanced chunking | P1 | M | Choose, implement and evaluate any 2026 chunking strategy |
+| 6 | [20 LLM system LLD](20_llm_system_lld/) | low-level design | P1 | L | Answer LLD rounds: interfaces, patterns, resilience, caching, observability, versioning, guardrails, budgets |
+| 6 | [21 LLM inference engineering](21_llm_inference_engineering/) | inference & optimization | **P0** | XL | Load, quantize, benchmark and serve an LLM; explain TTFT/ITL, KV cache, batching, PagedAttention, engines and cost |
+| — | [CONFUSABLES.md](CONFUSABLES.md) · [TECH_RADAR_2026.md](TECH_RADAR_2026.md) | cross-cutting | — | S | Never mix up synonyms; know today's tools |
 
 **Prerequisites beat priority:** you cannot understand temperature (P1, module 05) without logits (P0, module 04), and logits need the ML basics (P1, module 03).
 
@@ -231,8 +241,8 @@ Needs: 03 (training params), 04 (logits).
 | `06_training_parameters` | learning rate, batch size, epochs, optimizers, losses | Fine-tuning runs (06) |
 | `07_experiment_logger` | table of length, latency, memory, quality notes | The "record what changed" habit; monitoring (10) |
 
-#### 06 LLM training & fast inference — P1 · [open](06_llm_training_and_fast_inference/)
-Needs: 03, 04, 05. Reference-only (not run): QLoRA and vLLM need a GPU.
+#### 06 LLM training & LoRA — P1 · [open](06_llm_training_and_lora/)
+Needs: 03, 04, 05 (recommended after 16 and 21). Reference-only (not run): QLoRA needs a GPU. The old inference steps 07–11 moved to [21](21_llm_inference_engineering/).
 
 | Step | Sub-topics it contains | Relevance |
 |------|-----------------------|-----------|
@@ -242,10 +252,6 @@ Needs: 03, 04, 05. Reference-only (not run): QLoRA and vLLM need a GPU.
 | `04_lora_math_numpy` | low-rank update W + BA, parameter counts | Why LoRA is cheap |
 | `05_lora_peft_finetune` | real `peft` fine-tune, adapter size, merge | Adapters as versioned artifacts (10) |
 | `06_qlora_reference` | 4-bit base + LoRA (read only) | Quantization (05) |
-| `07_hf_inference_batching_kvcache` | KV cache on/off, padding side, batching, dtype | Latency/throughput; API concurrency (09) |
-| `08_gpu_memory_calculator` | weights + KV cache memory for a 7B model at fp16/int8/int4 | Workers × model size (09), container limits (11) |
-| `09_throughput_benchmark` | tokens/sec vs batch size | Scaling decisions (10) |
-| `10_vllm_reference` | PagedAttention, continuous batching (read only) | Serving at scale (10) |
 
 ---
 
@@ -359,30 +365,51 @@ Needs: 09, 11, 12 (+10). Contains `api/`, `ui/`, `compose.yaml`, `run_local.sh`,
 | `scorecard.md` | self-scoring table | Track weak areas |
 | `vocabulary/` | dictionaries for Python, ML, LLM, API/deployment + index | Look up, then re-explain in your own words |
 
+### Phase 6 — Deep dives (modern stack, Nov 2026)
+
+*Goal: go from "I can use it" to "I can explain how it works inside and design it".* Folder numbers stay stable; the **recommended reading order** interleaves the deep dives with the core modules:
+
+`00 → 01 (02 daily) → 03 → 15 → 04 → 05 → 16 → 21 → 06 → 17 → 07 → 14 → 18 → 19 → 08 → 09 → 20 → 10 → 11 → 12 → 13 → mocks`
+
+| Module | Needs first | Why it matters |
+|--------|-------------|----------------|
+| [14 RAG & retrieval](14_rag_and_retrieval/) | 04, 07 | The most common "build a chatbot over our docs" question |
+| [15 Neural networks](15_neural_networks/) | 03 | Backprop, init, normalization and optimizers are asked directly, and they explain every LLM design choice |
+| [16 Modern LLM architecture](16_modern_llm_architecture/) | 04, 15 | Interviewers ask "what changed since GPT-2?": RoPE, RMSNorm, SwiGLU, GQA/MLA, MoE, FlashAttention (speculative decoding now in 21) |
+| [21 LLM inference engineering](21_llm_inference_engineering/) | 04, 05/05, 16 | **Top priority.** Loading formats, quantization (PTQ/QAT, GPTQ/AWQ, KV cache), prefill vs decode, TTFT/ITL benchmarks, batching, PagedAttention, prefix caching, speculative decoding, parallelism, engines, cost |
+| [17 Fine-tuning, alignment & benchmarks](17_finetuning_alignment_and_benchmarks/) | 06, 16 | SFT → DPO → GRPO/RLVR, and how benchmark numbers are actually computed |
+| [18 OCR & document parsing](18_ocr_and_document_parsing/) | 15 (CNN/RNN) | Real RAG starts with PDFs and scans; garbage in, garbage out |
+| [19 Chunking deep dive](19_chunking_deep_dive/) | 14, 18 | Chunking is the biggest single lever on RAG quality |
+| [20 LLM system LLD](20_llm_system_lld/) | 08, 09, 14 | LLD rounds: interfaces, patterns, retries, caching, tracing, versioning, guardrails, budgets |
+
+OCR (18) and chunking (19) stay separate modules but connect through the parsed-document handoff (18/10 → 19/09) and the end-to-end [capstone Track A](13_capstone_project/).
+
+Each module's README lists every step folder with what it teaches; every WALKTHROUGH has the **Code, step by step** section.
+
 ---
 
 ## 5. How the topics connect
 
-### 5.1 Dependency graph (arrow = "needed first")
+### 5.1 Dependency graph (arrow = "needed first"; reading order top to bottom)
 
 ```
-00 Python ───► 01 Debugging ───────────────────────────────────────────┐ (used by all)
-   │  └──► 02 DSA (daily, alongside everything)                        │
-   ▼                                                                    ▼
-03 ML foundations ─► 04 LLM fundamentals ─► 05 LLM parameters ─► 06 Training & fast inference
-   │                       │   │                  │
-   │                       │   └──────────────────┴─► 07 Prompting ─► 08 Agent harness
-   │                       │                               │               │
-   └── sklearn model ──────┼───────────────────────────────┴───────────────┤
-                           ▼                                               ▼
-                      09 API (Flask / FastAPI) ◄───────────────────────────┘
-                           │
-            ┌──────────────┼──────────────┐
-            ▼              ▼              ▼
-     10 Architecture   11 Docker    12 Streamlit/Gradio
-            └──────────────┼──────────────┘
+00 Python ─► 01 Debugging                        02 DSA (daily, in parallel)
+   ▼
+03 ML foundations ─► 15 Neural networks ─► 04 LLM fundamentals ─► 05 LLM parameters
+                                                   ▼
+                                     16 Modern LLM architecture
+                                                   ▼
+                          21 LLM inference engineering (builds on 05/05 quantization, 16/05 FlashAttention)
+                                                   ▼
+                     06 Training & LoRA ─► 17 Fine-tuning, alignment & benchmarks
+                                                   ▼
+          07 Prompting ─► 14 RAG ◄──── 19 Chunking ◄── 18 OCR & parsing (18/10 → 19/09 handoff)
                            ▼
-                      13 Capstone
+                 08 Agents ─► 09 API ─► 20 LLM system LLD
+                           ▼
+            10 Architecture ─► 11 Docker ─► 12 UI
+                           ▼
+   13 Capstone (core · Track A: 18→19→14/20→09→11 · Track B: 21) ─► mock interviews
 ```
 
 ### 5.2 Concept threads — one idea, many places
@@ -434,7 +461,7 @@ There is no fixed timetable — adapt to your interview date. The numbers below 
 | 03 ML foundations | 7–10 | gradient descent, PyTorch loop |
 | 04 LLM fundamentals | 9–13 | attention, tokenizer, logits → generation |
 | 05 LLM parameters | 5–8 | sampling from scratch |
-| 06 Training & fast inference | 7–10 | training loop, LoRA, KV cache/memory |
+| 06 Training & LoRA | 5–8 | training loop, perplexity, LoRA |
 | 07 Prompt engineering | 5–8 | structured JSON, testing |
 | 08 Agent harness | 10–14 | tools/validation, context, retries, safety |
 | 09 API development | 10–14 | FastAPI + Pydantic, workers |
@@ -442,6 +469,14 @@ There is no fixed timetable — adapt to your interview date. The numbers below 
 | 11 Docker | 7–10 | Dockerfile, ports/env, Compose |
 | 12 UI | 4–6 | Streamlit first, Gradio second |
 | 13 Capstone + mocks | 8–12 | run, break, explain |
+| 14 RAG & retrieval | 9–11 | chunking, hybrid search, evaluation |
+| 15 Neural networks | 9–12 | backprop by hand, optimizers, CNN/RNN |
+| 16 Modern LLM architecture | 10–14 | RoPE, GQA/MLA, MoE, mini Llama |
+| 17 Fine-tuning → benchmarks | 10–14 | SFT masking, DPO, GRPO, eval scoring |
+| 18 OCR & document parsing | 7–10 | CTC, reading order, tool choice |
+| 19 Chunking deep dive | 8–10 | semantic/late/contextual, evaluation |
+| 20 LLM system LLD | 9–13 | ragkit package, patterns, interview problems, guardrails |
+| 21 LLM inference engineering | 15–20 | quantization algorithms, benchmarks, batching simulators, engines, cost |
 
 ### 6.2 If you have less time
 | Situation | What to do |
@@ -466,6 +501,7 @@ There is no fixed timetable — adapt to your interview date. The numbers below 
 | **C** | Phase 3 | Write a prompt that returns validated JSON; build an agent loop with tool registry, validation, max steps, retry and a trace |
 | **D** | Phase 4 | Build a validated FastAPI POST endpoint; start it with Uvicorn (and Flask with Gunicorn); write a Dockerfile and Compose file; explain WSGI vs ASGI; build a small UI |
 | **E** | Phase 5 | Run the stack end to end, narrate a request, fix three injected bugs |
+| **F** | Phase 6 | Derive backprop for a 2-layer MLP; explain RoPE/GQA/MoE; compute KV-cache bytes and $/1M tokens; explain prefill vs decode, TTFT vs ITL, PagedAttention and continuous batching; quantize a layer with RTN vs GPTQ and explain the gap; run DPO/GRPO by hand; take a scanned PDF to cited RAG answers; answer an LLD round |
 
 Track these in [README.md](README.md#progress-tracker).
 
@@ -475,7 +511,7 @@ Track these in [README.md](README.md#progress-tracker).
 
 | Syllabus topic | Primary module | Also reinforced in |
 |----------------|---------------|--------------------|
-| 1. Basic LLM training & fast inference | 04 + 06 | 03, 05, 09, 10 |
+| 1. Basic LLM training & fast inference | 04 + 06 (training) + 21 (inference) | 03, 05, 09, 10, 16, 17 |
 | 2. LLM parameters | 05 | 03, 04, 06 |
 | 3. Agent harness (no frameworks) | 08 | 00, 07, 09 |
 | 4. Prompt engineering | 07 | 05, 08 |
@@ -486,4 +522,5 @@ Track these in [README.md](README.md#progress-tracker).
 | 9. Debugging without AI | 01 | every `broken_*` drill |
 | 10. LeetCode: arrays & dictionaries | 02 | 00, 04 |
 | Prerequisite: Python syntax | 00 | all |
-| Prerequisite: ML basics | 03 | 04–06 |
+| Prerequisite: ML basics | 03 + 15 | 04–06 |
+| Deep dives: architecture, post-training, OCR, chunking, LLD | 16, 17, 18, 19, 20 | 13 (tracks), mock_interviews |

@@ -1,6 +1,6 @@
 # Terms — LoRA Math with NumPy
 
-Folder: `06_llm_training_and_fast_inference/04_lora_math_numpy` · Files covered: `main.py`, `WALKTHROUGH.md`
+Folder: `06_llm_training_and_lora/04_lora_math_numpy` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [06 README](../README.md)
 
 **Terms in this folder:** [NumPy](#numpy) · [np.random.default_rng](#nprandomdefault_rng) · [LoRA (low-rank adaptation)](#lora-low-rank-adaptation) · [Rank (r)](#rank-r) · [Frozen weights](#frozen-weights) · [Matrix multiplication `@`](#matrix-multiplication-) · [Transpose `.T`](#transpose-t) · [np.zeros and zero initialisation of B](#npzeros-and-zero-initialisation-of-b) · [rng.normal](#rngnormal) · [Down-projection A and up-projection B](#down-projection-a-and-up-projection-b) · [alpha and scaling (alpha / r)](#alpha-and-scaling-alpha--r) · [Order of multiplication (A @ x first)](#order-of-multiplication-a--x-first) · [np.abs(...).max()](#npabsmax) · [Mean squared error `(err ** 2).mean()`](#mean-squared-error-err--2mean) · [Hand-derived gradient](#hand-derived-gradient) · [In-place update `-=`](#in-place-update--) · [Merging an adapter](#merging-an-adapter) · [Parameter-count arithmetic and `:,` formatting](#parameter-count-arithmetic-and--formatting) · [Target modules (q, k, v, o)](#target-modules-q-k-v-o) · [ValueError: matmul mismatch](#valueerror-matmul-mismatch)

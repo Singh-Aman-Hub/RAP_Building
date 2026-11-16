@@ -118,6 +118,21 @@ Total: **~12–13 hours** + [exercises](exercises.md). Always run from the folde
 - [ ] I can explain the role of the framework and the server separately.
 - [ ] I can stream tokens with `StreamingResponse` and `text/event-stream`, and explain time-to-first-token.
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| WSGI vs ASGI | sync vs async server interface | No | WSGI is `(environ, start_response)`, one request per worker; ASGI is `(scope, receive, send)`, async, also WebSockets/streaming. |
+| Flask vs FastAPI | micro-framework vs typed async framework | No | Flask: manual validation, WSGI; FastAPI: Pydantic validation, auto docs, ASGI. |
+| Web framework vs server | Flask/FastAPI vs gunicorn/uvicorn | No | The framework defines your routes; the server speaks HTTP and runs the framework's app. |
+| Gunicorn vs uvicorn vs waitress | app server, WSGI/ASGI server | No | gunicorn: pre-fork process manager (WSGI, can host uvicorn workers); uvicorn: ASGI server; waitress: pure-Python WSGI server. |
+| Endpoint vs route vs path operation | URL handler, view function | Nearly | Same idea; FastAPI says "path operation", Flask says "route"/"view". |
+| 400 vs 422 | Bad Request vs Unprocessable Entity | No | 400: malformed request; 422: well-formed but invalid data (FastAPI default). |
+| Swagger vs OpenAPI vs `/docs` | API spec and docs UI | No | OpenAPI is the spec; Swagger UI is the page at `/docs` that renders it. |
+| SSE vs WebSocket vs chunked response | streaming transports | No | SSE: one-way server-to-client text events over HTTP; WebSocket: two-way; chunked: raw HTTP body in pieces. |
+| Environment variable vs config file vs secret | settings sources | No | Env vars are per-process settings; files are versioned defaults; secrets are env vars or vault values that must never be committed. |
+| Worker vs process vs thread | concurrency units | No | A worker is usually a process; threads live inside a process and share memory. |
+
 ## 8. Interview questions
 1. **What is the difference between Flask and FastAPI?** Flask: WSGI micro-framework, sync, manual validation. FastAPI: ASGI, async-capable, automatic Pydantic validation and OpenAPI docs. Choose FastAPI for new typed APIs/async I/O; Flask for small/simple or existing code. Both can serve ML models equally well — inference speed is the model's, not the framework's.
 2. **What does Gunicorn do that `flask run` doesn't?** Manages multiple worker processes, restarts crashed workers, handles concurrency and graceful reloads; the dev server is single-purpose for development and not hardened.

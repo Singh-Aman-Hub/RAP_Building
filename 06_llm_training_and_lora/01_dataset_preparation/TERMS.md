@@ -1,6 +1,6 @@
 # Terms — Dataset Preparation
 
-Folder: `06_llm_training_and_fast_inference/01_dataset_preparation` · Files covered: `main.py`, `WALKTHROUGH.md`
+Folder: `06_llm_training_and_lora/01_dataset_preparation` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [06 README](../README.md)
 
 **Terms in this folder:** [pathlib.Path](#pathlibpath) · [`__file__` and `.resolve().parents[1]`](#__file__-and-resolveparents1) · [List comprehension](#list-comprehension) · [Dataset preparation (preprocessing)](#dataset-preparation-preprocessing) · [AutoTokenizer.from_pretrained](#autotokenizerfrom_pretrained) · [Token ID](#token-id) · [tokenizer.encode / tokenizer.decode](#tokenizerencode--tokenizerdecode) · [EOS token (end-of-text)](#eos-token-end-of-text) · [Integer division `//`](#integer-division-) · [Slicing](#slicing) · [torch.tensor](#torchtensor) · [Tensor.view](#tensorview) · [Block size (context length in training)](#block-size-context-length-in-training) · [Causal language model](#causal-language-model) · [Labels and the one-position shift](#labels-and-the-one-position-shift) · [Ignore index (-100)](#ignore-index--100) · [Padding and pad token](#padding-and-pad-token) · [Attention mask](#attention-mask) · [tokenizer(...) batch call with return_tensors](#tokenizer-batch-call-with-return_tensors) · [Tensor.masked_fill](#tensormasked_fill) · [TensorDataset](#tensordataset) · [DataLoader](#dataloader) · [Batch size](#batch-size) · [Shuffle](#shuffle) · [iter() and next()](#iter-and-next) · [f-string with `!r`](#f-string-with-r)

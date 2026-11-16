@@ -3,17 +3,19 @@ GOAL:  Make Hugging Face generation fast and understand why: no_grad, dtype, bat
        and the KV cache (measured, not just described).
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/07_hf_inference_batching_kvcache/main.py
+RUN (from repo root):         .venv/bin/python 21_llm_inference_engineering/08_hf_inference_batching_kvcache/main.py
 EXPECTED OUTPUT (shortened; times differ per machine):
     parameters: 81.9M | fp32 size 328 MB | bf16 size 164 MB
     --- 1. KV cache ---
-    use_cache=True : 100 new tokens in 1.5 s
-    use_cache=False: 100 new tokens in 4.8 s   (cache off recomputes everything each step)
+    use_cache=True : 100 new tokens in 1.6 s
+    use_cache=False: 100 new tokens in 4.2 s   (cache off recomputes everything each step)
+    --- 1b. Prefill vs decode (vocabulary; the physics is step 09) ---
+    prefill of 121 prompt tokens: 73 ms (0.6 ms/token) | one decode step: 17 ms
     --- 2. Padding side for batches ---
     right padding -> short prompt continues as: 'Hello, my name is\n\n\n\n...'
     left  padding -> short prompt continues as: 'Hello, my name is J.J.K. Rowling.'
     --- 3. Batching ---
-    4 prompts one-by-one: 2.8 s | 4 prompts as one batch: 0.6 s
+    4 prompts one-by-one: 2.1 s | 4 prompts as one batch: 0.8 s
 NEEDS: torch, transformers (distilgpt2 cached).  ~30 s.  Uses the CPU on purpose so timings are stable.
 """
 
@@ -26,12 +28,12 @@ MODEL_NAME = "distilgpt2"
 device = torch.device("cpu")     # CPU = no asynchronous GPU queue, so time.perf_counter() is honest
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-tokenizer.pad_token = tokenizer.eos_token          # GPT-2 has no pad token (see step 01)
+tokenizer.pad_token = tokenizer.eos_token          # GPT-2 has no pad token (see 04_llm_fundamentals)
 model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(device).eval()   # .eval() = inference mode for layers
 
 n_params = sum(p.numel() for p in model.parameters())
 print(f"parameters: {n_params / 1e6:.1f}M | fp32 size {n_params * 4 / 1e6:.0f} MB | bf16 size {n_params * 2 / 1e6:.0f} MB")
-# bytes per parameter: fp32 = 4, fp16/bf16 = 2, int8 = 1, int4 = 0.5  -> this is the heart of module 05's "quantization".
+# bytes per parameter: fp32 = 4, fp16/bf16 = 2, int8 = 1, int4 = 0.5  -> this is the heart of quantization (step 04).
 
 
 def timed_generate(prompts, **gen_kwargs):
@@ -47,7 +49,7 @@ def timed_generate(prompts, **gen_kwargs):
 # ---- 1. KV cache on vs off ----------------------------------------------------------------------------
 # Each new token needs attention over ALL previous tokens' keys (K) and values (V).
 # With the cache we store K,V once and only compute the NEW token's.  Without it, every step recomputes
-# the whole sequence: cost grows ~quadratically with length.  Price of the cache: GPU/CPU memory (step 08).
+# the whole sequence: cost grows ~quadratically with length.  Price of the cache: GPU/CPU memory (formula in step 03).
 print("\n--- 1. KV cache ---")
 prompt = ["The future of machine learning is"]
 _, t_warm = timed_generate(prompt, max_new_tokens=5)          # warm-up: first call is slower (lazy init)
@@ -55,6 +57,23 @@ _, t_on = timed_generate(prompt, max_new_tokens=100, min_new_tokens=100, use_cac
 _, t_off = timed_generate(prompt, max_new_tokens=100, min_new_tokens=100, use_cache=False)
 print(f"use_cache=True : 100 new tokens in {t_on:.1f} s")
 print(f"use_cache=False: 100 new tokens in {t_off:.1f} s   (cache off recomputes everything each step)")
+
+# ---- 1b. Prefill vs decode: only the VOCABULARY here, step 09 (roofline) explains it deeply -----------------
+# PREFILL = process the whole prompt in one forward pass and fill the KV cache (many tokens at once).
+# DECODE  = then generate ONE token per forward pass, reading the cache (one token at a time).
+print("\n--- 1b. Prefill vs decode (vocabulary; the physics is step 09) ---")
+long_prompt = tokenizer("The quick brown fox jumps over the lazy dog. " * 12, return_tensors="pt").to(device)
+n_prompt = long_prompt["input_ids"].shape[1]
+with torch.no_grad():
+    t0 = time.perf_counter()
+    out = model(**long_prompt, use_cache=True)                    # PREFILL: n_prompt tokens in one pass
+    t_prefill = time.perf_counter() - t0
+    nxt = out.logits[:, -1:].argmax(-1)                           # greedy next token, shape (1, 1)
+    t0 = time.perf_counter()
+    model(input_ids=nxt, past_key_values=out.past_key_values, use_cache=True)   # DECODE: ONE new token, reuse the cache
+    t_decode = time.perf_counter() - t0
+print(f"prefill of {n_prompt} prompt tokens: {t_prefill * 1000:.0f} ms ({t_prefill / n_prompt * 1000:.1f} ms/token) | one decode step: {t_decode * 1000:.0f} ms")
+print("=> prefill handles many tokens per pass (compute-bound on a GPU); each decode step handles one (memory-bound). Step 09 shows why.")
 
 # ---- 2. Padding side matters for decoder-only models ------------------------------------------------------
 # In a batch, shorter prompts are padded to equal length.  A decoder-only model CONTINUES from the last

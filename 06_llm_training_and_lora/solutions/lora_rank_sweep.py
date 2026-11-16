@@ -1,6 +1,6 @@
 """
 SOLUTION to exercises (step 05): how do trainable parameters and final loss change with LoRA rank r?
-RUN: .venv/bin/python 06_llm_training_and_fast_inference/solutions/lora_rank_sweep.py   (~1-2 min)
+RUN: .venv/bin/python 06_llm_training_and_lora/solutions/lora_rank_sweep.py   (~1-2 min)
 """
 import sys
 from pathlib import Path

@@ -36,37 +36,11 @@ Rules: change ONE thing at a time, predict the result before running, write down
 - **Rebuild:** set up LoRA on `distilgpt2` without looking: config, `get_peft_model`, optimizer over trainable params.
 - **Explain aloud:** what is saved to disk and how you would deploy the result.
 
-## Steps 06 and 10 — QLoRA and vLLM (read only)
-- **Explain aloud:** the QLoRA recipe in three bullet points; PagedAttention vs continuous batching in two sentences each.
+## Step 06 — QLoRA (read only)
+- **Explain aloud:** the QLoRA recipe in three bullet points.
 - **Written task:** in your own words, list what must change to run step 05 as QLoRA on a CUDA machine (answer in `solutions/solutions.md`).
 
-## Step 07 — fast inference
-- **Modify:** make the KV-cache comparison with `max_new_tokens=300`. Predict the ratio first.
-- **Modify:** time `dtype=torch.bfloat16` vs fp32 generation on CPU. Surprised?
-- **Break it:** use right padding for the mixed-length batch and compare with left padding.
-- **Rebuild:** write a function `batched_generate(prompts)` with correct padding and `no_grad`.
-- **Explain aloud:** why does the cache make generation faster but use more memory?
-
-## Step 08 — memory calculator
-- **Modify:** add a preset for a model of your choice (look up layers, kv_heads, head_dim in its `config.json`).
-- **Modify:** find the largest batch that fits in 24 GB for `llama-3-8b` at int4 with seq 4096.
-- **Break it:** run with `--preset gpt5` and read the argparse error.
-- **Rebuild:** write `kv_cache_bytes` from memory and verify with distilgpt2.
-- **Explain aloud:** why does int4 quantisation not shrink the KV cache here?
-
-## Step 09 — benchmark
-- **Modify:** add batch sizes 32 and 64. Where does throughput stop improving?
-- **Modify:** run twice; how much does the same row vary? What does that say about a single measurement?
-- **Break it:** `--device cuda` on a Mac; read the error.
-- **Rebuild:** write the timing loop with warm-up from memory.
-- **Explain aloud:** latency vs throughput with your own measured numbers.
-
-## Step 11 — PagedAttention fragmentation (simulation)
-- **Modify:** set `BLOCK_SIZE = 128`, then `1`. Predict which direction the waste in section A moves first.
-- **Modify:** change `MAX_LEN` to 4096. Which allocator suffers more, and why?
-- **Break it:** make `PagedAllocator.free` forget to return blocks and read the error.
-- **Rebuild:** write the free-stack allocator and the block table from memory, then re-create the A) numbers.
-- **Explain aloud:** internal vs external fragmentation, and what the block table does, in three sentences.
+> Exercises for the inference steps (old 07–11) moved to [module 21 exercises](../21_llm_inference_engineering/exercises.md).
 
 ## Integration challenge
 Take your LoRA-adapted model from step 05, load it with `PeftModel.from_pretrained`, merge it, save it with `save_pretrained`, and time `generate` before and after merging (hint: adapter on = a little extra work per layer). Write 5 lines on what you measured.

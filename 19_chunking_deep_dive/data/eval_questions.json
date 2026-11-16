@@ -1,0 +1,453 @@
+[
+ {
+  "id": "n01",
+  "question": "How much can I spend on a desk setup for working from home?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "The budget is 1,200 euros"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n02",
+  "question": "How long may I work from another country each year?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "up to 20 days per calendar year"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n03",
+  "question": "How many weeks off does the main caregiver of a new baby get?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "18 weeks of fully paid leave"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n04",
+  "question": "Can the leave be split, and how long must each part be?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Each block must be at least two weeks long"
+  ],
+  "kind": "reference"
+ },
+ {
+  "id": "n05",
+  "question": "How soon must I upload receipts for my home office purchases?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Receipts must be uploaded to the expense tool within 30 days"
+  ],
+  "kind": "reference"
+ },
+ {
+  "id": "n06",
+  "question": "Until when can I carry over unused vacation days?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Unused days carry over until 31 March of the next year"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n07",
+  "question": "From which day of illness do I need a doctor's note?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "A doctor's note is required from the fourth consecutive day"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n08",
+  "question": "Am I allowed to fly business class?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Business class is never reimbursed"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n09",
+  "question": "What is the daily food allowance when travelling outside Europe?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "70 euros outside Europe"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n10",
+  "question": "How quickly must I report a lost laptop?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Report a lost laptop within one hour"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n11",
+  "question": "What is the minimum password length?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "Passwords must be at least 14 characters"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n12",
+  "question": "What does severity SEV1 mean?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "customer data is exposed or the platform is down for most customers"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n13",
+  "question": "Which terminal command reports a suspected incident?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "lumen-cli incident report --severity SEV2"
+  ],
+  "kind": "code"
+ },
+ {
+  "id": "n14",
+  "question": "How much money can I spend on courses and books each year?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "learning budget of 1,500 euros per year"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n15",
+  "question": "How long is parental leave for the primary and for the secondary caregiver?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "18 weeks of fully paid leave",
+   "6 weeks of fully paid leave"
+  ],
+  "kind": "multi"
+ },
+ {
+  "id": "n16",
+  "question": "Does an unused learning budget roll over?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "The budget does not carry over to the next year"
+  ],
+  "kind": "reference"
+ },
+ {
+  "id": "n17",
+  "question": "How many days a week must I be in the office while on probation?",
+  "doc_id": "employee_handbook",
+  "answers": [
+   "must be in the office four days per week"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n18",
+  "question": "How many requests per minute does the Pro plan allow?",
+  "doc_id": "api_reference",
+  "answers": [
+   "| Pro | 600 | 100 | 5,000,000 |"
+  ],
+  "kind": "table"
+ },
+ {
+  "id": "n19",
+  "question": "What is the monthly request quota of the Free plan?",
+  "doc_id": "api_reference",
+  "answers": [
+   "| Free | 60 | 10 | 100,000 |"
+  ],
+  "kind": "table"
+ },
+ {
+  "id": "n20",
+  "question": "What does HTTP status 409 mean?",
+  "doc_id": "api_reference",
+  "answers": [
+   "| 409 | conflict | A resource with this name already exists | Choose another name |"
+  ],
+  "kind": "table"
+ },
+ {
+  "id": "n21",
+  "question": "How do I check a webhook signature safely?",
+  "doc_id": "api_reference",
+  "answers": [
+   "hmac.compare_digest(expected, signature)"
+  ],
+  "kind": "code"
+ },
+ {
+  "id": "n22",
+  "question": "How often is a failed webhook delivery retried?",
+  "doc_id": "api_reference",
+  "answers": [
+   "retried five times with exponential backoff"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n23",
+  "question": "How long is a pagination cursor valid?",
+  "doc_id": "api_reference",
+  "answers": [
+   "Cursors expire after 15 minutes"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n24",
+  "question": "What is the largest page size I can ask for?",
+  "doc_id": "api_reference",
+  "answers": [
+   "The maximum `page_size` is 200"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n25",
+  "question": "After how long does a build time out?",
+  "doc_id": "api_reference",
+  "answers": [
+   "The build timeout is 20 minutes"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n26",
+  "question": "When is an API key revoked automatically?",
+  "doc_id": "api_reference",
+  "answers": [
+   "A key that is not used for 90 days is revoked automatically"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n27",
+  "question": "Which header carries the webhook signature?",
+  "doc_id": "api_reference",
+  "answers": [
+   "`X-Lumen-Signature` header"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n28",
+  "question": "What should I do when I get a rate_limited error?",
+  "doc_id": "api_reference",
+  "answers": [
+   "| 429 | rate_limited | Too many requests | Wait for Retry-After |"
+  ],
+  "kind": "table"
+ },
+ {
+  "id": "n29",
+  "question": "How long is the password reset link valid?",
+  "doc_id": "support_faq",
+  "answers": [
+   "The reset link is valid for 30 minutes"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n30",
+  "question": "In which regions can my data live?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Frankfurt, Dublin or Virginia"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n31",
+  "question": "For how long can I restore a deleted project?",
+  "doc_id": "support_faq",
+  "answers": [
+   "recovery bin for 14 days"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n32",
+  "question": "Is there a discount for students?",
+  "doc_id": "support_faq",
+  "answers": [
+   "50 percent off the Pro plan for one year"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n33",
+  "question": "Can I pay by invoice instead of card?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Invoice payment is only available on the Enterprise plan"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n34",
+  "question": "Can I call someone on the phone for help?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Phone support is offered only to Enterprise customers"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n35",
+  "question": "How long does an invitation to my organisation stay valid?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Invitations expire after seven days"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n36",
+  "question": "What uptime does the top plan promise?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Enterprise plan has 99.95 percent"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n37",
+  "question": "Do you support SAML single sign-on?",
+  "doc_id": "support_faq",
+  "answers": [
+   "Single sign-on with SAML is available on the Enterprise plan"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n38",
+  "question": "How many months of invoices can I see online?",
+  "doc_id": "support_faq",
+  "answers": [
+   "last 24 months are kept online"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n39",
+  "question": "What happens when I use up my monthly request quota?",
+  "doc_id": "support_faq",
+  "answers": [
+   "rejected with status 429 until the next month starts"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n40",
+  "question": "At what time did the first alert fire?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "The first alert fired at 08:12 UTC"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n41",
+  "question": "What was the root cause of the outage?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "had added a trigger that recalculated the organisation quota after every job state change"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n42",
+  "question": "How many deployments were delayed in total?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "6,812 deployments were delayed"
+  ],
+  "kind": "keyword"
+ },
+ {
+  "id": "n43",
+  "question": "Why did adding more workers not help?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "adding more of them only added more waiting transactions"
+  ],
+  "kind": "reference"
+ },
+ {
+  "id": "n44",
+  "question": "Who took over as incident commander?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "The incident commander role was handed to Tomas at 08:40"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n45",
+  "question": "How did the team stop the queue from growing?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "we disabled the trigger with a feature flag"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n46",
+  "question": "What is the new target for the first public status update?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "The target for the first public update is now 10 minutes"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n47",
+  "question": "When is the combined dashboard due?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "The dashboard is due on 5 April"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n48",
+  "question": "How long were Enterprise customers affected?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "Enterprise customers have a dedicated queue, so they were affected for only about 25 minutes"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n49",
+  "question": "Were customers billed for the failed attempts?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "no customer was billed for the failed attempts"
+  ],
+  "kind": "paraphrase"
+ },
+ {
+  "id": "n50",
+  "question": "Why did the team lose time before finding the cause?",
+  "doc_id": "incident_postmortem",
+  "answers": [
+   "lack of a single dashboard that shows queue depth next to lock wait time cost us about 40 minutes"
+  ],
+  "kind": "paraphrase"
+ }
+]

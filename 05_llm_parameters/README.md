@@ -5,7 +5,7 @@ Chapters 14 and 15 of the master story. [Module 04](../04_llm_fundamentals/09_pr
 - **Pain point:** greedy decoding is boring and repetitive, a 7B model in float32 does not fit on a GPU, and every setting is a magic number nobody recorded.
 - **Spark:** the model outputs a probability for every token, so reshape it (temperature, top-k, top-p); store each weight in fewer bits (quantization); keep every dial in one config and log every run.
 - **What you build:** a config loader, a sampler from scratch checked against `generate()`, context-window trimming, int8/int4 quantization by hand, training-knob sweeps, and an experiment logger.
-- **Cliffhanger:** inference now fits and behaves, but training needs gradients and optimizer state, 4 to 16 times more memory. Can we even fine-tune? That is [module 06](../06_llm_training_and_fast_inference/), whose first step is the memory calculator. After module 06 comes [07_prompt_engineering](../07_prompt_engineering/).
+- **Cliffhanger:** inference now fits and behaves, but training needs gradients and optimizer state, 4 to 16 times more memory. Can we even fine-tune? That is [module 06](../06_llm_training_and_lora/), whose first step is the memory calculator. After module 06 comes [07_prompt_engineering](../07_prompt_engineering/).
 
 Story chain: 04 step 09 -> 05 steps 01-05 (dice and squeezing) -> 05 steps 06-07 (training dials, logger) -> 06.
 
@@ -19,7 +19,7 @@ Story chain: 04 step 09 -> 05 steps 01-05 (dice and squeezing) -> 05 steps 06-07
 - [00_python_foundations](../00_python_foundations/) - dicts, JSON, functions with default/keyword arguments (`**kwargs`), try/except; step 01 uses all of them.
 
 **Leads to**
-- [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/) - LR/batch/epochs for a real fine-tune; quantization becomes QLoRA / vLLM serving; memory arithmetic and KV-cache become GPU sizing.
+- [06_llm_training_and_lora](../06_llm_training_and_lora/) - LR/batch/epochs for a real fine-tune; quantization becomes QLoRA / vLLM serving; memory arithmetic and KV-cache become GPU sizing.
 - [07_prompt_engineering](../07_prompt_engineering/) - temperature 0 for reproducible prompt tests; max tokens for structured JSON output.
 - [08_agent_harness](../08_agent_harness/) - context-window trimming and stop conditions; low temperature for reliable tool calls.
 - [09_api_development](../09_api_development/) - these exact parameters become the (validated) fields of a POST request body; `config.json` becomes environment variables/settings.
@@ -136,6 +136,23 @@ Every setting trades **quality vs latency vs memory vs cost vs determinism**. Ch
 - [ ] I can explain why int4 per-tensor failed and group-wise worked.
 - [ ] I can recognise too-high LR, too-low LR and overfitting from loss numbers.
 - [ ] I produced an experiments table with length, latency, memory and notes.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Temperature | T, softmax temperature | Yes | Divides logits before softmax; lower is sharper |
+| Top-k vs top-p (nucleus) vs min-p | sampling filters | Different | Fixed count vs cumulative probability vs relative-to-top probability |
+| Greedy vs sampling vs beam search | decoding strategies | Different | Argmax vs random draw vs multi-path search |
+| `max_new_tokens` vs `max_length` | output cap vs total cap | No | New tokens only vs prompt plus output |
+| Context window vs max output tokens | input+output limit vs generation limit | No | Window bounds prompt plus output; max output bounds only what you generate |
+| Repetition penalty vs frequency/presence penalty | anti-loop knobs | Related | HF rescales logits of seen tokens; API penalties subtract based on counts |
+| Learning rate | step size, lr | Yes | Multiplier on the gradient step |
+| Batch size vs micro-batch vs gradient accumulation | examples per update | Related | Accumulation simulates a big batch by summing gradients over several small ones |
+| Adam vs AdamW | optimisers | Not the same | AdamW decouples weight decay from the gradient update; it is the LLM default |
+| Quantisation: int8 / int4 / GPTQ / AWQ / GGUF | low-bit weights | Different methods | Same idea (fewer bits per weight); different calibration and file formats |
+| Per-tensor vs group-wise quantisation | one scale vs one scale per group | No | Group-wise limits the damage from outliers |
+| Hyperparameter vs parameter | settings vs learned weights | No | You set the first, training learns the second |
 
 ## Interview questions
 1. **What does temperature do?** Divides logits before softmax: <1 sharpens (more deterministic), >1 flattens (more random); 0 limit = greedy. Trade-off: creativity vs reliability.

@@ -47,7 +47,21 @@ Browser ──► ui (Streamlit :8501) ──HTTP POST /predict──► api (Fa
 ```
 Request path: user text → Streamlit callback → `requests.post` → Pydantic validates → `predict_one` (preprocess → model → postprocess) → JSON `{label, confidence, model_version, latency_ms}` → UI metric.
 
+## Project tracks
+The core capstone above (sklearn classifier + FastAPI + Streamlit + Compose) stays the default and is the right first build. Two optional tracks reuse the later modules for a bigger portfolio story. Pick by the role you are targeting.
+
+| Track | What you build | Folder | Prerequisites | Module chain it uses |
+|---|---|---|---|---|
+| **Core capstone** | Streamlit UI -> FastAPI -> sklearn model, containerised | this folder (`api/`, `ui/`, `compose.yaml`) | [03 sklearn classifier](../03_ml_foundations/08_sklearn_text_classifier/), [09 FastAPI](../09_api_development/), [11 Docker](../11_docker/), [12 Streamlit](../12_streamlit_gradio/) | 03 -> 09 -> 12 -> 11 -> 10 (architecture) |
+| **Track A: document intelligence** | scans and PDFs -> OCR and routing -> validated parsed document -> layout-aware chunks -> embedding retrieval (+ rerank) -> cited answer (page + bbox) -> FastAPI -> eval -> Docker | [track_a_document_qa/](track_a_document_qa/README.md) | [18 OCR and parsing](../18_ocr_and_document_parsing/) (at least steps 07, 08, 10), [19 chunking](../19_chunking_deep_dive/) (step 09 and 10), [14 RAG](../14_rag_and_retrieval/) (steps 03, 04, 07, 08), [20 LLD](../20_llm_system_lld/) (steps 07, 09), plus 09 and 11 as above | 18 -> 19 -> 14 -> 20 -> 09 -> 11; CPU only, no paid API |
+| **Track B: inference report** | a measured, written recommendation for serving a small LLM (TTFT, ITL, throughput, memory, quality, cost), optionally extended with vLLM / llama.cpp on a GPU box | [track_b_inference_report/](track_b_inference_report/README.md) (the project itself is [21/17](../21_llm_inference_engineering/17_inference_report_project/README.md)) | [21 inference engineering](../21_llm_inference_engineering/INTERVIEW_GIST.md) steps 04, 08, 09, 10, 16; [16 architecture](../16_modern_llm_architecture/) for the KV cache | 16 -> 21 (-> optional GPU engine); CPU only for the base report |
+
+Tracks A and B connect: Track A's answerer is a mock by default, and can call any OpenAI-compatible server (`DOCQA_LLM_BASE_URL`); Track B is how you decide how to serve that model.
+Track A runs with `python 13_capstone_project/track_a_document_qa/run_pipeline.py` and `pytest`; its Docker files are reviewed but not built here.
+
 ## Run it
+File-by-file code walkthrough: [WALKTHROUGH.md](WALKTHROUGH.md).
+
 Without Docker (uses the repo venv):
 ```bash
 ./run_local.sh            # API on :8000 (docs at /docs), UI on :8501
@@ -73,6 +87,17 @@ Verified: the API (health, predict, 422 on empty text) via FastAPI TestClient. *
 
 ## Explain-aloud script (5 minutes)
 1. What the system does. 2. Draw the diagram above. 3. Walk one request. 4. Where validation, config and the model load happen. 5. What breaks when requests grow (workers each load the model; batching; replicas — modules 09/10). 6. One trade-off: the toy model is fast but weak; swapping in an LLM raises memory and latency (modules 04–06).
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| API vs service vs endpoint | "backend", "route", "server" | No | Endpoint = one URL+method; API = the set of endpoints; service = the running program that serves them |
+| `/health` vs `/ready` | liveness vs readiness | No | Alive (process up) vs able to do real work (model loaded) |
+| Artifact vs model | "saved model", `model.joblib`, "checkpoint" | Related | The artifact is the file(s) on disk (model + metadata); the model is the object loaded from it |
+| Compose service vs container | one block in YAML vs a running instance | No | Compose file defines services; `up` creates containers |
+| Streamlit UI vs FastAPI API | front end vs back end | No | UI draws the page and calls the API; API holds the model and returns JSON |
+| `requirements.txt` vs lock file | pinned deps | Related | `requirements.txt` with `==` pins is a simple lock; tools like `uv.lock` also pin transitive dependencies |
 
 ## Interview questions
 - *Why does the UI call the API instead of loading the model?* Separation of concerns: one model copy, scalable independently, other clients can reuse it.

@@ -67,6 +67,21 @@ Total about 7 h, then [exercises.md](exercises.md). Extras: [CHEATSHEET.md](CHEA
 - **Minimal reproducible example:** the smallest program that still shows the bug. (09)
 - **Root-cause analysis & systematic testing:** one hypothesis at a time, prove it, fix the cause, add a test. (09)
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| traceback | stack trace, backtrace | Same | Python prints oldest call first and the error last. |
+| root cause vs symptom | where it crashed vs why | No | The raising line is the symptom; the cause is often bad data earlier. |
+| `ModuleNotFoundError` vs `ImportError` | module missing vs name missing | Subclass | `ModuleNotFoundError` is a subclass of `ImportError`. |
+| virtual environment | venv, `.venv`, virtualenv, conda env | Roughly | A private folder of packages plus a Python launcher. |
+| cwd vs script folder | working directory vs `Path(__file__).parent` | No | cwd depends on where you ran the command; the script folder never changes. |
+| `os.environ["X"]` vs `.get("X")` | strict vs forgiving lookup | No | `[]` raises `KeyError`; `.get` returns a default. |
+| logging vs print | logs vs stdout debugging | No | Logging adds levels, time, source and file output. |
+| MRE | minimal reproducible example, reprex | Same | The smallest code that still shows the bug. |
+| `Timeout` vs `ConnectionError` | slow vs unreachable | No | Timeout: reachable but slow; ConnectionError: nobody answered. |
+| image vs container | blueprint vs running instance | No | You build an image; a container is a process started from it. |
+
 ## Common mistakes
 - Fixing before reading the last line. - Changing several things at once. - Installing with `pip` for one Python and running another.
 - `except: pass` hiding the real error. - Forgetting `timeout=` on network calls. - Assuming the cwd is the script's folder. - Printing secrets.

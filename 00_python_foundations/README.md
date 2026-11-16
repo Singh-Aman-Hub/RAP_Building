@@ -13,7 +13,7 @@ The interviewers explicitly test **Python syntax** first: variables, functions, 
 - Exceptions + JSON -> validating tool arguments and retries in [08](../08_agent_harness/); parsing LLM JSON in [07](../07_prompt_engineering/).
 - Decorators -> `@app.get("/health")` in [09](../09_api_development/), `@st.cache_resource` in [12](../12_streamlit_gradio/).
 - Type hints -> Pydantic validation in [09](../09_api_development/) (preview in [01 step 05](../01_debugging_and_environment/05_types_and_validation/)).
-- Generators/batching -> data loaders in [03](../03_ml_foundations/) and [06](../06_llm_training_and_fast_inference/).
+- Generators/batching -> data loaders in [03](../03_ml_foundations/) and [06](../06_llm_training_and_lora/).
 - Files/pathlib -> saving models ([03](../03_ml_foundations/), [10](../10_ml_system_architecture/)) and Docker `COPY` paths ([11](../11_docker/)).
 
 ## Concept map
@@ -56,6 +56,21 @@ variables (01) · functions (03) · classes (05) · imports (07) · loops (02) �
 - **Exception:** a controlled failure. Catch the narrowest type you can handle.
 - **Context manager (`with`):** guarantees cleanup (files closed).
 - **Decorator / generator:** function wrappers / lazy producers. Generators save memory but can be used once.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| variable | name, identifier, binding | Roughly | A name bound to an object, not a box holding a value. |
+| dict | hash map, hash table, associative array, mapping | Same idea | Python's `dict` is a hash table that keeps insertion order. |
+| list vs tuple | mutable vs immutable sequence | No | Lists change; tuples do not (and can be dict keys). |
+| parameter vs argument | formal vs actual parameter | No | Parameter is the name in `def`; argument is the value passed in. |
+| `*args` / `**kwargs` | varargs, keyword varargs | Rough | Extra positionals collected into a tuple / extra keywords into a dict. |
+| `repr()` vs `str()` | `!r` vs `!s` | No | `repr` is for developers (quotes on strings); `str` for users. |
+| decorator | wrapper, higher-order function | Same idea | `@f def g` is `g = f(g)`. |
+| generator vs iterator vs iterable | lazy sequences | No | Generators are iterators written with `yield`; iterables can be looped over. |
+| dataclass vs Pydantic model | config holders | No | Dataclass stores fields; Pydantic also validates and converts types. |
+| exception vs error vs traceback | raised object vs problem vs report | Roughly | The exception is the object, the traceback is where it travelled. |
 
 ## Common mistakes & gotchas
 - Mutable default arguments (`def f(x, bucket=[])`).

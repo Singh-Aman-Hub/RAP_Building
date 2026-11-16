@@ -37,21 +37,7 @@ def lora_forward(W, A, B, x, alpha, r):
 4. Call `prepare_model_for_kbit_training(model)` before `get_peft_model`.
 5. Change `target_modules` to the model's layer names; optionally use a paged 8-bit optimizer.
 
-## Step 07
-- Without the cache the cost per new token grows with the sequence length, so the ratio grows with `max_new_tokens`.
-- bf16 on CPU is often not faster; GPUs have bf16/fp16 hardware.
-
-## Step 08
-- The KV cache is stored in fp16 in our table while only the weights are quantised; quantise the cache separately (int8/fp8 KV cache) to shrink it.
-- Preset example for a model: read `num_hidden_layers`, `num_key_value_heads`, `hidden_size / num_attention_heads` from its `config.json`.
-
-## Step 09
-- Throughput usually flattens when the hardware is compute-bound (large batch); repeated runs differ by tens of percent on a laptop, so average several runs.
-
-## Step 11
-- Smaller blocks waste less in the last block (at most `BLOCK_SIZE - 1` slots per request) but need a longer block table; `BLOCK_SIZE = 128` makes waste visibly larger, which is why vLLM defaults to 16.
-- With `MAX_LEN = 4096` the contiguous reservation doubles while real lengths stay the same, so contiguous fits half as many requests; paged barely changes because it only allocates what exists.
-- The leaked-block bug ends with `RuntimeError: simulation did not finish`: no blocks return to the pool, so nothing new is admitted.
+> Solutions for the inference steps (old 07–11) moved to [module 21 solutions](../../21_llm_inference_engineering/solutions/solutions.md).
 
 ## Integration challenge
 Merged models are plain transformers models, so no adapter matmuls remain; the speed-up is small for small ranks but nonzero, and deployment is simpler (no peft dependency).

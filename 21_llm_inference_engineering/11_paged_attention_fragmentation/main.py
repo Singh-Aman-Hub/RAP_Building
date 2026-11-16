@@ -4,14 +4,14 @@ GOAL:  See WHY GPU memory fragments when every request reserves its own contiguo
        no model, no network.  Same budget, same requests, two allocators.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/11_paged_attention_fragmentation/main.py
+RUN (from repo root):         .venv/bin/python 21_llm_inference_engineering/11_paged_attention_fragmentation/main.py
 EXPECTED OUTPUT (shape of it, numbers come from the seeded run):
     A) static snapshot: how many requests fit in the same KV budget
     B) dynamic run: 300 requests arrive, memory utilisation + concurrency + total steps for each allocator
     C) block table of one request (logical block -> physical block)
 NEEDS: numpy only.  Runs in a few seconds.
 
-Builds on: 08_gpu_memory_calculator (KV cache bytes per token) and 10_vllm_reference (the idea in words).
+Builds on: 03_gpu_memory_calculator (KV cache bytes per token) and 10_latency_throughput_benchmark (why KV memory limits batch size).
 """
 
 import numpy as np
@@ -20,7 +20,7 @@ rng = np.random.default_rng(0)
 
 # ---------------------------------------------------------------------------------------------------------
 # Budget.  Llama-7B style KV cache in fp16: 2 (K and V) * 32 layers * 32 heads * 128 dim * 2 bytes
-# = 524,288 bytes = 0.5 MiB for EVERY token of EVERY request (formula from step 08).
+# = 524,288 bytes = 0.5 MiB for EVERY token of EVERY request (formula from step 03).
 # ---------------------------------------------------------------------------------------------------------
 BYTES_PER_TOKEN = 2 * 32 * 32 * 128 * 2
 KV_BUDGET_GB = 8                                           # GPU memory left for KV cache after the weights

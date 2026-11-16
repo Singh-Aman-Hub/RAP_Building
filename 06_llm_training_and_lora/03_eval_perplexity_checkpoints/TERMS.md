@@ -1,6 +1,6 @@
 # Terms — Evaluation, Perplexity and Checkpoints
 
-Folder: `06_llm_training_and_fast_inference/03_eval_perplexity_checkpoints` · Files covered: `main.py`, `WALKTHROUGH.md`
+Folder: `06_llm_training_and_lora/03_eval_perplexity_checkpoints` · Files covered: `main.py`, `WALKTHROUGH.md`
 Back to module: [06 README](../README.md)
 
 **Terms in this folder:** [Train / validation split](#train--validation-split) · [Validation loss](#validation-loss) · [Perplexity (math.exp)](#perplexity-mathexp) · [Evaluation function and weighted average](#evaluation-function-and-weighted-average) · [model.eval() and torch.no_grad() for scoring](#modeleval-and-torchno_grad-for-scoring) · [Return type hint `-> float`](#return-type-hint---float) · [Overfitting (train vs validation gap)](#overfitting-train-vs-validation-gap) · [Checkpoint](#checkpoint) · [save_pretrained](#save_pretrained) · [Safetensors file (model.safetensors)](#safetensors-file-modelsafetensors) · [from_pretrained from a local folder](#from_pretrained-from-a-local-folder) · [Path.mkdir(parents=True, exist_ok=True)](#pathmkdirparentstrue-exist_oktrue) · [Path.iterdir and generator expression](#pathiterdir-and-generator-expression) · [Logits comparison (reload check)](#logits-comparison-reload-check) · [state_dict](#state_dict) · [next(iter(dict))](#nextiterdict) · [OSError when loading](#oserror-when-loading) · [Early stopping](#early-stopping)

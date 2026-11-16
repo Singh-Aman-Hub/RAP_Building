@@ -2,7 +2,7 @@
 GOAL:  Turn a raw text file into batches of token IDs + labels that a causal language model can train on.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/01_dataset_preparation/main.py
+RUN (from repo root):         .venv/bin/python 06_llm_training_and_lora/01_dataset_preparation/main.py
 EXPECTED OUTPUT (shortened):
     lines in file: 39
     first line -> token ids: [51, 15813, 25, ...]

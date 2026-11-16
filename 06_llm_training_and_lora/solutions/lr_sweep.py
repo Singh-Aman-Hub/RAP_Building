@@ -1,6 +1,6 @@
 """
 SOLUTION to exercises (step 02): compare three learning rates on the same data, same seed, 3 epochs each.
-RUN: .venv/bin/python 06_llm_training_and_fast_inference/solutions/lr_sweep.py   (~1 min)
+RUN: .venv/bin/python 06_llm_training_and_lora/solutions/lr_sweep.py   (~1 min)
 """
 import sys
 from pathlib import Path

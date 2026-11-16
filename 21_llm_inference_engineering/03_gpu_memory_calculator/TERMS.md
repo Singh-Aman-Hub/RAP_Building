@@ -1,9 +1,9 @@
 # Terms — GPU Memory Calculator
 
-Folder: `06_llm_training_and_fast_inference/08_gpu_memory_calculator` · Files covered: `main.py`, `WALKTHROUGH.md`
-Back to module: [06 README](../README.md)
+Folder: `21_llm_inference_engineering/03_gpu_memory_calculator` · Files covered: `main.py`, `WALKTHROUGH.md`
+Back to module: [21 README](../README.md)
 
-**Terms in this folder:** [argparse](#argparse) · [add_argument, choices and action="store_true"](#add_argument-choices-and-actionstore_true) · [Dictionary of tuples and unpacking](#dictionary-of-tuples-and-unpacking) · [Bytes per value (precision table)](#bytes-per-value-precision-table) · [GB vs GiB (1e9)](#gb-vs-gib-1e9) · [Layers, KV heads and head_dim](#layers-kv-heads-and-head_dim) · [Grouped-query attention (GQA)](#grouped-query-attention-gqa) · [KV cache size formula](#kv-cache-size-formula) · [Weights memory](#weights-memory) · [Overhead (activations, CUDA context, fragmentation)](#overhead-activations-cuda-context-fragmentation) · [Training memory: 16 bytes per parameter](#training-memory-16-bytes-per-parameter) · [LoRA / QLoRA training memory](#lora--qlora-training-memory) · [Mixed precision and fp32 master weights](#mixed-precision-and-fp32-master-weights) · [past_key_values](#past_key_values) · [numel and element_size sum](#numel-and-element_size-sum) · [PagedAttention](#pagedattention) · [f-string alignment `:<10` `:>13.1f`](#f-string-alignment-10-131f) · [`if __name__ == "__main__"`](#if-__name__--__main__) · [argparse invalid choice error](#argparse-invalid-choice-error)
+**Terms in this folder:** [argparse](#argparse) · [add_argument, choices and action="store_true"](#add_argument-choices-and-actionstore_true) · [Dictionary of tuples and unpacking](#dictionary-of-tuples-and-unpacking) · [Bytes per value (precision table)](#bytes-per-value-precision-table) · [GB vs GiB (1e9)](#gb-vs-gib-1e9) · [Layers, KV heads and head_dim](#layers-kv-heads-and-head_dim) · [Grouped-query attention (GQA)](#grouped-query-attention-gqa) · [KV cache size formula](#kv-cache-size-formula) · [Weights memory](#weights-memory) · [Overhead (activations, CUDA context, fragmentation)](#overhead-activations-cuda-context-fragmentation) · [Training memory: 16 bytes per parameter](#training-memory-16-bytes-per-parameter) · [LoRA / QLoRA training memory](#lora--qlora-training-memory) · [Mixed precision and fp32 master weights](#mixed-precision-and-fp32-master-weights) · [past_key_values](#past_key_values) · [numel and element_size sum](#numel-and-element_size-sum) · [PagedAttention](#pagedattention) · [f-string alignment `:<10` `:>13.1f`](#f-string-alignment-10-131f) · [`if __name__ == "__main__"`](#if-__name__--__main__) · [argparse invalid choice error](#argparse-invalid-choice-error) · [KV-cache dtype (fp16, fp8, int4)](#kv-cache-dtype-fp16-fp8-int4) · [KV bytes per token](#kv-bytes-per-token) · [Cached tokens that fit (serving capacity)](#cached-tokens-that-fit-serving-capacity)
 
 ---
 
@@ -129,3 +129,31 @@ args = ap.parse_args()
 **2. In plain words:** Read the whole line: it lists the valid options.
 **3. Example to quote:** > "I ran `--preset gpt5`, read the list of valid choices at the end of the error, and used `llama-7b`."
 **Seen in:** `WALKTHROUGH.md`, Debugging practice
+
+## KV-cache dtype (fp16, fp8, int4)  `(concept)`
+**1. Definition:** The numeric format used to store cached keys and values. Bytes per cached value: fp16 2, fp8 1, int4 0.5 (plus small scale overhead that the calculator ignores). It is independent of the weight precision.
+**2. In plain words:** How many bytes each remembered number takes; smaller numbers mean more tokens fit.
+**3. Example to quote:** > "Moving the cache from fp16 to fp8 halves its memory, so the same GPU holds twice the tokens."
+```python
+kv_cache_bytes(layers, kv_heads, head_dim, seq, batch, BYTES['fp8'])
+```
+**Seen in:** `main.py` `kv_dtype_table`
+
+## KV bytes per token  `(function)`
+**1. Definition:** 2 x layers x kv_heads x head_dim x bytes_per_value: the cache cost of one token of one sequence (Llama-3-8B fp16: 131,072 bytes = 128 KiB).
+**2. In plain words:** The price of remembering one word of the conversation.
+**3. Example to quote:** > "Llama-3-8B costs 128 KiB of cache per token in fp16."
+```python
+kv_bytes_per_token(32, 8, 128, 2.0)   # 131072
+```
+**Seen in:** `main.py` `kv_bytes_per_token`
+
+## Cached tokens that fit (serving capacity)  `(concept)`
+**1. Definition:** (usable GPU bytes - weight bytes) / KV bytes per token: total tokens, over all sequences, that the KV pool can hold; divide by average sequence length for concurrent sequences.
+**2. In plain words:** How many conversation-words the free memory can hold.
+**3. Example to quote:** > "On a 24 GB card, fp16 7B weights leave room for about 15.6k cached tokens."
+```python
+max_tokens_in_budget(24, 6.7e9, 32, 32, 128)
+```
+**Seen in:** `main.py` `max_tokens_in_budget`
+

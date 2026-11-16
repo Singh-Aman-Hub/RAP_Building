@@ -8,7 +8,7 @@ from pathlib import Path
 
 import torch
 
-MODULE_DIR = Path(__file__).resolve().parent            # .../06_llm_training_and_fast_inference
+MODULE_DIR = Path(__file__).resolve().parent            # .../06_llm_training_and_lora
 CORPUS_PATH = MODULE_DIR / "data" / "tiny_corpus.txt"   # 40 customer-support lines for a made-up app
 
 

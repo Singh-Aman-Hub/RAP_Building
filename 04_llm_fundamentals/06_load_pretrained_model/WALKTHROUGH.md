@@ -17,6 +17,196 @@ Load distilgpt2, inspect its architecture, count parameters and estimate memory 
 .venv/bin/python 04_llm_fundamentals/06_load_pretrained_model/main.py
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Parameters | weights, model size, "81.9M" | Roughly | Every learned number in the model; "weights" often includes biases and embeddings too |
+| Config vs weights | architecture vs checkpoint | No | Config (small JSON) says how many layers and what width; weights (hundreds of MB) hold the learned numbers |
+| `AutoModelForCausalLM` | `GPT2LMHeadModel`, causal LM head model | Auto picks the concrete class | A transformer plus a next-token prediction head |
+| `from_pretrained` vs `from_config` | load trained vs random init | No | `from_pretrained` loads learned weights; `from_config` builds the same shape with random numbers |
+| Checkpoint | model file, `.safetensors`, weights file | Roughly | The saved weights; safetensors is the safe, fast format that replaced pickle `.bin` |
+| float32 / float16 / bfloat16 / int8 / int4 | precision, dtype, quantisation level | Different formats | 4, 2, 2, 1 and 0.5 bytes per weight; float16 and bfloat16 are both 2 bytes but with different range and precision |
+| `n_embd` / `hidden_size` / `d_model` | model width | Yes | Different libraries, same number |
+| `n_positions` / `max_position_embeddings` / context window / context length | maximum input length | Yes | Number of tokens the model can attend to at once (1,024 for GPT-2) |
+| `model.eval()` | evaluation mode, inference mode | Not the same as `torch.no_grad()` | Switches dropout off; `no_grad` stops gradient tracking; use both at inference |
+
+## Code, step by step
+
+### 1. Module docstring  (`main.py` lines 1–14)
+
+```python
+"""
+GOAL:   Load a pretrained language model, count its parameters, estimate its memory,
+        and understand what is inside it.
+
+RUN:    from this folder:  python main.py
+        from repo root:    .venv/bin/python 04_llm_fundamentals/06_load_pretrained_model/main.py
+EXPECTED OUTPUT (short): ~81.9 M parameters for distilgpt2, ~124 M for gpt2; ~0.33 GB in float32;
+        the layer names of the model; embeddings vs the 6 blocks from step 05; a 7B-model memory table.
+NEEDS:  torch + transformers. First run downloads distilgpt2 (~330 MB) and gpt2 (~500 MB).
+
+"Pretrained" = someone already trained the weights on huge amounts of text.
+Loading = reading those saved numbers into the right architecture.  You download
+two things: the CONFIG (architecture sizes) and the WEIGHTS (the learned numbers).
+"""
+```
+
+- **In simple words:** Says what "pretrained" means: someone already trained the weights; we only load them.
+- **Exactly:** Docstring only. Two downloads: the config (architecture sizes) and the weights (learned numbers). Promised: 81.9M parameters for distilgpt2, about 0.33 GB in float32.
+- **Why it is here:** Separating blueprint from contents explains why loading is quick and why shapes must match.
+
+### 2. Imports  (`main.py` lines 16–17)
+
+```python
+import torch
+from transformers import AutoConfig, AutoModelForCausalLM  # Auto* picks the right class for the model name
+```
+
+- **In simple words:** Bring in PyTorch and Hugging Face's loaders.
+- **Exactly:** `AutoConfig` reads the architecture file; `AutoModelForCausalLM` builds and fills the right model class from the config's `model_type`.
+- **Why it is here:** `Auto*` classes mean you do not need to know the model's Python class name.
+
+### 3. Read the config (the blueprint)  (`main.py` lines 19–27)
+
+```python
+# ---------------------------------------------------------------------------
+# 1. Config: the architecture "blueprint" (tiny file, no weights)
+# ---------------------------------------------------------------------------
+cfg = AutoConfig.from_pretrained("distilgpt2")
+print("layers (n_layer):         ", cfg.n_layer)          # how many transformer blocks stacked
+print("hidden size (n_embd):     ", cfg.n_embd)           # numbers per token vector
+print("attention heads (n_head): ", cfg.n_head)
+print("context window (n_positions):", cfg.n_positions)   # max tokens the model can see at once
+print("vocab size:               ", cfg.vocab_size)
+```
+
+- **In simple words:** Open the small file that describes the model without downloading the large weights.
+- **Exactly:** Real output: `n_layer 6`, `n_embd 768`, `n_head 12`, `n_positions 1024`, `vocab_size 50257`. Head dimension is `768 / 12 = 64`. These five numbers determine every tensor shape in the model.
+- **Why it is here:** Config numbers are the first thing to check when a model will not fit in memory or a context length is too short.
+
+### 4. Load the weights and switch to eval mode  (`main.py` lines 29–33)
+
+```python
+# ---------------------------------------------------------------------------
+# 2. Load the weights.  AutoModelForCausalLM = "a transformer with a next-token head".
+# ---------------------------------------------------------------------------
+model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+model.eval()   # eval mode: switches off dropout (random neuron dropping used only during training)
+```
+
+- **In simple words:** Build the model and fill it with the saved numbers; turn off training-only randomness.
+- **Exactly:** `from_pretrained("distilgpt2")` reads `model.safetensors` from the cache (`HF_HUB_OFFLINE=1` forces the local cache) and returns a `GPT2LMHeadModel`. `model.eval()` disables dropout.
+- **Why it is here:** With dropout on, inference would give different outputs on each call.
+
+### 5. Count the parameters  (`main.py` lines 35–43)
+
+```python
+# ---------------------------------------------------------------------------
+# 3. Count parameters = total number of learned numbers
+# ---------------------------------------------------------------------------
+def count_params(m):
+    # m.parameters() yields every weight tensor; .numel() = how many numbers inside it
+    return sum(p.numel() for p in m.parameters())   # generator expression inside sum()
+
+n = count_params(model)
+print(f"\nparameters: {n:,}  (= {n/1e6:.1f} million)")
+```
+
+- **In simple words:** Add up the size of every weight tensor to get the model's headline number.
+- **Exactly:** `m.parameters()` yields each tensor; `p.numel()` is its element count; the generator sums them. Real output: `81,912,576` = 81.9 million.
+- **Why it is here:** Parameter count drives memory, compute and cost, and is the first number to quote about any model.
+
+### 6. Memory = parameters times bytes per number  (`main.py` lines 45–52)
+
+```python
+# ---------------------------------------------------------------------------
+# 4. Memory: parameters x bytes per number.  float32 = 4 bytes, float16 = 2, int8 = 1.
+# ---------------------------------------------------------------------------
+first_param = next(model.parameters())
+print("dtype of weights:", first_param.dtype, "-> bytes each:", first_param.element_size())
+for name, nbytes in [("float32", 4), ("float16/bfloat16", 2), ("int8", 1), ("int4", 0.5)]:
+    print(f"  {name:18} ~ {n * nbytes / 1e9:.2f} GB")
+print("(real memory use is higher: activations, KV cache and framework overhead are extra)")
+```
+
+- **In simple words:** Convert the count into gigabytes for different number formats.
+- **Exactly:** `next(model.parameters())` is the first tensor (`wte.weight`): dtype `float32`, `element_size() = 4` bytes. Real output: float32 `0.33 GB`, float16/bfloat16 `0.16 GB`, int8 `0.08 GB`, int4 `0.04 GB` (n times bytes / 1e9). Real use is higher: activations, KV cache and overhead.
+- **Why it is here:** This arithmetic (params x bytes) decides which GPU a model fits on; it leads into quantisation (module 05).
+
+### 7. Look inside: parameter names and shapes  (`main.py` lines 54–61)
+
+```python
+# ---------------------------------------------------------------------------
+# 5. Look inside: parameters grouped by top-level block name
+# ---------------------------------------------------------------------------
+print("\nfirst 8 parameter names and shapes:")
+for i, (name, p) in enumerate(model.named_parameters()):   # enumerate gives a counter i
+    if i >= 8:
+        break
+    print(f"  {name:40} {tuple(p.shape)}")   # shapes: wte (vocab, d_model), wpe (n_positions, d_model), c_attn (d_model, 3*d_model) ...
+```
+
+- **In simple words:** Print the first 8 tensors to see how the model is organised.
+- **Exactly:** `named_parameters()` yields `(name, tensor)`. Real output: `transformer.wte.weight (50257, 768)`, `transformer.wpe.weight (1024, 768)`, then block 0: `ln_1.weight/bias (768,)`, `attn.c_attn.weight (768, 2304)` (Q, K, V packed: 3 x 768), `attn.c_attn.bias (2304,)`, `attn.c_proj.weight (768, 768)`. GPT-2's `Conv1D` layers store weights as `(in, out)`.
+- **Why it is here:** Knowing the names lets you freeze layers, apply LoRA to `c_attn`, or debug a mismatched checkpoint.
+
+### 8. Where do the 81.9 million live?  (`main.py` lines 63–68)
+
+```python
+# Where do the 81.9 M live?  Compare with the block formula from step 05: 12*d^2 + 13*d per block.
+emb_params = model.transformer.wte.weight.numel() + model.transformer.wpe.weight.numel()   # (50257*768) + (1024*768)
+block_params = count_params(model.transformer.h[0])                                        # one block, shape-free count
+print(f"\nembeddings (wte+wpe): {emb_params:,}  |  one block: {block_params:,}  |  6 blocks: {6 * block_params:,}")
+print(f"formula 12*d^2+13*d with d={cfg.n_embd}: {12 * cfg.n_embd**2 + 13 * cfg.n_embd:,}  (matches one block)")
+print(f"share: embeddings {emb_params / n:.0%}, blocks {6 * block_params / n:.0%}, final LayerNorm the rest")
+```
+
+- **In simple words:** Split the total into embeddings and blocks and check against the formula from step 05.
+- **Exactly:** `wte + wpe = 50257*768 + 1024*768 = 39,383,808`. One block `7,087,872` which equals `12*768^2 + 13*768`. Six blocks `42,527,232`. The remainder `1,536` is the final LayerNorm (`2 x 768`). Shares: embeddings 48%, blocks 52%. The output head shares weights with `wte` (tied), so it adds no parameters.
+- **Why it is here:** In small models embeddings are half of everything; in a 7B model they are a few percent. It also confirms your hand-built block matches the real one.
+
+### 9. Memory for a 7-billion-parameter model  (`main.py` lines 70–74)
+
+```python
+# Memory arithmetic for a model you will meet in interviews: memory = params x bytes
+seven_b = 7e9
+print("\n7B model, weights only:")
+for name, nbytes in [("float32", 4), ("float16", 2), ("int8", 1), ("int4", 0.5)]:
+    print(f"  {name:8} {seven_b * nbytes / 1e9:5.1f} GB")
+```
+
+- **In simple words:** The same arithmetic for the size of model you will be asked about in interviews.
+- **Exactly:** `7e9 * bytes / 1e9`: float32 `28.0 GB`, float16 `14.0 GB`, int8 `7.0 GB`, int4 `3.5 GB` (weights only).
+- **Why it is here:** Explains why 7B models need a 16 GB GPU in half precision and why 4-bit quantisation lets them run on a laptop.
+
+### 10. Compare with gpt2 using config only  (`main.py` lines 76–80)
+
+```python
+# ---------------------------------------------------------------------------
+# 6. Same architecture family, bigger: compare with gpt2 (config only - no big download)
+# ---------------------------------------------------------------------------
+cfg2 = AutoConfig.from_pretrained("gpt2")
+print(f"\ndistilgpt2 layers={cfg.n_layer}  vs  gpt2 layers={cfg2.n_layer}  (same hidden size {cfg2.n_embd})")
+```
+
+- **In simple words:** Fetch the small config file of the bigger sibling.
+- **Exactly:** `AutoConfig.from_pretrained("gpt2")` has `n_layer 12` while distilgpt2 has 6; hidden size 768 for both. No weights are downloaded.
+- **Why it is here:** Shows how the same architecture scales by changing a few config numbers.
+
+### 11. Experiments and break-it comments  (`main.py` lines 82–85)
+
+```python
+# TRY IT: load "gpt2" instead of "distilgpt2" and compare parameter counts.
+# TRY IT: after loading, run model.half() then re-print memory (float16 halves the size).
+# BREAK IT: from_pretrained("distilgpt2", torch_dtype="banana") -> read the error about the dtype.
+# BREAK IT: turn off wifi and load a model you never downloaded -> OSError; note the cache folder it mentions (~/.cache/huggingface).
+```
+
+- **In simple words:** Try gpt2 instead, convert to float16, or break the dtype name or the network.
+- **Exactly:** `model.half()` halves memory. A bogus dtype string raises `AttributeError: module 'torch' has no attribute 'banana'` (real run). In transformers 5.x the keyword is `dtype`; `torch_dtype` is still accepted. A model that is not in the cache while offline raises `OSError` that names the cache folder.
+- **Why it is here:** Reading these errors once makes them recognisable later.
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|
@@ -78,7 +268,7 @@ distilgpt2 layers=6  vs  gpt2 layers=12  (same hidden size 768)
 - **Parameters x bytes = memory.** 81.9 M x 4 bytes = 0.33 GB. A 7B model in float16: 7e9 x 2 = 14 GB just for weights; in int4 about 3.5 GB. This arithmetic is a standard interview question and the reason quantization exists ([05_llm_parameters/05_quantization](../../05_llm_parameters/05_quantization/)).
 - **`c_attn` is (768, 2304)** because 2304 = 3 x 768: Query, Key and Value projections from [step 04](../04_attention_from_scratch/WALKTHROUGH.md) in one matrix.
 - **Distilled** model = a smaller student trained to imitate a bigger teacher (gpt2): half the layers, ~66% of the parameters, faster, a bit worse.
-- Real memory is higher: add activations, the KV cache ([step 08](../08_generation_loop/WALKTHROUGH.md)) and framework overhead; during training also gradients and optimizer states (see [06_llm_training_and_fast_inference](../../06_llm_training_and_fast_inference/)).
+- Real memory is higher: add activations, the KV cache ([step 08](../08_generation_loop/WALKTHROUGH.md)) and framework overhead; during training also gradients and optimizer states (see [06_llm_training_and_lora](../../06_llm_training_and_lora/)).
 
 ## Experiments
 - Load `"gpt2"`: expect ~124 M parameters.

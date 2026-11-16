@@ -46,8 +46,8 @@ class CausalSelfAttention(nn.Module):
         assert d_model % n_heads == 0, f"d_model={d_model} must be divisible by n_heads={n_heads}"
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads                  # D
-        self.qkv = nn.Linear(d_model, 3 * d_model)          # weight shape: (C, 3C)  Q, K, V packed
-        self.proj = nn.Linear(d_model, d_model)             # weight shape: (C, C)   mixes the heads back
+        self.qkv = nn.Linear(d_model, 3 * d_model)          # nn.Linear weight shape: (3C, C) = (out, in); Q, K, V packed
+        self.proj = nn.Linear(d_model, d_model)             # weight shape: (C, C); mixes the heads back
 
     def forward(self, x):                                   # x shape: (B, T, C)
         B, T, C = x.shape
@@ -70,8 +70,8 @@ class CausalSelfAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self, d_model):
         super().__init__()
-        self.fc = nn.Linear(d_model, 4 * d_model)           # weight shape: (C, 4C)
-        self.proj = nn.Linear(4 * d_model, d_model)         # weight shape: (4C, C)
+        self.fc = nn.Linear(d_model, 4 * d_model)           # nn.Linear weight shape: (4C, C) = (out, in)
+        self.proj = nn.Linear(4 * d_model, d_model)         # nn.Linear weight shape: (C, 4C) = (out, in)
 
     def forward(self, x):                                   # x shape: (B, T, C)
         h = nn.functional.gelu(self.fc(x))                  # shape: (B, T, 4C)

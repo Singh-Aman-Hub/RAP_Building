@@ -12,7 +12,7 @@ Builds on: 03_ml_foundations/02_linear_regression_numpy (gradient descent by han
            03_ml_foundations/04_pytorch_training_loop (the loop used below),
            03_ml_foundations/05_overfitting_train_val (the train/val gap in section 3),
            03_ml_foundations/06_softmax_cross_entropy (the loss used here and by LLMs).
-Leads to:  06_llm_training_and_fast_inference (the same knobs for a real fine-tune, LoRA, memory).
+Leads to:  06_llm_training_and_lora (the same knobs for a real fine-tune, LoRA, memory).
 """
 
 import time

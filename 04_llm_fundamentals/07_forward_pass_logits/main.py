@@ -18,7 +18,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 tok = AutoTokenizer.from_pretrained("distilgpt2")
 model = AutoModelForCausalLM.from_pretrained("distilgpt2").eval()
 
-prompt = "Transformer blocks are made of"
+prompt = "The capital of France is"
 inputs = tok(prompt, return_tensors="pt")        # dict with input_ids and attention_mask
 print("input_ids:", inputs["input_ids"], " shape:", tuple(inputs["input_ids"].shape))   # shape: (batch=1, seq_len=5)
 
@@ -72,7 +72,7 @@ with torch.no_grad():
     all_logits = model(**inputs).logits                          # shape: (1, 5, 50257)
 log_probs = torch.log_softmax(all_logits[0, :-1], dim=-1)        # shape: (4, 50257)  positions 0..3
 true_next = inputs["input_ids"][0, 1:]                           # shape: (4,)        tokens 1..4
-picked = log_probs[torch.arange(4), true_next]                   # shape: (4,)        log-prob of each true token
+picked = log_probs[torch.arange(len(true_next)), true_next]       # shape: (4,)        log-prob of each true token
 print(f"loss by hand: {-picked.mean().item():.3f}  (same number: average -log p of the true next tokens)")
 
 # TRY IT: change the prompt to "Once upon a" and watch the top-5 change.

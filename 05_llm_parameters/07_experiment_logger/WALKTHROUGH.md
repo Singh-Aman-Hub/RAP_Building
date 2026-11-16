@@ -78,6 +78,6 @@ How to read it:
 - [ ] Explain what peak RSS does and does not tell you.
 
 ## The new problem (cliffhanger)
-Module 05 gave you the dials and the gauges. The next question is a hard one: will a full fine-tune of a real model even fit on our GPU? Do the arithmetic in [module 06, step 08, GPU memory calculator](../../06_llm_training_and_fast_inference/08_gpu_memory_calculator/WALKTHROUGH.md).
+Module 05 gave you the dials and the gauges. The next question is a hard one: will a full fine-tune of a real model even fit on our GPU? Do the arithmetic in [module 21, step 03, GPU memory calculator](../../21_llm_inference_engineering/03_gpu_memory_calculator/WALKTHROUGH.md).
 
 > **Say it aloud (interview box):** An experiment logger runs each parameter setting and records length, latency, memory and a quality score into a CSV and a Markdown table. It turns opinions about settings into evidence that someone else can reproduce. I change one thing at a time, fix the seed and test on more than one prompt.

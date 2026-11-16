@@ -14,7 +14,7 @@ The three stages
   FINE-TUNING : continue training a pretrained model on a small, specific dataset (minutes-hours)
                 so it picks up a style/task/domain.  Same loss, same loop, tiny dataset, small learning rate.
   INFERENCE   : weights frozen; just run forward passes to produce text.  What users pay latency for.
-Full-size fine-tuning (LoRA, datasets) is ../../06_llm_training_and_fast_inference/; the knobs are ../../05_llm_parameters/.
+Full-size fine-tuning (LoRA, datasets) is ../../06_llm_training_and_lora/; the knobs are ../../05_llm_parameters/.
 This step is a 20-second taste.
 """
 
@@ -67,7 +67,7 @@ def sample_text(m, prompt="Arrr,", seed=1):
 print("   sample before fine-tuning:", repr(sample_text(model)))
 
 # ---------------------------------------------------------------------------
-# 3. Fine-tune: the classic training loop in 6 lines (a toy version is in ../../03_ml_foundations/04_pytorch_training_loop; the full story is ../../06_llm_training_and_fast_inference)
+# 3. Fine-tune: the classic training loop in 6 lines (a toy version is in ../../03_ml_foundations/04_pytorch_training_loop; the full story is ../../06_llm_training_and_lora)
 # ---------------------------------------------------------------------------
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)   # lr = learning rate: size of each update step
 model.train()                                                  # train mode: dropout on
@@ -82,7 +82,7 @@ for step in range(20):
 print(f"3) after fine-tune  loss = {loss_of(model):.2f}")
 print("   sample after fine-tuning :", repr(sample_text(model)))
 print("   (we trained 20 steps on 4 sentences: it is memorising/overfitting. Real fine-tuning uses a")
-print("    larger dataset AND a held-out validation set to catch that - ../../06_llm_training_and_fast_inference/.)")
+print("    larger dataset AND a held-out validation set to catch that - ../../06_llm_training_and_lora/.)")
 
 # ---------------------------------------------------------------------------
 # 4. Inference = frozen weights, forward only.  Check that no gradients are produced.

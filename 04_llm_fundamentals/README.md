@@ -6,7 +6,7 @@
 **Pain point.** In module 03 your TF-IDF classifier worked, but it gave `king` and `queen` unrelated columns, lost word order, and could only classify - never write.
 **Spark.** Let a network *learn* a vector for every token and learn to predict the next token from its context. To do that you must build the full path from raw text to output, one stage at a time.
 **What you build.** A counting toy LLM (00), a tokenizer (01), dense vectors (02), embeddings plus positions (03), self-attention (04), a transformer block (05), a real pretrained model's anatomy (06), the forward pass and logits (07), the generation loop with KV cache (08), and the pretrain/fine-tune/inference life cycle (09).
-**Cliffhanger.** You can now run a model - but greedy output is repetitive, the model does not fit every GPU, and tuning it is expensive. That is [05_llm_parameters](../05_llm_parameters/) and [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/).
+**Cliffhanger.** You can now run a model - but greedy output is repetitive, the model does not fit every GPU, and tuning it is expensive. That is [05_llm_parameters](../05_llm_parameters/) and [06_llm_training_and_lora](../06_llm_training_and_lora/).
 
 ## Why this matters
 Every other topic - parameters, prompting, agents, APIs, Docker - is "plumbing around an LLM". Interviewers want proof you understand what the model actually does: text -> tokens -> vectors -> logits -> next token. If you can run, inspect and explain these 10 small scripts, you can answer most "how does an LLM work?" questions with code, not buzzwords.
@@ -19,7 +19,7 @@ Every other topic - parameters, prompting, agents, APIs, Docker - is "plumbing a
 
 **Leads to**
 - [05_llm_parameters](../05_llm_parameters/) - temperature/top-k/top-p act on the **logits you print in step 07**; `max_new_tokens`/context window come from the **position table in step 03**; the LR/batch/epoch experiments extend the **loop in step 09**.
-- [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/) - the real fine-tune (datasets, LoRA/QLoRA) generalises step 09; vLLM's KV-cache management generalises step 08; memory arithmetic extends step 06.
+- [06_llm_training_and_lora](../06_llm_training_and_lora/) - the real fine-tune (datasets, LoRA/QLoRA) generalises step 09; vLLM's KV-cache management generalises step 08; memory arithmetic extends step 06.
 - [07_prompt_engineering](../07_prompt_engineering/) and [08_agent_harness](../08_agent_harness/) - prompts are just tokens in the context window (step 01); a harness repeatedly calls the generation loop of step 08.
 - [09_api_development](../09_api_development/) - you will wrap this tokenizer + model + generate in an HTTP endpoint (load the model ONCE at startup, as in step 06).
 
@@ -75,9 +75,9 @@ Each step folder has `main.py` (commented, runnable, tensor shapes annotated), `
 | Pretraining vs fine-tuning vs inference | step 09 + section below |
 | Loading pretrained models | step 06 |
 | Training loop, loss and optimizer | step 09 here (taste) -> [03](../03_ml_foundations/) (basics) -> [05/06](../05_llm_parameters/06_training_parameters/) (knobs) |
-| Dataset preparation and preprocessing | [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/) |
-| LoRA and QLoRA basics | [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/) |
-| Fast inference frameworks (vLLM, Transformers) | [06_llm_training_and_fast_inference](../06_llm_training_and_fast_inference/); Transformers `generate` in step 08 here |
+| Dataset preparation and preprocessing | [06_llm_training_and_lora](../06_llm_training_and_lora/) |
+| LoRA and QLoRA basics | [06_llm_training_and_lora](../06_llm_training_and_lora/) |
+| Fast inference frameworks (vLLM, Transformers) | [06_llm_training_and_lora](../06_llm_training_and_lora/); Transformers `generate` in step 08 here |
 | Latency, throughput and GPU memory | steps 06 and 08 here + [05 step 04, 07](../05_llm_parameters/) + module 06 |
 
 ## The ideas in plain English
@@ -126,6 +126,24 @@ The model outputs one score per vocabulary entry for each position; softmax make
 - [ ] I can state the loss of a random model for vocabulary size V.
 - [ ] I can explain pretraining, fine-tuning and inference in 30 seconds each.
 - [ ] I have run every `main.py`, done a "TRY IT" and a "BREAK IT" for each.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Token | sub-word, piece, wordpiece | Roughly | A vocabulary item; may be a word, part of a word or a byte |
+| BPE vs WordPiece vs SentencePiece | tokenisation algorithms | Different algorithms | Same goal (sub-word vocabulary), different training rules; GPT-2 uses byte-level BPE |
+| Embedding | embedding vector, dense vector, token vector | Yes | One learned row of a `(vocab, dim)` table per token id |
+| Static vs contextual embedding | Word2Vec vs transformer hidden state | No | Static: one vector per word; contextual: depends on neighbours |
+| Self-attention | scaled dot-product attention | Yes | Each token mixes information from others using Q, K, V |
+| Cross-attention | encoder-decoder attention | No | Queries from one sequence, keys and values from another |
+| LayerNorm vs RMSNorm vs BatchNorm | normalisation layers | Different | LayerNorm normalises per token; RMSNorm skips the mean (Llama-style); BatchNorm normalises across the batch |
+| `d_model` / `n_embd` / `hidden_size` | model width | Yes | Same number under different library names |
+| Context window | context length, `n_positions`, `max_position_embeddings` | Yes | Max tokens the model can see at once |
+| Logits vs probabilities | pre-softmax scores vs softmax | No | Softmax of logits gives probabilities |
+| KV cache | past key values, `past_key_values` | Yes | Stored keys and values of old tokens so each step only processes the newest token |
+| Pretraining vs fine-tuning vs inference | learning from scratch, adapting, serving | No | Same loss and loop for the first two; inference only runs the forward pass |
+| Parameters vs tokens | model size vs data size | No | Parameters are learned numbers (81.9M for distilgpt2); tokens are the units of text data |
 
 ## Interview questions
 1. **What does an LLM do, in one sentence?** It predicts a probability distribution over the next token given the previous tokens; text is produced by repeatedly sampling/choosing a token and appending it.

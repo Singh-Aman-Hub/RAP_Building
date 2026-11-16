@@ -89,6 +89,20 @@ Prompts are code: a fixed test set (normal, ambiguous, missing-input, adversaria
 ### Retrieval-augmented generation (minimal RAG)
 A frozen model cannot know private or new facts, and it guesses instead of saying so. RAG embeds your documents, finds the top-k most similar to the question (cosine similarity), and pastes them into the prompt as context. *Limitation:* if retrieval misses or returns an irrelevant chunk, the model answers confidently from junk, so use a similarity threshold and allow "I don't know".
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| System prompt | system message, developer message, `system=` argument | Mostly | Stable rules sent with every request; the API field name differs by vendor |
+| Zero-shot / few-shot | no examples / in-context learning with examples | No | Only the number of worked examples in the prompt differs; weights never change |
+| Few-shot vs fine-tuning | prompting vs training | No | Examples in the prompt cost tokens each call; fine-tuning changes weights once |
+| Structured output | JSON mode, schema-constrained decoding, function-call arguments | Near | Asking nicely in the prompt does not guarantee JSON; API-enforced schemas do |
+| Prompt chaining | task decomposition, pipeline | Near | Fixed multi-step prompts you write; an agent chooses its own steps |
+| Chain-of-thought | reasoning trace, "think step by step", reasoning field | Near | Reasoning text before the answer; modern reasoning models do it internally |
+| Prompt injection | prompt hijacking, indirect injection | Near | Direct: user types it. Indirect: hidden in content the model reads. Not the same as a jailbreak |
+| RAG | retrieval-augmented generation, grounding | Yes | Retrieve text, put it in the prompt, answer from it |
+| Eval set | test set, golden set, regression suite | Near | Fixed labelled inputs used to score each prompt version |
+
 ## Common mistakes & gotchas
 - Trusting the reply format without parsing/validating.
 - `str.format` with JSON braces -> `KeyError` (double the braces or use `Template`).

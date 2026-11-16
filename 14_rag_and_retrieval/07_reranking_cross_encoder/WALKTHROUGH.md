@@ -44,6 +44,187 @@ Build retrieve-then-rerank, measure what it gains (hit@1, MRR), what it costs (m
 python main.py          # ~10-20 s on CPU, offline (models from the local Hugging Face cache)
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Reranker vs cross-encoder vs second-stage ranker | re-ranker, "rerank" | Mostly | Cross-encoder is the most common kind of reranker; others include late-interaction models (ColBERT) and LLM rerankers |
+| Bi-encoder vs cross-encoder | retriever vs reranker | No | Bi-encoder embeds texts separately (precompute, fast); cross-encoder reads the pair together (accurate, one pass per pair) |
+| Stage 1 vs stage 2 | retrieve then rerank, funnel | Same pattern | Stage 1 optimises recall over everything; stage 2 optimises precision over a few candidates |
+| Logit vs probability vs score | raw model output | No | A logit is the raw number before sigmoid; higher = more relevant; not a calibrated probability |
+| recall@20 vs hit@1 | candidates contain the answer vs answer is first | No | recall@20 limits what stage 2 can ever do; hit@1 is the final quality |
+| top-k vs top-n | candidate count | Same | Naming differs: k candidates from stage 1, n kept after reranking |
+
+## Code, step by step
+
+### 1. Docstring  (`main.py` lines 1–14)
+```python
+"""
+GOAL:  Two-stage retrieval. Stage 1 (fast, recall): hybrid BM25 + dense picks 20 candidates.
+       Stage 2 (slow, precision): a cross-encoder reads (question, chunk) TOGETHER and re-orders them.
+       Measure the quality gain, the latency cost, and use the re-ranker score to say "no answer".
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/07_reranking_cross_encoder/main.py
+EXPECTED OUTPUT (shortened):
+    stage 1 only (hybrid RRF): hit@1 0.83  MRR 0.88
+    stage 1 + cross-encoder  : hit@1 0.88  MRR 0.92
+    latency per query: bi-encoder ~x ms | cross-encoder on 20 candidates ~y ms
+    unanswerable 'Do you sell gift cards?': best re-rank logit -7.06 (but answerable London: -10.94!)
+NEEDS: torch, transformers; cached all-MiniLM-L6-v2 and cross-encoder/ms-marco-MiniLM-L-6-v2.  ~20 s.
+"""
+```
+- **In simple words:** The two-stage idea in one paragraph.
+- **Exactly:** Stage 1 hybrid BM25 + dense picks 20 candidates (recall). Stage 2 cross-encoder reorders them (precision). Measures quality gain, latency cost, and the reranker score as a "no answer" signal.
+- **Why it is here:** This is the standard production retrieval funnel.
+
+### 2. Imports  (`main.py` lines 16–24)
+```python
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import (BM25, CrossEncoderReranker, Embedder, build_chunks, chunk_for_embedding,   # noqa: E402
+                    load_eval_set, rrf_fuse)
+```
+- **In simple words:** Load tools and the helpers from `common.py`.
+- **Exactly:** `CrossEncoderReranker` and the retrieval helpers; `time` for latency.
+- **Why it is here:** Reuse beats rewriting.
+
+### 3. Build the retrievers once  (`main.py` lines 26–30)
+```python
+chunks = build_chunks()
+texts = [chunk_for_embedding(c) for c in chunks]
+ids = [c["chunk_id"] for c in chunks]
+bm25, embedder, reranker = BM25(texts), Embedder(), CrossEncoderReranker()
+matrix = embedder.encode(texts)
+```
+- **In simple words:** Prepare chunks, BM25, the embedder, the reranker and the vector matrix.
+- **Exactly:** `texts` use the contextual header; `matrix` shape `(36, 384)`; the cross-encoder loads `ms-marco-MiniLM-L-6-v2`.
+- **Why it is here:** Model loading takes seconds and must not happen per query.
+
+### 4. stage1: hybrid candidates  (`main.py` lines 33–37)
+```python
+def stage1(question, k=20):
+    """Hybrid retrieval: high RECALL is the goal here; order matters less."""
+    s = matrix @ embedder.encode([question])[0]
+    dense = [(int(j), float(s[j])) for j in np.argsort(-s)[:k]]
+    return rrf_fuse([bm25.search(question, k), dense], top_n=k)
+```
+- **In simple words:** Get 20 good candidates using both search types.
+- **Exactly:** Dense top 20 as `(row, score)`, plus `bm25.search(question, k)`, fused by `rrf_fuse(..., top_n=k)`. Returns `(row, rrf_score)` pairs.
+- **Why it is here:** Goal is recall: the right chunk must be somewhere among the 20.
+
+### 5. stage2: cross-encoder reorder  (`main.py` lines 40–44)
+```python
+def stage2(question, candidates):
+    """Cross-encoder: one forward pass per (question, chunk) pair -> one relevance logit each."""
+    logits = reranker.score(question, [texts[j] for j, _ in candidates])
+    order = np.argsort(-logits)
+    return [(candidates[o][0], float(logits[o])) for o in order]
+```
+- **In simple words:** Score each candidate together with the question, then sort.
+- **Exactly:** `reranker.score(question, passages)` returns logits of shape `(n_candidates,)`; `argsort(-logits)` orders them; returns `(row, logit)` pairs in the new order. One forward pass per pair.
+- **Why it is here:** Pairs must stay aligned with `candidates` (see BREAK IT).
+
+### 6. One example before and after  (`main.py` lines 47–53)
+```python
+# ---- 1. One example, before and after -------------------------------------------------------------------
+q = "What is the money back window after the tea arrives?"
+first = stage1(q)
+second = stage2(q, first)
+print(f"Q: {q}")
+print("  stage 1 top 3:", [ids[j] for j, _ in first[:3]])
+print("  re-ranked top 3:", [(ids[j], round(s, 2)) for j, s in second[:3]])
+```
+- **In simple words:** Show the top three for one question before and after reranking.
+- **Exactly:** Real: stage 1 top 3: Refund window, How to request a refund, Earning points. After reranking: Refund window `3.1`, How to request a refund `-2.79`, Earning points `-9.77`. The gap in logits is large: the cross-encoder is confident.
+- **Why it is here:** Seeing scores makes "re-rank" concrete.
+
+### 7. Setup for quality measurement  (`main.py` lines 55–62)
+```python
+# ---- 2. Quality on the 24 answerable questions ----------------------------------------------------------
+eval_set = load_eval_set()
+answerable = [x for x in eval_set if x["gold"]]
+
+
+def rank_of(order, gold):
+    order = [ids[j] for j, _ in order]
+    return order.index(gold) + 1 if gold in order else None
+```
+- **In simple words:** Take the 24 answerable questions and write a helper that finds the rank of the right chunk.
+- **Exactly:** `rank_of(order, gold)` converts `(row, score)` pairs to chunk ids and returns the 1-based position or `None`.
+- **Why it is here:** Rank is the basis of hit@1 and MRR.
+
+### 8. Compare stage 1 with stage 1 + stage 2  (`main.py` lines 65–77)
+```python
+r1, r2, recall20 = [], [], []
+for x in answerable:
+    c = stage1(x["question"])
+    r1.append(rank_of(c, x["gold"][0]))
+    r2.append(rank_of(stage2(x["question"], c), x["gold"][0]))
+    recall20.append(r1[-1] is not None)
+summ = lambda r: (np.mean([v == 1 for v in r]), np.mean([1 / v if v else 0 for v in r]))
+print(f"\nstage 1 recall@20 (is the answer among the candidates at all?): {np.mean(recall20):.2f}")
+print(f"stage 1 only (hybrid RRF): hit@1 {summ(r1)[0]:.2f}  MRR {summ(r1)[1]:.2f}")
+print(f"stage 1 + cross-encoder  : hit@1 {summ(r2)[0]:.2f}  MRR {summ(r2)[1]:.2f}")
+moved = [(x["question"], a, b) for x, a, b in zip(answerable, r1, r2) if a != b]
+for question, a, b in moved:
+    print(f"  rank {a} -> {b}: {question}")
+```
+- **In simple words:** Measure both and list the questions whose rank changed.
+- **Exactly:** `recall20` = answer among the 20 candidates: real 1.00. Stage 1 only: hit@1 0.83, MRR 0.88. With the cross-encoder: hit@1 0.88, MRR 0.92. Several moved: "phone" 2 to 1, "Sunday" 12 to 1, "personal information" 2 to 1; but "refund days" 1 to 2 and "awake" 1 to 2 and "London" 8 to 20 got worse.
+- **Why it is here:** Rerankers help on average but are not magic; always check the questions that got worse.
+
+### 9. Latency: why not rerank everything  (`main.py` lines 79–90)
+```python
+# ---- 3. Latency: why we do NOT run the cross-encoder over the whole corpus --------------------------------
+t0 = time.perf_counter()
+for x in answerable:
+    embedder.encode([x["question"]])
+bi_ms = (time.perf_counter() - t0) / len(answerable) * 1000
+t0 = time.perf_counter()
+for x in answerable:
+    reranker.score(x["question"], [texts[j] for j, _ in stage1(x["question"])])
+ce_ms = (time.perf_counter() - t0) / len(answerable) * 1000
+print(f"\nlatency per query (CPU): bi-encoder query embedding {bi_ms:.0f} ms | cross-encoder on 20 candidates {ce_ms:.0f} ms")
+print(f"cross-encoder over 1M chunks would be ~{ce_ms / 20 * 1e6 / 1000 / 3600:.1f} hours PER QUERY; "
+      "bi-encoder vectors are computed once, offline.")
+```
+- **In simple words:** Time a query embedding and a cross-encoder pass over 20 candidates.
+- **Exactly:** Real (CPU): bi-encoder query embedding 7 ms; cross-encoder on 20 candidates 301 ms (about 15 ms per pair). Extrapolation: 1M chunks would take about 4.2 hours per query. Bi-encoder document vectors are computed once, offline.
+- **Why it is here:** The reason for two stages: accuracy is expensive, so it is spent only on a shortlist.
+
+### 10. The score as an "is the answer here?" signal  (`main.py` lines 92–98)
+```python
+# ---- 4. The re-ranker score as an 'is the answer here?' signal -------------------------------------------
+print("\nbest re-rank logit per question (higher = more relevant):")
+by_id = {x["id"]: x for x in eval_set}
+for x in [by_id["q01"], by_id["q07"], by_id["q25"], by_id["q28"]]:
+    best = stage2(x["question"], stage1(x["question"]))[0]
+    print(f"  {best[1]:+6.2f}  {x['question']!r:<52} -> {ids[best[0]]}")
+print("A threshold (e.g. logit < 0 -> 'I don't know') is calibrated on labelled questions, never guessed.")
+```
+- **In simple words:** Look at the best logit for answerable and unanswerable questions.
+- **Exactly:** Real: `+1.58` for "How many days do I have to get a refund?", `-10.94` for the answerable London question, `-7.06` for the unanswerable gift cards, `-10.41` for coffee beans. A threshold would separate some but mislabel London.
+- **Why it is here:** Thresholds must be calibrated on labelled data, never guessed.
+
+### 11. Exercises as comments  (`main.py` lines 100–104)
+```python
+# TRY IT: re-rank only the top 5 of stage 1 instead of 20: faster, but does recall suffer?
+# TRY IT: re-rank DENSE-only candidates instead of hybrid ones; compare hit@1.
+# TRY IT: pass the raw chunk text instead of chunk_for_embedding(...) to the re-ranker. Does the title help?
+# BREAK IT: give reranker.score the passages in a different order than `candidates` -> the ranks silently
+#           point at the wrong chunks. Always keep (index, score) pairs together.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: scoring passages in a different order than `candidates` silently attaches scores to the wrong chunks.
+- **Why it is here:** Keep `(index, score)` pairs together.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

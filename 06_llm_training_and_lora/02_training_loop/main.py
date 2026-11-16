@@ -3,7 +3,7 @@ GOAL:  Write a minimal causal-LM training loop by hand (forward -> loss -> backw
        and watch the loss fall while distilgpt2 learns our little customer-support style.
 
 RUN (from this step folder):  python main.py
-RUN (from repo root):         .venv/bin/python 06_llm_training_and_fast_inference/02_training_loop/main.py
+RUN (from repo root):         .venv/bin/python 06_llm_training_and_lora/02_training_loop/main.py
 EXPECTED OUTPUT (shortened; exact numbers vary a little):
     device: mps
     epoch 1 step  1 loss 5.1 grad_norm 20.6

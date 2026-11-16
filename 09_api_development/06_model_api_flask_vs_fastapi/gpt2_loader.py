@@ -40,7 +40,7 @@ SETTINGS (environment variables, read when the generator is created):
     GPT2_MODEL_NAME   default "gpt2"   (also works: "distilgpt2" smaller/faster, "gpt2-medium" bigger)
     GPT2_DEVICE       default "cpu"    ("cuda" if you have an NVIDIA GPU, "mps" on Apple silicon)
 
-CONCEPTS USED (details: 04_llm_fundamentals, 05_llm_parameters, 06_llm_training_and_fast_inference):
+CONCEPTS USED (details: 04_llm_fundamentals, 05_llm_parameters, 06_llm_training_and_lora):
     tokenizer, logits, sampling (temperature / top-k / top-p / repetition penalty),
     context window, KV cache (generate() uses it automatically), inference mode, lazy singleton.
 """

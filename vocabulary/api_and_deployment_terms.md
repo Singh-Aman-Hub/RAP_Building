@@ -1,6 +1,6 @@
 # API, Docker, Architecture and Deployment Terms
 
-145 terms, alphabetical. Back to [index](index.md).
+161 terms, alphabetical. Back to [index](index.md).
 
 - [.dockerignore](#dockerignore)
 - [0.0.0.0 vs 127.0.0.1 binding](#0000-vs-127001-binding)
@@ -13,12 +13,14 @@
 - [Base image](#base-image)
 - [Batch inference](#batch-inference)
 - [Bind mount](#bind-mount)
+- [Born-digital PDF](#born-digital-pdf)
 - [Bounded queue](#bounded-queue)
 - [Build cache (layer cache)](#build-cache-layer-cache)
 - [Build context](#build-context)
 - [Caching](#caching)
 - [Callback (event handler)](#callback-event-handler)
 - [Canary deployment](#canary-deployment)
+- [Circuit breaker](#circuit-breaker)
 - [CMD vs ENTRYPOINT](#cmd-vs-entrypoint)
 - [Compose file](#compose-file)
 - [Concurrency](#concurrency)
@@ -29,6 +31,7 @@
 - [Container networking](#container-networking)
 - [COPY (Dockerfile)](#copy-dockerfile)
 - [curl](#curl)
+- [Dead-letter queue](#dead-letter-queue)
 - [Dependency injection (FastAPI)](#dependency-injection-fastapi)
 - [depends_on](#depends_on)
 - [Deployment (UI apps)](#deployment-ui-apps)
@@ -45,6 +48,7 @@
 - [Exec form vs shell form](#exec-form-vs-shell-form)
 - [Exit code (container)](#exit-code-container)
 - [Exponential backoff](#exponential-backoff)
+- [Exponential backoff with jitter](#exponential-backoff-with-jitter)
 - [EXPOSE](#expose)
 - [FastAPI](#fastapi)
 - [Flask](#flask)
@@ -65,6 +69,7 @@
 - [HTTP](#http)
 - [HTTP 500](#http-500)
 - [HTTP method](#http-method)
+- [Idempotency key](#idempotency-key)
 - [Idempotent](#idempotent)
 - [Image](#image)
 - [Jitter](#jitter)
@@ -76,6 +81,7 @@
 - [Lifespan (startup/shutdown)](#lifespan-startupshutdown)
 - [Little's Law](#littles-law)
 - [Liveness vs readiness](#liveness-vs-readiness)
+- [LLM gateway](#llm-gateway)
 - [Load balancer](#load-balancer)
 - [Load shedding](#load-shedding)
 - [Load testing](#load-testing)
@@ -88,15 +94,21 @@
 - [Namespace and cgroup](#namespace-and-cgroup)
 - [Non-root user (container)](#non-root-user-container)
 - [Object storage](#object-storage)
+- [OpenAI-compatible API](#openai-compatible-api)
 - [OpenAPI / Swagger docs](#openapi-swagger-docs)
+- [OpenTelemetry GenAI semantic conventions](#opentelemetry-genai-semantic-conventions)
+- [Page router (native vs OCR)](#page-router-native-vs-ocr)
 - [Parameterized query](#parameterized-query)
 - [Path parameter](#path-parameter)
 - [Path sandboxing](#path-sandboxing)
 - [Path traversal](#path-traversal)
+- [PDF content stream](#pdf-content-stream)
+- [PDF coordinate system](#pdf-coordinate-system)
 - [Permanent error](#permanent-error)
 - [Port](#port)
 - [Port mapping](#port-mapping)
 - [Prediction log](#prediction-log)
+- [Prompt caching (for chunk contextualisation)](#prompt-caching-for-chunk-contextualisation)
 - [Pydantic](#pydantic)
 - [Query parameter](#query-parameter)
 - [Rate limit (429)](#rate-limit-429)
@@ -110,6 +122,8 @@
 - [Rollback](#rollback)
 - [Route](#route)
 - [RUN (Dockerfile)](#run-dockerfile)
+- [Scanned PDF](#scanned-pdf)
+- [Searchable PDF (sandwich PDF)](#searchable-pdf-sandwich-pdf)
 - [Secret](#secret)
 - [Service (Compose)](#service-compose)
 - [Session state](#session-state)
@@ -117,6 +131,7 @@
 - [Share link (Gradio)](#share-link-gradio)
 - [Slim image](#slim-image)
 - [Smoke test](#smoke-test)
+- [Span and trace](#span-and-trace)
 - [SQL injection](#sql-injection)
 - [SQLite](#sqlite)
 - [st.button](#stbutton)
@@ -137,6 +152,7 @@
 - [Tail latency](#tail-latency)
 - [Test client](#test-client)
 - [Timeout (HTTP)](#timeout-http)
+- [Token bucket](#token-bucket)
 - [Transient error](#transient-error)
 - [Uvicorn](#uvicorn)
 - [Validation](#validation)
@@ -323,6 +339,21 @@ docker run -v "$(pwd)/host-data:/data" toy-api:v1
 
 ---
 
+### Born-digital PDF
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** A PDF produced by software that contains a real text layer.
+- **Plain English:** Text you can select and copy.
+- **Example / analogy:** Extract it directly; OCR would be slower and less accurate.
+- **Snippet:**
+```python
+text = page.get_text()  # PyMuPDF
+```
+- **Snippet explained:** Reads the text layer.
+- **Related terms:** [Scanned PDF](api_and_deployment_terms.md#scanned-pdf), [Searchable PDF (sandwich PDF)](api_and_deployment_terms.md#searchable-pdf-sandwich-pdf), [PDF content stream](api_and_deployment_terms.md#pdf-content-stream)
+
+---
+
 ### Bounded queue
 *From module: 10_ml_system_architecture*
 
@@ -411,6 +442,21 @@ btn.click(fn, inputs=[txt], outputs=[out])
 n/a
 - **Snippet explained:** n/a
 - **Related terms:** [Rollback](api_and_deployment_terms.md#rollback), [Shadow deployment](api_and_deployment_terms.md#shadow-deployment)
+
+---
+
+### Circuit breaker
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A guard that stops calls to a failing dependency after repeated failures (open), then allows one probe (half-open) before closing again.
+- **Plain English:** A fuse box.
+- **Example / analogy:** After two 503s the breaker rejects calls instantly until 30 seconds pass.
+- **Snippet:**
+```python
+breaker.call(lambda: provider.generate(system, user))
+```
+- **Snippet explained:** Raises CircuitOpenError while open; success in half-open closes it.
+- **Related terms:** [Exponential backoff with jitter](api_and_deployment_terms.md#exponential-backoff-with-jitter), [Token bucket](api_and_deployment_terms.md#token-bucket)
 
 ---
 
@@ -570,6 +616,21 @@ curl -s -X POST localhost:8000/predict -H 'Content-Type: application/json' -d '{
 ```
 - **Snippet explained:** POSTs JSON; -s hides the progress meter.
 - **Related terms:** [HTTP](api_and_deployment_terms.md#http), [GET vs POST](api_and_deployment_terms.md#get-vs-post)
+
+---
+
+### Dead-letter queue
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A holding list for items that failed processing, with the stage and error, so they can be inspected and replayed.
+- **Plain English:** The 'return to sender' shelf.
+- **Example / analogy:** A document the embedder rejects is parked while the other eight are indexed.
+- **Snippet:**
+```python
+DeadLetter(doc_id, source, 'embed', 'RuntimeError: ...')
+```
+- **Snippet explained:** Records where the failure happened for later repair.
+- **Related terms:** [Incremental re-indexing (manifest)](ml_terms.md#incremental-re-indexing-manifest), [Idempotent upsert](ml_terms.md#idempotent-upsert)
 
 ---
 
@@ -822,6 +883,21 @@ time.sleep(delay)
 ```
 - **Snippet explained:** Attempt 1 waits ~0.05s, attempt 2 ~0.10s, attempt 3 ~0.20s.
 - **Related terms:** [Jitter](api_and_deployment_terms.md#jitter), [Transient error](api_and_deployment_terms.md#transient-error), [Rate limit (429)](api_and_deployment_terms.md#rate-limit-429)
+
+---
+
+### Exponential backoff with jitter
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Waiting longer after each failed attempt (doubling to a cap) and randomising the delay so clients do not retry together.
+- **Plain English:** Knocking again after 1, 2, 4 seconds, each time at a random moment within the interval.
+- **Example / analogy:** Full jitter spread 1000 retries over ten slots instead of one.
+- **Snippet:**
+```python
+delay = rng.uniform(0, min(max_delay, base * 2 ** attempt))
+```
+- **Snippet explained:** The cap doubles per attempt; uniform(0, cap) is the full-jitter delay.
+- **Related terms:** [Circuit breaker](api_and_deployment_terms.md#circuit-breaker), [Idempotency key](api_and_deployment_terms.md#idempotency-key)
 
 ---
 
@@ -1145,6 +1221,21 @@ def unexpected(e):
 
 ---
 
+### Idempotency key
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A client-chosen key identifying one logical operation so repeated requests have the effect of one.
+- **Plain English:** A cheque number.
+- **Example / analogy:** Three retries of a charge executed once.
+- **Snippet:**
+```python
+key = idempotency_key('charge-user-42', 'order-1001')
+```
+- **Snippet explained:** A deterministic hash of the operation's identity.
+- **Related terms:** [Exponential backoff with jitter](api_and_deployment_terms.md#exponential-backoff-with-jitter), [Dead-letter queue](api_and_deployment_terms.md#dead-letter-queue)
+
+---
+
 ### Idempotent
 *From module: 09_api_development*
 
@@ -1316,6 +1407,21 @@ def ready(): ...  # checks redis.ping()
 ```
 - **Snippet explained:** Returns 503 until dependencies respond.
 - **Related terms:** [Health check (Docker)](api_and_deployment_terms.md#health-check-docker)
+
+---
+
+### LLM gateway
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A single entry point with unified request/response types that routes a model alias to ordered providers, with fallback, cost metering and a budget guard.
+- **Plain English:** A switchboard for model calls.
+- **Example / analogy:** Alias `small` maps to two providers; a 503 on the first falls back to the second.
+- **Snippet:**
+```python
+Gateway({'small': [primary, backup]}, CostMeter(prices, budget_usd=0.05))
+```
+- **Snippet explained:** Routes by alias, falls back on transient errors, records cost per call.
+- **Related terms:** [Structured output repair loop](llm_terms.md#structured-output-repair-loop), [Tool spec (tool-call schema)](llm_terms.md#tool-spec-tool-call-schema)
 
 ---
 
@@ -1502,6 +1608,21 @@ n/a
 
 ---
 
+### OpenAI-compatible API
+*From module: 21_llm_inference_engineering*
+
+- **Technical definition:** An HTTP interface that mimics the OpenAI /v1/chat/completions request and response format, offered by vLLM, SGLang, Ollama, llama-server and others.
+- **Plain English:** Same JSON shape, so you swap only the base URL.
+- **Example / analogy:** A universal power plug.
+- **Snippet:**
+```python
+OpenAI(base_url='http://localhost:8000/v1', api_key='none')
+```
+- **Snippet explained:** Points the standard client at a local engine.
+- **Related terms:** [vLLM](llm_terms.md#vllm), [Ollama](llm_terms.md#ollama)
+
+---
+
 ### OpenAPI / Swagger docs
 *From module: 09_api_development*
 
@@ -1514,6 +1635,36 @@ curl -s localhost:8000/openapi.json | head -c 200
 ```
 - **Snippet explained:** Prints the start of the generated machine-readable spec.
 - **Related terms:** [FastAPI](api_and_deployment_terms.md#fastapi), [Pydantic](api_and_deployment_terms.md#pydantic)
+
+---
+
+### OpenTelemetry GenAI semantic conventions
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** Standard gen_ai.* attribute names (operation name, provider, request model, input/output tokens) for LLM spans and metrics; status Development as of Nov 2026 and moved to a separate repository.
+- **Plain English:** Common labels so every tool reads your LLM traces.
+- **Example / analogy:** A chat span carries gen_ai.usage.input_tokens and gen_ai.usage.output_tokens.
+- **Snippet:**
+```python
+span.attrs['gen_ai.usage.input_tokens'] = 223
+```
+- **Snippet explained:** Records token usage under the standard key.
+- **Related terms:** [Span and trace](api_and_deployment_terms.md#span-and-trace), [Online eval hook](llm_terms.md#online-eval-hook)
+
+---
+
+### Page router (native vs OCR)
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** Per-page decision using visible text and image coverage: extract the text layer or run OCR.
+- **Plain English:** Use free text when it exists.
+- **Example / analogy:** Mixed bundles need per-page routing, not per-file.
+- **Snippet:**
+```python
+kind, how, lines = route(page)
+```
+- **Snippet explained:** Returns the page class, the route and the text.
+- **Related terms:** [Born-digital PDF](api_and_deployment_terms.md#born-digital-pdf), [Scanned PDF](api_and_deployment_terms.md#scanned-pdf), [OCR (optical character recognition)](ml_terms.md#ocr-optical-character-recognition)
 
 ---
 
@@ -1580,6 +1731,36 @@ Path("sandbox") / "../../.env"
 
 ---
 
+### PDF content stream
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** The operator stream that paints one PDF page, for example BT /F1 12 Tf x y Td (text) Tj ET for text.
+- **Plain English:** The drawing instructions of a page.
+- **Example / analogy:** Text is a position and a string, not a paragraph.
+- **Snippet:**
+```python
+BT /F1 16 Tf 72 400 Td (Hello) Tj ET
+```
+- **Snippet explained:** Begin text, set font, move, show string, end text.
+- **Related terms:** [Born-digital PDF](api_and_deployment_terms.md#born-digital-pdf), [PDF coordinate system](api_and_deployment_terms.md#pdf-coordinate-system)
+
+---
+
+### PDF coordinate system
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** Units of 1/72 inch with the origin at the bottom-left and y growing upwards; images use top-left.
+- **Plain English:** Flip y when mixing PDF and image coordinates.
+- **Example / analogy:** A pixel at 96 dpi is 0.75 points.
+- **Snippet:**
+```python
+y_top = page_height - y_pdf
+```
+- **Snippet explained:** Converts a PDF y to a top-left y.
+- **Related terms:** [PDF content stream](api_and_deployment_terms.md#pdf-content-stream), [Bounding box (bbox)](ml_terms.md#bounding-box-bbox)
+
+---
+
 ### Permanent error
 *From module: 08_agent_harness*
 
@@ -1638,6 +1819,21 @@ log.record('v0001', text, label, conf, ms)
 ```
 - **Snippet explained:** Inserts one row per prediction.
 - **Related terms:** [SQLite](api_and_deployment_terms.md#sqlite), [Model monitoring](ml_terms.md#model-monitoring)
+
+---
+
+### Prompt caching (for chunk contextualisation)
+*From module: 19_chunking_deep_dive*
+
+- **Technical definition:** Provider feature that stores a long, repeated prompt prefix so later calls read it at a fraction of the input price. When contextualising N chunks of one document, the whole document is the shared prefix.
+- **Plain English:** Pay full price to send the document once, then a small fee each time you re-use it.
+- **Example / analogy:** A library card: the first time you copy the book, later you just look at it.
+- **Snippet:**
+```python
+cost = doc_tokens * 1.25 + doc_tokens * (n_chunks - 1) * 0.10   # write 1.25x, read 0.10x (check current pricing)
+```
+- **Snippet explained:** Multipliers come from Anthropic's prompt-caching docs; verify current prices before budgeting.
+- **Related terms:** [Contextual retrieval (contextual chunk headers, contextual embeddings)](llm_terms.md#contextual-retrieval-contextual-chunk-headers-contextual-embeddings)
 
 ---
 
@@ -1848,6 +2044,36 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 ---
 
+### Scanned PDF
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** A PDF whose pages are images with no text layer.
+- **Plain English:** A photo of a page in a PDF wrapper.
+- **Example / analogy:** A text extractor returns an empty string, which a RAG index stores as no content.
+- **Snippet:**
+```python
+if len(text) < 20 and page.get_images(): ocr(page)
+```
+- **Snippet explained:** Falls back to OCR when there is no text.
+- **Related terms:** [Born-digital PDF](api_and_deployment_terms.md#born-digital-pdf), [Searchable PDF (sandwich PDF)](api_and_deployment_terms.md#searchable-pdf-sandwich-pdf)
+
+---
+
+### Searchable PDF (sandwich PDF)
+*From module: 18_ocr_and_document_parsing*
+
+- **Technical definition:** A scan image with an invisible OCR text layer (text render mode 3) on top.
+- **Plain English:** Looks like a scan, copies like text.
+- **Example / analogy:** The layer is someone else's OCR: use it but sample-check it.
+- **Snippet:**
+```python
+3 Tr  % invisible text render mode
+```
+- **Snippet explained:** PDF operator that makes text invisible.
+- **Related terms:** [Scanned PDF](api_and_deployment_terms.md#scanned-pdf), [Born-digital PDF](api_and_deployment_terms.md#born-digital-pdf)
+
+---
+
 ### Secret
 *From module: 11_docker*
 
@@ -1952,6 +2178,21 @@ assert httpx.get(BASE + '/health').status_code == 200
 ```
 - **Snippet explained:** The simplest smoke check.
 - **Related terms:** [Test client](api_and_deployment_terms.md#test-client), [Health check](api_and_deployment_terms.md#health-check)
+
+---
+
+### Span and trace
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A span is a named, timed unit of work with attributes, status and a parent; a trace is the tree of spans for one request.
+- **Plain English:** A receipt line per step of an order.
+- **Example / analogy:** rag.answer contains retrieve, rerank and chat spans.
+- **Snippet:**
+```python
+with tracer.span('retrieve', k=20) as s: ...
+```
+- **Snippet explained:** Starts a child of the current span and records its duration on exit.
+- **Related terms:** [Percentile latency (p50, p95)](ml_terms.md#percentile-latency-p50-p95), [OpenTelemetry GenAI semantic conventions](api_and_deployment_terms.md#opentelemetry-genai-semantic-conventions)
 
 ---
 
@@ -2271,6 +2512,21 @@ requests.get(url, timeout=3)
 ```
 - **Snippet explained:** Raises requests.Timeout if no answer in 3 seconds.
 - **Related terms:** [API client (UI to API)](api_and_deployment_terms.md#api-client-ui-to-api)
+
+---
+
+### Token bucket
+*From module: 20_llm_system_lld*
+
+- **Technical definition:** A rate limiter: a bucket of capacity tokens refilled at a fixed rate; each request spends tokens; allows bursts and a steady rate.
+- **Plain English:** A jar of tickets that refills slowly.
+- **Example / analogy:** capacity 4, rate 2/s: four instant requests, the fifth waits 0.5 s.
+- **Snippet:**
+```python
+tokens = min(capacity, tokens + elapsed * rate)
+```
+- **Snippet explained:** Refill lazily from timestamps, then spend if enough remain.
+- **Related terms:** [Circuit breaker](api_and_deployment_terms.md#circuit-breaker), [Idempotency key](api_and_deployment_terms.md#idempotency-key)
 
 ---
 

@@ -1,6 +1,6 @@
 # TERMS Index
 
-2547 explained terms across every step folder. Each `TERMS.md` gives, per term: 1. definition, 2. plain-words paragraph, 3. an example to quote.
+3823 explained terms across every step folder. Each `TERMS.md` gives, per term: 1. definition, 2. plain-words paragraph, 3. an example to quote.
 The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](vocabulary/index.md).
 
 ## 00_python_foundations
@@ -83,21 +83,16 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | 06_training_parameters | 35 | [05_llm_parameters/06_training_parameters/TERMS.md](05_llm_parameters/06_training_parameters/TERMS.md) |
 | 07_experiment_logger | 29 | [05_llm_parameters/07_experiment_logger/TERMS.md](05_llm_parameters/07_experiment_logger/TERMS.md) |
 
-## 06_llm_training_and_fast_inference
+## 06_llm_training_and_lora
 
 | Folder | Terms | File |
 |---|--:|---|
-| 01_dataset_preparation | 26 | [06_llm_training_and_fast_inference/01_dataset_preparation/TERMS.md](06_llm_training_and_fast_inference/01_dataset_preparation/TERMS.md) |
-| 02_training_loop | 26 | [06_llm_training_and_fast_inference/02_training_loop/TERMS.md](06_llm_training_and_fast_inference/02_training_loop/TERMS.md) |
-| 03_eval_perplexity_checkpoints | 18 | [06_llm_training_and_fast_inference/03_eval_perplexity_checkpoints/TERMS.md](06_llm_training_and_fast_inference/03_eval_perplexity_checkpoints/TERMS.md) |
-| 04_lora_math_numpy | 20 | [06_llm_training_and_fast_inference/04_lora_math_numpy/TERMS.md](06_llm_training_and_fast_inference/04_lora_math_numpy/TERMS.md) |
-| 05_lora_peft_finetune | 21 | [06_llm_training_and_fast_inference/05_lora_peft_finetune/TERMS.md](06_llm_training_and_fast_inference/05_lora_peft_finetune/TERMS.md) |
-| 06_qlora_reference | 15 | [06_llm_training_and_fast_inference/06_qlora_reference/TERMS.md](06_llm_training_and_fast_inference/06_qlora_reference/TERMS.md) |
-| 07_hf_inference_batching_kvcache | 19 | [06_llm_training_and_fast_inference/07_hf_inference_batching_kvcache/TERMS.md](06_llm_training_and_fast_inference/07_hf_inference_batching_kvcache/TERMS.md) |
-| 08_gpu_memory_calculator | 19 | [06_llm_training_and_fast_inference/08_gpu_memory_calculator/TERMS.md](06_llm_training_and_fast_inference/08_gpu_memory_calculator/TERMS.md) |
-| 09_throughput_benchmark | 18 | [06_llm_training_and_fast_inference/09_throughput_benchmark/TERMS.md](06_llm_training_and_fast_inference/09_throughput_benchmark/TERMS.md) |
-| 10_vllm_reference | 16 | [06_llm_training_and_fast_inference/10_vllm_reference/TERMS.md](06_llm_training_and_fast_inference/10_vllm_reference/TERMS.md) |
-| 11_paged_attention_fragmentation | 10 | [06_llm_training_and_fast_inference/11_paged_attention_fragmentation/TERMS.md](06_llm_training_and_fast_inference/11_paged_attention_fragmentation/TERMS.md) |
+| 01_dataset_preparation | 26 | [06_llm_training_and_lora/01_dataset_preparation/TERMS.md](06_llm_training_and_lora/01_dataset_preparation/TERMS.md) |
+| 02_training_loop | 26 | [06_llm_training_and_lora/02_training_loop/TERMS.md](06_llm_training_and_lora/02_training_loop/TERMS.md) |
+| 03_eval_perplexity_checkpoints | 18 | [06_llm_training_and_lora/03_eval_perplexity_checkpoints/TERMS.md](06_llm_training_and_lora/03_eval_perplexity_checkpoints/TERMS.md) |
+| 04_lora_math_numpy | 20 | [06_llm_training_and_lora/04_lora_math_numpy/TERMS.md](06_llm_training_and_lora/04_lora_math_numpy/TERMS.md) |
+| 05_lora_peft_finetune | 21 | [06_llm_training_and_lora/05_lora_peft_finetune/TERMS.md](06_llm_training_and_lora/05_lora_peft_finetune/TERMS.md) |
+| 06_qlora_reference | 15 | [06_llm_training_and_lora/06_qlora_reference/TERMS.md](06_llm_training_and_lora/06_qlora_reference/TERMS.md) |
 
 ## 07_prompt_engineering
 
@@ -182,6 +177,136 @@ The merged dictionary (alphabetical, cross-linked) is in [vocabulary/index.md](v
 | Folder | Terms | File |
 |---|--:|---|
 | 13_capstone_project | 46 | [13_capstone_project/TERMS.md](13_capstone_project/TERMS.md) |
+
+## 14_rag_and_retrieval
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_documents_and_why_rag | 22 | [14_rag_and_retrieval/01_documents_and_why_rag/TERMS.md](14_rag_and_retrieval/01_documents_and_why_rag/TERMS.md) |
+| 02_chunking_strategies | 23 | [14_rag_and_retrieval/02_chunking_strategies/TERMS.md](14_rag_and_retrieval/02_chunking_strategies/TERMS.md) |
+| 03_embeddings_bi_encoder | 25 | [14_rag_and_retrieval/03_embeddings_bi_encoder/TERMS.md](14_rag_and_retrieval/03_embeddings_bi_encoder/TERMS.md) |
+| 04_vector_index_and_search | 20 | [14_rag_and_retrieval/04_vector_index_and_search/TERMS.md](14_rag_and_retrieval/04_vector_index_and_search/TERMS.md) |
+| 05_ann_ivf_and_hnsw | 22 | [14_rag_and_retrieval/05_ann_ivf_and_hnsw/TERMS.md](14_rag_and_retrieval/05_ann_ivf_and_hnsw/TERMS.md) |
+| 06_bm25_and_hybrid_search | 22 | [14_rag_and_retrieval/06_bm25_and_hybrid_search/TERMS.md](14_rag_and_retrieval/06_bm25_and_hybrid_search/TERMS.md) |
+| 07_reranking_cross_encoder | 19 | [14_rag_and_retrieval/07_reranking_cross_encoder/TERMS.md](14_rag_and_retrieval/07_reranking_cross_encoder/TERMS.md) |
+| 08_rag_pipeline_end_to_end | 20 | [14_rag_and_retrieval/08_rag_pipeline_end_to_end/TERMS.md](14_rag_and_retrieval/08_rag_pipeline_end_to_end/TERMS.md) |
+| 09_rag_evaluation | 21 | [14_rag_and_retrieval/09_rag_evaluation/TERMS.md](14_rag_and_retrieval/09_rag_evaluation/TERMS.md) |
+| 10_advanced_rag_and_vector_dbs | 21 | [14_rag_and_retrieval/10_advanced_rag_and_vector_dbs/TERMS.md](14_rag_and_retrieval/10_advanced_rag_and_vector_dbs/TERMS.md) |
+| 11_qdrant_fundamentals | 28 | [14_rag_and_retrieval/11_qdrant_fundamentals/TERMS.md](14_rag_and_retrieval/11_qdrant_fundamentals/TERMS.md) |
+
+## 15_neural_networks
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_neuron_and_perceptron | 25 | [15_neural_networks/01_neuron_and_perceptron/TERMS.md](15_neural_networks/01_neuron_and_perceptron/TERMS.md) |
+| 02_mlp_backprop_from_scratch | 18 | [15_neural_networks/02_mlp_backprop_from_scratch/TERMS.md](15_neural_networks/02_mlp_backprop_from_scratch/TERMS.md) |
+| 03_tiny_autograd_engine | 16 | [15_neural_networks/03_tiny_autograd_engine/TERMS.md](15_neural_networks/03_tiny_autograd_engine/TERMS.md) |
+| 04_activations_and_vanishing_gradients | 18 | [15_neural_networks/04_activations_and_vanishing_gradients/TERMS.md](15_neural_networks/04_activations_and_vanishing_gradients/TERMS.md) |
+| 05_initialization_and_normalization | 19 | [15_neural_networks/05_initialization_and_normalization/TERMS.md](15_neural_networks/05_initialization_and_normalization/TERMS.md) |
+| 06_optimizers_and_schedules | 19 | [15_neural_networks/06_optimizers_and_schedules/TERMS.md](15_neural_networks/06_optimizers_and_schedules/TERMS.md) |
+| 07_regularization | 18 | [15_neural_networks/07_regularization/TERMS.md](15_neural_networks/07_regularization/TERMS.md) |
+| 08_cnn_convolutions | 18 | [15_neural_networks/08_cnn_convolutions/TERMS.md](15_neural_networks/08_cnn_convolutions/TERMS.md) |
+| 09_rnn_lstm_and_why_attention | 19 | [15_neural_networks/09_rnn_lstm_and_why_attention/TERMS.md](15_neural_networks/09_rnn_lstm_and_why_attention/TERMS.md) |
+| 10_precision_and_training_stability | 18 | [15_neural_networks/10_precision_and_training_stability/TERMS.md](15_neural_networks/10_precision_and_training_stability/TERMS.md) |
+
+## 16_modern_llm_architecture
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_bpe_tokenizer_from_scratch | 14 | [16_modern_llm_architecture/01_bpe_tokenizer_from_scratch/TERMS.md](16_modern_llm_architecture/01_bpe_tokenizer_from_scratch/TERMS.md) |
+| 02_positional_encodings | 13 | [16_modern_llm_architecture/02_positional_encodings/TERMS.md](16_modern_llm_architecture/02_positional_encodings/TERMS.md) |
+| 03_norms_and_ffn | 14 | [16_modern_llm_architecture/03_norms_and_ffn/TERMS.md](16_modern_llm_architecture/03_norms_and_ffn/TERMS.md) |
+| 04_attention_variants_and_kv_cache | 14 | [16_modern_llm_architecture/04_attention_variants_and_kv_cache/TERMS.md](16_modern_llm_architecture/04_attention_variants_and_kv_cache/TERMS.md) |
+| 05_flash_attention_online_softmax | 13 | [16_modern_llm_architecture/05_flash_attention_online_softmax/TERMS.md](16_modern_llm_architecture/05_flash_attention_online_softmax/TERMS.md) |
+| 06_mixture_of_experts | 14 | [16_modern_llm_architecture/06_mixture_of_experts/TERMS.md](16_modern_llm_architecture/06_mixture_of_experts/TERMS.md) |
+| 07_build_mini_llama | 15 | [16_modern_llm_architecture/07_build_mini_llama/TERMS.md](16_modern_llm_architecture/07_build_mini_llama/TERMS.md) |
+| 08_read_a_real_config | 15 | [16_modern_llm_architecture/08_read_a_real_config/TERMS.md](16_modern_llm_architecture/08_read_a_real_config/TERMS.md) |
+| 10_architecture_landscape_2026 | 15 | [16_modern_llm_architecture/10_architecture_landscape_2026/TERMS.md](16_modern_llm_architecture/10_architecture_landscape_2026/TERMS.md) |
+
+## 17_finetuning_alignment_and_benchmarks
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_post_training_map_and_chat_templates | 14 | [17_finetuning_alignment_and_benchmarks/01_post_training_map_and_chat_templates/TERMS.md](17_finetuning_alignment_and_benchmarks/01_post_training_map_and_chat_templates/TERMS.md) |
+| 02_sft_from_scratch_with_loss_masking | 13 | [17_finetuning_alignment_and_benchmarks/02_sft_from_scratch_with_loss_masking/TERMS.md](17_finetuning_alignment_and_benchmarks/02_sft_from_scratch_with_loss_masking/TERMS.md) |
+| 03_peft_family | 14 | [17_finetuning_alignment_and_benchmarks/03_peft_family/TERMS.md](17_finetuning_alignment_and_benchmarks/03_peft_family/TERMS.md) |
+| 04_reward_model_bradley_terry | 13 | [17_finetuning_alignment_and_benchmarks/04_reward_model_bradley_terry/TERMS.md](17_finetuning_alignment_and_benchmarks/04_reward_model_bradley_terry/TERMS.md) |
+| 05_dpo_from_scratch | 14 | [17_finetuning_alignment_and_benchmarks/05_dpo_from_scratch/TERMS.md](17_finetuning_alignment_and_benchmarks/05_dpo_from_scratch/TERMS.md) |
+| 06_ppo_vs_grpo_rlvr | 20 | [17_finetuning_alignment_and_benchmarks/06_ppo_vs_grpo_rlvr/TERMS.md](17_finetuning_alignment_and_benchmarks/06_ppo_vs_grpo_rlvr/TERMS.md) |
+| 07_distillation_and_merging | 16 | [17_finetuning_alignment_and_benchmarks/07_distillation_and_merging/TERMS.md](17_finetuning_alignment_and_benchmarks/07_distillation_and_merging/TERMS.md) |
+| 08_evaluation_from_scratch | 18 | [17_finetuning_alignment_and_benchmarks/08_evaluation_from_scratch/TERMS.md](17_finetuning_alignment_and_benchmarks/08_evaluation_from_scratch/TERMS.md) |
+| 09_llm_as_judge_and_arenas | 18 | [17_finetuning_alignment_and_benchmarks/09_llm_as_judge_and_arenas/TERMS.md](17_finetuning_alignment_and_benchmarks/09_llm_as_judge_and_arenas/TERMS.md) |
+| 10_benchmark_landscape_2026_and_tools | 22 | [17_finetuning_alignment_and_benchmarks/10_benchmark_landscape_2026_and_tools/TERMS.md](17_finetuning_alignment_and_benchmarks/10_benchmark_landscape_2026_and_tools/TERMS.md) |
+| 11_end_to_end_report_card | 12 | [17_finetuning_alignment_and_benchmarks/11_end_to_end_report_card/TERMS.md](17_finetuning_alignment_and_benchmarks/11_end_to_end_report_card/TERMS.md) |
+
+## 18_ocr_and_document_parsing
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_images_as_arrays | 13 | [18_ocr_and_document_parsing/01_images_as_arrays/TERMS.md](18_ocr_and_document_parsing/01_images_as_arrays/TERMS.md) |
+| 02_preprocessing | 13 | [18_ocr_and_document_parsing/02_preprocessing/TERMS.md](18_ocr_and_document_parsing/02_preprocessing/TERMS.md) |
+| 03_layout_segmentation | 11 | [18_ocr_and_document_parsing/03_layout_segmentation/TERMS.md](18_ocr_and_document_parsing/03_layout_segmentation/TERMS.md) |
+| 04_character_recognition | 13 | [18_ocr_and_document_parsing/04_character_recognition/TERMS.md](18_ocr_and_document_parsing/04_character_recognition/TERMS.md) |
+| 05_crnn_and_ctc | 14 | [18_ocr_and_document_parsing/05_crnn_and_ctc/TERMS.md](18_ocr_and_document_parsing/05_crnn_and_ctc/TERMS.md) |
+| 06_ocr_evaluation | 12 | [18_ocr_and_document_parsing/06_ocr_evaluation/TERMS.md](18_ocr_and_document_parsing/06_ocr_evaluation/TERMS.md) |
+| 07_reading_order_and_tables | 13 | [18_ocr_and_document_parsing/07_reading_order_and_tables/TERMS.md](18_ocr_and_document_parsing/07_reading_order_and_tables/TERMS.md) |
+| 08_pdf_internals_and_routing | 15 | [18_ocr_and_document_parsing/08_pdf_internals_and_routing/TERMS.md](18_ocr_and_document_parsing/08_pdf_internals_and_routing/TERMS.md) |
+| 09_modern_document_parsers_2026 | 13 | [18_ocr_and_document_parsing/09_modern_document_parsers_2026/TERMS.md](18_ocr_and_document_parsing/09_modern_document_parsers_2026/TERMS.md) |
+| 10_parsed_document_handoff | 14 | [18_ocr_and_document_parsing/10_parsed_document_handoff/TERMS.md](18_ocr_and_document_parsing/10_parsed_document_handoff/TERMS.md) |
+
+## 19_chunking_deep_dive
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_tokens_not_characters | 8 | [19_chunking_deep_dive/01_tokens_not_characters/TERMS.md](19_chunking_deep_dive/01_tokens_not_characters/TERMS.md) |
+| 02_recursive_splitter_rebuilt | 8 | [19_chunking_deep_dive/02_recursive_splitter_rebuilt/TERMS.md](19_chunking_deep_dive/02_recursive_splitter_rebuilt/TERMS.md) |
+| 03_structure_aware_markdown | 8 | [19_chunking_deep_dive/03_structure_aware_markdown/TERMS.md](19_chunking_deep_dive/03_structure_aware_markdown/TERMS.md) |
+| 04_semantic_chunking | 9 | [19_chunking_deep_dive/04_semantic_chunking/TERMS.md](19_chunking_deep_dive/04_semantic_chunking/TERMS.md) |
+| 05_late_chunking | 8 | [19_chunking_deep_dive/05_late_chunking/TERMS.md](19_chunking_deep_dive/05_late_chunking/TERMS.md) |
+| 06_contextual_retrieval | 8 | [19_chunking_deep_dive/06_contextual_retrieval/TERMS.md](19_chunking_deep_dive/06_contextual_retrieval/TERMS.md) |
+| 07_hierarchical_parent_child | 9 | [19_chunking_deep_dive/07_hierarchical_parent_child/TERMS.md](19_chunking_deep_dive/07_hierarchical_parent_child/TERMS.md) |
+| 08_propositions_and_agentic_chunking | 8 | [19_chunking_deep_dive/08_propositions_and_agentic_chunking/TERMS.md](19_chunking_deep_dive/08_propositions_and_agentic_chunking/TERMS.md) |
+| 09_layout_aware_chunking_from_parsed_docs | 9 | [19_chunking_deep_dive/09_layout_aware_chunking_from_parsed_docs/TERMS.md](19_chunking_deep_dive/09_layout_aware_chunking_from_parsed_docs/TERMS.md) |
+| 10_chunking_evaluation | 10 | [19_chunking_deep_dive/10_chunking_evaluation/TERMS.md](19_chunking_deep_dive/10_chunking_evaluation/TERMS.md) |
+| 11_chunker_lld | 11 | [19_chunking_deep_dive/11_chunker_lld/TERMS.md](19_chunking_deep_dive/11_chunker_lld/TERMS.md) |
+
+## 20_llm_system_lld
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_lld_foundations | 11 | [20_llm_system_lld/01_lld_foundations/TERMS.md](20_llm_system_lld/01_lld_foundations/TERMS.md) |
+| 02_domain_model | 13 | [20_llm_system_lld/02_domain_model/TERMS.md](20_llm_system_lld/02_domain_model/TERMS.md) |
+| 03_ingestion_pipeline | 12 | [20_llm_system_lld/03_ingestion_pipeline/TERMS.md](20_llm_system_lld/03_ingestion_pipeline/TERMS.md) |
+| 04_query_pipeline | 13 | [20_llm_system_lld/04_query_pipeline/TERMS.md](20_llm_system_lld/04_query_pipeline/TERMS.md) |
+| 05_design_patterns_in_llm_apps | 14 | [20_llm_system_lld/05_design_patterns_in_llm_apps/TERMS.md](20_llm_system_lld/05_design_patterns_in_llm_apps/TERMS.md) |
+| 06_resilience | 13 | [20_llm_system_lld/06_resilience/TERMS.md](20_llm_system_lld/06_resilience/TERMS.md) |
+| 07_caching | 12 | [20_llm_system_lld/07_caching/TERMS.md](20_llm_system_lld/07_caching/TERMS.md) |
+| 08_llm_gateway_and_streaming | 12 | [20_llm_system_lld/08_llm_gateway_and_streaming/TERMS.md](20_llm_system_lld/08_llm_gateway_and_streaming/TERMS.md) |
+| 09_observability_and_eval_hooks | 13 | [20_llm_system_lld/09_observability_and_eval_hooks/TERMS.md](20_llm_system_lld/09_observability_and_eval_hooks/TERMS.md) |
+| 10_lld_interview_problems | 12 | [20_llm_system_lld/10_lld_interview_problems/TERMS.md](20_llm_system_lld/10_lld_interview_problems/TERMS.md) |
+| 11_versioning_guardrails_and_budgets | 21 | [20_llm_system_lld/11_versioning_guardrails_and_budgets/TERMS.md](20_llm_system_lld/11_versioning_guardrails_and_budgets/TERMS.md) |
+
+## 21_llm_inference_engineering
+
+| Folder | Terms | File |
+|---|--:|---|
+| 01_checkpoint_formats_and_loading | 15 | [21_llm_inference_engineering/01_checkpoint_formats_and_loading/TERMS.md](21_llm_inference_engineering/01_checkpoint_formats_and_loading/TERMS.md) |
+| 02_gguf_and_llamacpp_formats | 14 | [21_llm_inference_engineering/02_gguf_and_llamacpp_formats/TERMS.md](21_llm_inference_engineering/02_gguf_and_llamacpp_formats/TERMS.md) |
+| 03_gpu_memory_calculator | 22 | [21_llm_inference_engineering/03_gpu_memory_calculator/TERMS.md](21_llm_inference_engineering/03_gpu_memory_calculator/TERMS.md) |
+| 04_quantization_math | 16 | [21_llm_inference_engineering/04_quantization_math/TERMS.md](21_llm_inference_engineering/04_quantization_math/TERMS.md) |
+| 05_activation_quant_and_calibration | 12 | [21_llm_inference_engineering/05_activation_quant_and_calibration/TERMS.md](21_llm_inference_engineering/05_activation_quant_and_calibration/TERMS.md) |
+| 06_gptq_awq_from_scratch | 12 | [21_llm_inference_engineering/06_gptq_awq_from_scratch/TERMS.md](21_llm_inference_engineering/06_gptq_awq_from_scratch/TERMS.md) |
+| 07_kv_cache_quantization | 10 | [21_llm_inference_engineering/07_kv_cache_quantization/TERMS.md](21_llm_inference_engineering/07_kv_cache_quantization/TERMS.md) |
+| 08_hf_inference_batching_kvcache | 21 | [21_llm_inference_engineering/08_hf_inference_batching_kvcache/TERMS.md](21_llm_inference_engineering/08_hf_inference_batching_kvcache/TERMS.md) |
+| 09_prefill_decode_roofline | 14 | [21_llm_inference_engineering/09_prefill_decode_roofline/TERMS.md](21_llm_inference_engineering/09_prefill_decode_roofline/TERMS.md) |
+| 10_latency_throughput_benchmark | 16 | [21_llm_inference_engineering/10_latency_throughput_benchmark/TERMS.md](21_llm_inference_engineering/10_latency_throughput_benchmark/TERMS.md) |
+| 11_paged_attention_fragmentation | 10 | [21_llm_inference_engineering/11_paged_attention_fragmentation/TERMS.md](21_llm_inference_engineering/11_paged_attention_fragmentation/TERMS.md) |
+| 12_continuous_batching_prefix_caching | 15 | [21_llm_inference_engineering/12_continuous_batching_prefix_caching/TERMS.md](21_llm_inference_engineering/12_continuous_batching_prefix_caching/TERMS.md) |
+| 13_speculative_decoding | 17 | [21_llm_inference_engineering/13_speculative_decoding/TERMS.md](21_llm_inference_engineering/13_speculative_decoding/TERMS.md) |
+| 14_parallelism_and_offloading | 15 | [21_llm_inference_engineering/14_parallelism_and_offloading/TERMS.md](21_llm_inference_engineering/14_parallelism_and_offloading/TERMS.md) |
+| 15_serving_engines_landscape | 25 | [21_llm_inference_engineering/15_serving_engines_landscape/TERMS.md](21_llm_inference_engineering/15_serving_engines_landscape/TERMS.md) |
+| 16_cost_per_token | 10 | [21_llm_inference_engineering/16_cost_per_token/TERMS.md](21_llm_inference_engineering/16_cost_per_token/TERMS.md) |
+| 17_inference_report_project | 9 | [21_llm_inference_engineering/17_inference_report_project/TERMS.md](21_llm_inference_engineering/17_inference_report_project/TERMS.md) |
 
 ## Other folders
 

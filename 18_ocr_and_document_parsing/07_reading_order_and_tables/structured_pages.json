@@ -1,0 +1,215 @@
+{
+ "source": "synthetic report",
+ "pages": [
+  {
+   "page": 1,
+   "width": 800,
+   "height": 640,
+   "elements": [
+    {
+     "order": 0,
+     "kind": "title",
+     "text": "Chai Kitchen Quarterly Report",
+     "bbox": [
+      42,
+      31,
+      494,
+      64
+     ],
+     "confidence": 0.962
+    },
+    {
+     "order": 1,
+     "kind": "heading",
+     "text": "Refund policy",
+     "bbox": [
+      43,
+      106,
+      205,
+      131
+     ],
+     "confidence": 0.903
+    },
+    {
+     "order": 2,
+     "kind": "paragraph",
+     "text": "Refunds are issued within nine days of delivery. The money is returned to the original payment method. Opened tea tins cannot be returned.",
+     "bbox": [
+      41,
+      151,
+      396,
+      261
+     ],
+     "confidence": 0.905
+    },
+    {
+     "order": 3,
+     "kind": "paragraph",
+     "text": "Shipping inside India takes three to five working days. Orders above 499 rupees ship free. We do not ship to a PO box.",
+     "bbox": [
+      421,
+      151,
+      750,
+      261
+     ],
+     "confidence": 0.904
+    },
+    {
+     "order": 4,
+     "kind": "table",
+     "text": "| Product | Price | Stock |\n|---|---|---|\n| Masala Chai | 250 | 120 |\n| Green Tea | 320 | 75 |\n| Tulsi Blend | 290 | 0 |",
+     "rows": [
+      [
+       "Product",
+       "Price",
+       "Stock"
+      ],
+      [
+       "Masala Chai",
+       "250",
+       "120"
+      ],
+      [
+       "Green Tea",
+       "320",
+       "75"
+      ],
+      [
+       "Tulsi Blend",
+       "290",
+       "0"
+      ]
+     ],
+     "grid": [
+      4,
+      3
+     ],
+     "bbox": [
+      40,
+      310,
+      742,
+      488
+     ],
+     "confidence": 0.909
+    },
+    {
+     "order": 5,
+     "kind": "footer",
+     "text": "Page 1 cif 2",
+     "bbox": [
+      362,
+      588,
+      442,
+      603
+     ],
+     "confidence": 0.785
+    }
+   ]
+  },
+  {
+   "page": 2,
+   "width": 800,
+   "height": 640,
+   "elements": [
+    {
+     "order": 0,
+     "kind": "title",
+     "text": "Loyalty and Support Notes",
+     "bbox": [
+      43,
+      31,
+      445,
+      64
+     ],
+     "confidence": 0.971
+    },
+    {
+     "order": 1,
+     "kind": "heading",
+     "text": "Loyalty points",
+     "bbox": [
+      43,
+      107,
+      206,
+      131
+     ],
+     "confidence": 0.929
+    },
+    {
+     "order": 2,
+     "kind": "paragraph",
+     "text": "Members earn one point for every ten rupees spent. One hundred points are worth ten rupees off a later order.",
+     "bbox": [
+      41,
+      151,
+      373,
+      257
+     ],
+     "confidence": 0.915
+    },
+    {
+     "order": 3,
+     "kind": "paragraph",
+     "text": "Support is open from nine to six on weekdays. Replies to email arrive within one working day. Phone support is not offered.",
+     "bbox": [
+      421,
+      151,
+      729,
+      261
+     ],
+     "confidence": 0.921
+    },
+    {
+     "order": 4,
+     "kind": "table",
+     "text": "| Plan | Points | Fee |\n|---|---|---|\n| Basic | 1 | 0 |\n| Silver | 2 | 499 |\n| Gold | 3 | 999 |",
+     "rows": [
+      [
+       "Plan",
+       "Points",
+       "Fee"
+      ],
+      [
+       "Basic",
+       "1",
+       "0"
+      ],
+      [
+       "Silver",
+       "2",
+       "499"
+      ],
+      [
+       "Gold",
+       "3",
+       "999"
+      ]
+     ],
+     "grid": [
+      4,
+      3
+     ],
+     "bbox": [
+      40,
+      310,
+      742,
+      488
+     ],
+     "confidence": 0.911
+    },
+    {
+     "order": 5,
+     "kind": "footer",
+     "text": "Page 2 cif 2",
+     "bbox": [
+      362,
+      588,
+      442,
+      603
+     ],
+     "confidence": 0.776
+    }
+   ]
+  }
+ ]
+}

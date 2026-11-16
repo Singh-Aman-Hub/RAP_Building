@@ -58,6 +58,230 @@ cd 14_rag_and_retrieval/06_bm25_and_hybrid_search
 python main.py       # about 6 s in this run (cached MiniLM); timings vary
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| BM25 vs TF-IDF vs keyword search vs lexical/sparse retrieval | Okapi BM25, "full-text search" | Related | BM25 is the standard ranking function for keyword search; it improves TF-IDF with saturation and length normalisation |
+| Hybrid search vs fusion vs ensemble retrieval | dense + sparse | Related | Hybrid = using both retrievers; fusion = the step that merges their results |
+| RRF vs weighted blend vs score fusion | rank vs score merging | No | RRF merges by rank (`1/(k+rank)`); blend min-max normalises scores then takes `alpha*dense + (1-alpha)*bm25` |
+| hit@k vs recall@k vs precision@k | retrieval metrics | No | hit@k = was the gold chunk in the top k (1 gold chunk per question here, so it equals recall@k); precision@k = share of the top k that are gold |
+| MRR vs nDCG vs MAP | rank-aware metrics | No | MRR = mean of 1/rank of the first correct hit; nDCG weighs graded relevance; MAP averages precision over hits |
+| Stopword vs token | filtered words | No | Stopwords ("the", "is") are dropped before counting; tokens are what remains |
+
+## Code, step by step
+
+### 1. Docstring  (`main.py` lines 1–13)
+```python
+"""
+GOAL:  Keyword search with BM25 written out by hand, then compare it with dense search on 24 labelled
+       questions, broken down by question type (keyword / paraphrase / exact product code).
+       Finally fuse both rankings with Reciprocal Rank Fusion (RRF) and with a weighted score blend.
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/06_bm25_and_hybrid_search/main.py
+EXPECTED OUTPUT (shortened):
+    idf('refund') = ...  idf('days') = ...   (rare words count more)
+    method          hit@1  hit@3   MRR   | keyword paraphrase exact_code (hit@1)
+    BM25 ...  dense ...  hybrid RRF ...
+NEEDS: torch, transformers (cached MiniLM).  ~10 s.
+"""
+```
+- **In simple words:** What the file compares: keyword search, meaning search and two ways to combine them.
+- **Exactly:** BM25 by hand, then BM25 versus dense on 24 labelled questions (by type keyword, paraphrase, exact code), then RRF and a weighted blend.
+- **Why it is here:** Lets you see which retriever wins where.
+
+### 2. Imports and shared helpers  (`main.py` lines 15–23)
+```python
+import math
+import sys
+from collections import Counter
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import BM25, Embedder, build_chunks, chunk_for_embedding, load_eval_set, rrf_fuse, tokenize   # noqa: E402
+```
+- **In simple words:** Load tools and the helpers from `common.py`.
+- **Exactly:** `Counter` and `math` for the hand-written BM25; `BM25, Embedder, build_chunks, chunk_for_embedding, load_eval_set, rrf_fuse, tokenize` come from `common`.
+- **Why it is here:** The class is taught here, by hand, then imported finished.
+
+### 3. Chunks and the text to search  (`main.py` lines 25–26)
+```python
+chunks = build_chunks()
+texts = [chunk_for_embedding(c) for c in chunks]
+```
+- **In simple words:** Build the 36 chunks and the text of each.
+- **Exactly:** `texts` are `chunk_for_embedding(c)` strings, the same text used for dense search, so both retrievers see the same content.
+- **Why it is here:** A fair comparison needs the same input.
+
+### 4. Show the tokens  (`main.py` lines 28–29)
+```python
+# ---- 1. Tokens: what BM25 actually compares ---------------------------------------------------------------
+print("tokens:", tokenize("What is in CK-MASALA-250? How many days do I have for a refund?"))
+```
+- **In simple words:** See what the search engine really compares.
+- **Exactly:** Real: `['ck-masala-250', 'many', 'days', 'refund']`. Lowercased, stopwords ("what", "is", "in", "how", "do", "i", "have", "for", "a") removed, the product code kept whole.
+- **Why it is here:** BM25 only ever sees these tokens.
+
+### 5. Counting statistics by hand  (`main.py` lines 32–35)
+```python
+docs = [Counter(tokenize(t)) for t in texts]
+N = len(docs)
+avg_len = np.mean([sum(d.values()) for d in docs])
+df = Counter(term for d in docs for term in d)                 # document frequency: chunks containing the term
+```
+- **In simple words:** Count words per chunk, the average length, and how many chunks contain each word.
+- **Exactly:** `docs` is a list of `Counter`s; `N` = 36; `avg_len` is the mean token count (19.31); `df[term]` = number of chunks containing the term (document frequency).
+- **Why it is here:** These are the only numbers BM25 needs.
+
+### 6. idf: how rare a word is  (`main.py` lines 38–40)
+```python
+def idf(term):
+    """Rare terms carry more information. +1 inside the log keeps it positive."""
+    return math.log(1 + (N - df[term] + 0.5) / (df[term] + 0.5))
+```
+- **In simple words:** Rare words get a big number, common words a small one.
+- **Exactly:** `idf = ln(1 + (N - df + 0.5) / (df + 0.5))`; the `+1` keeps it positive. Real: refund 2.36, days 1.47, tea 1.47, ck-tulsi-100 3.21.
+- **Why it is here:** "refund" says more about a chunk than "days".
+
+### 7. Print some idf values  (`main.py` lines 43–43)
+```python
+print("\nidf (rare words weigh more):", {t: round(idf(t), 2) for t in ("refund", "days", "tea", "ck-tulsi-100")})
+```
+- **In simple words:** Show the rarity of four words.
+- **Exactly:** Dictionary comprehension rounding to 2 digits.
+- **Why it is here:** Make the idea visible.
+
+### 8. bm25_one: the formula for one chunk  (`main.py` lines 46–56)
+```python
+def bm25_one(query, i, k1=1.5, b=0.75):
+    doc_len = sum(docs[i].values())
+    score = 0.0
+    for term in tokenize(query):
+        tf = docs[i].get(term, 0)                              # how often the term occurs in this chunk
+        if tf == 0:
+            continue
+        # tf saturation: the 5th 'refund' adds much less than the 1st (k1);
+        # length normalisation: matches in long chunks count a little less (b)
+        score += idf(term) * tf * (k1 + 1) / (tf + k1 * (1 - b + b * doc_len / avg_len))
+    return score
+```
+- **In simple words:** Score how well one chunk matches the query.
+- **Exactly:** For each query term with `tf > 0`: `idf * tf * (k1 + 1) / (tf + k1 * (1 - b + b * doc_len / avg_len))`, summed. `k1=1.5` saturates repeated words (the 5th "refund" adds little); `b=0.75` lowers the score of long chunks.
+- **Why it is here:** Without saturation, spammy repeated words win; without length normalisation, long chunks win.
+
+### 9. Check against the library class  (`main.py` lines 59–62)
+```python
+q = "How many days do I have for a refund?"
+i = next(j for j, c in enumerate(chunks) if c["chunk_id"] == "refunds_and_returns#Refund window")
+print(f"BM25 by hand for {q!r} vs refund-window chunk: {bm25_one(q, i):.3f} "
+      f"| library class: {BM25(texts).scores(q)[i]:.3f}")
+```
+- **In simple words:** Compare my hand-written score with `common.BM25`.
+- **Exactly:** Real: `3.735` by hand and `3.735` from the class for "How many days do I have for a refund?" against the Refund window chunk.
+- **Why it is here:** Proves the class does exactly the formula.
+
+### 10. Build the three retrievers' inputs  (`main.py` lines 65–69)
+```python
+bm25 = BM25(texts)
+embedder = Embedder()
+matrix = embedder.encode(texts)
+eval_set = [x for x in load_eval_set() if x["gold"]]
+ids = [c["chunk_id"] for c in chunks]
+```
+- **In simple words:** Create the BM25 index, the embedder, the vector matrix and the list of questions.
+- **Exactly:** `matrix` shape `(36, 384)`; `eval_set` keeps the 24 questions with a gold chunk; `ids` are the chunk ids in the same order as the rows.
+- **Why it is here:** All methods then use the same row numbering.
+
+### 11. dense_rank  (`main.py` lines 72–75)
+```python
+def dense_rank(query, k=20):
+    s = matrix @ embedder.encode([query])[0]
+    top = np.argsort(-s)[:k]
+    return [(int(j), float(s[j])) for j in top]
+```
+- **In simple words:** Rank chunks by meaning for one question.
+- **Exactly:** `matrix @ query_vec` gives 36 cosine scores; top-20 returned as `(row, score)` pairs, the same shape as `bm25.search`.
+- **Why it is here:** Same output shape lets fusion treat both alike.
+
+### 12. blend_rank: weighted score blend  (`main.py` lines 78–85)
+```python
+def blend_rank(query, alpha=0.5, k=20):
+    """Weighted score fusion: min-max normalise both score lists, then alpha*dense + (1-alpha)*bm25."""
+    d = matrix @ embedder.encode([query])[0]
+    s = bm25.scores(query)
+    norm = lambda x: (x - x.min()) / (x.max() - x.min() + 1e-9)
+    mix = alpha * norm(d) + (1 - alpha) * norm(s)
+    top = np.argsort(-mix)[:k]
+    return [(int(j), float(mix[j])) for j in top]
+```
+- **In simple words:** Mix the two scores after putting them on the same 0 to 1 scale.
+- **Exactly:** `norm` is min-max normalisation `(x - min) / (max - min + 1e-9)`; `mix = alpha * norm(dense) + (1 - alpha) * norm(bm25)`. Alpha 0.5 = equal weights.
+- **Why it is here:** Raw cosine (0 to 1) and BM25 (0 to 10+) are not comparable; blending needs a scale fix, RRF does not.
+
+### 13. The four methods  (`main.py` lines 88–93)
+```python
+methods = {
+    "BM25 (sparse)": lambda qq: bm25.search(qq, 20),
+    "dense (MiniLM)": dense_rank,
+    "hybrid RRF k=60": lambda qq: rrf_fuse([bm25.search(qq, 20), dense_rank(qq)], k=60, top_n=20),
+    "hybrid blend a=0.5": blend_rank,
+}
+```
+- **In simple words:** A menu of BM25, dense, RRF and blend.
+- **Exactly:** Each entry is a function question to ranked list of `(row, score)`. RRF uses `rrf_fuse([bm25 top 20, dense top 20], k=60, top_n=20)`.
+- **Why it is here:** One loop evaluates all of them identically.
+
+### 14. Evaluate every method  (`main.py` lines 94–105)
+```python
+kinds = ["keyword", "paraphrase", "exact_code"]
+print(f"\n{'method':<20}{'hit@1':>7}{'hit@3':>7}{'MRR':>7}   " + "".join(f"{k:>12}" for k in kinds) + "   (hit@1 by type)")
+for name, fn in methods.items():
+    ranks = []
+    for x in eval_set:
+        order = [ids[j] for j, _ in fn(x["question"])]
+        ranks.append(order.index(x["gold"][0]) + 1 if x["gold"][0] in order else None)
+    hit1 = np.mean([r == 1 for r in ranks])
+    hit3 = np.mean([r is not None and r <= 3 for r in ranks])
+    mrr = np.mean([1 / r if r else 0 for r in ranks])          # Mean Reciprocal Rank: 1, 1/2, 1/3 ... or 0
+    by_kind = [np.mean([r == 1 for r, x in zip(ranks, eval_set) if x["kind"] == k]) for k in kinds]
+    print(f"{name:<20}{hit1:>7.2f}{hit3:>7.2f}{mrr:>7.2f}   " + "".join(f"{v:>12.2f}" for v in by_kind))
+```
+- **In simple words:** Measure hit@1, hit@3 and MRR, and hit@1 by question type.
+- **Exactly:** `ranks` = 1-based rank of the gold chunk or `None`. hit@1 is the share of rank 1, hit@3 rank at most 3, MRR the mean of `1/rank` (0 if missing). Real table: BM25 0.71 / 0.88 / 0.79; dense 0.83 / 0.96 / 0.90; hybrid RRF 0.83 / 0.92 / 0.88; blend 0.79 / 0.96 / 0.88. By type (hit@1): BM25 keyword 0.82, paraphrase 0.50, exact_code 1.00; dense 0.91, 0.70, 1.00.
+- **Why it is here:** Per-type results show where each method is weak, not just an average.
+
+### 15. Where each one wins  (`main.py` lines 108–117)
+```python
+print()
+for qq in ["What is the money back window after the tea arrives?", "pin codes"]:
+    b_top = ids[bm25.search(qq, 1)[0][0]]
+    d_top = ids[dense_rank(qq, 1)[0][0]]
+    print(f"Q: {qq}\n   BM25 top: {b_top}\n   dense top: {d_top}")
+print("\nBoth questions: BM25 wins. Q1: the heading word 'window' matched exactly; dense ranked that chunk 2nd.")
+print("Q2: short jargon gives dense too little meaning to work with. Dense still wins more paraphrases overall (table).")
+print("On this tiny, clean knowledge base dense alone is already strong, so hybrid only ties it on hit@1.")
+print("Hybrid pays off on big corpora full of product codes, names and error strings,")
+print("where one retriever's miss is often the other one's hit.")
+```
+- **In simple words:** Two example questions where BM25 and dense disagree.
+- **Exactly:** Q1 "money back window": BM25 top = `Refund window` (the heading word "window" matches exactly), dense top = `How to request a refund`. Q2 "pin codes": BM25 `Delivery times`, dense `Redeeming points` (too little meaning to work with).
+- **Why it is here:** A concrete failure case beats an average score in an interview.
+
+### 16. Exercises as comments  (`main.py` lines 119–122)
+```python
+# TRY IT: set b=0 in BM25 (no length normalisation) and b=1. Which questions change rank?
+# TRY IT: change alpha in blend_rank to 0.2 and 0.8. Then RRF k to 1 and 1000. Which is more robust?
+# TRY IT: remove the stopword filter in common.tokenize: 'the', 'is', 'do' now add noise to BM25.
+# BREAK IT: call rrf_fuse with ranks starting at 0 instead of 1 (enumerate(..., start=0)): with k=0 -> ZeroDivisionError.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: ranks starting at 0 with `k=0` gives `ZeroDivisionError`.
+- **Why it is here:** Shows why ranks start at 1 in RRF.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

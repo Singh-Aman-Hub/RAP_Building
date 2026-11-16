@@ -101,6 +101,18 @@ Every step has `WALKTHROUGH.md`; exercises in [exercises.md](exercises.md), answ
 - [ ] Multi-stage build, non-root user, security checklist
 - [ ] Containerised the module-09 API
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Image vs container | "class vs instance", "recipe result vs running process" | No | Image = read-only layered template; container = a running (or stopped) instance with a writable layer |
+| `CMD` vs `ENTRYPOINT` vs `RUN` | start command, fixed program, build command | No | `RUN` at build time; `ENTRYPOINT` the fixed program; `CMD` default args, replaced by `docker run image args` |
+| Named volume vs bind mount vs tmpfs | `-v name:/path`, `-v ./dir:/path`, in-memory | No | Docker-managed disk vs host folder vs RAM that disappears at stop |
+| `EXPOSE` vs `-p` / `ports:` | "open the port" | No | Documentation only vs a real host-to-container mapping |
+| Liveness vs readiness vs `HEALTHCHECK` | `/health`, `/ready`, probe | Related | Alive = process up; ready = dependencies work; `HEALTHCHECK` is Docker's mechanism that runs either |
+| `docker compose` vs `docker-compose` | Compose v2 vs v1 | Mostly | Space = current plugin; hyphen = retired Python v1 |
+| Layer cache vs build cache | "CACHED" in the build log | Yes | Same thing, different words for reuse of unchanged layers |
+
 ## Interview questions
 1. **What is the difference between an image and a container?** Image = immutable layered template; container = running (or stopped) instance with a writable layer. Trade-off: containers are disposable, so persist data elsewhere.
 2. **Container vs VM?** Containers share the host kernel and isolate via namespaces/cgroups: lightweight, fast. VMs include a guest OS: stronger isolation, heavier.

@@ -1,0 +1,21 @@
+# Track A as its own compose project. Run from the repo root (the build context must contain modules 14/18/19/20):
+#   docker compose -f 13_capstone_project/track_a_document_qa/compose.yaml up --build
+# It is a SEPARATE file so the core capstone's compose.yaml (api + ui) stays untouched. NOT run in this course (no daemon assumed).
+services:
+  docqa:
+    build:
+      context: ../..                                           # repo root
+      dockerfile: 13_capstone_project/track_a_document_qa/Dockerfile
+    ports: ["8001:8001"]
+    environment:
+      DOCQA_AUTOLOAD: "1"                                      # ingest the built-in corpus at startup
+      # Optional real LLM (any OpenAI-compatible endpoint). Leave unset to use the free mock/extractive LLM.
+      # DOCQA_LLM_BASE_URL: http://host.docker.internal:8000/v1
+      # DOCQA_LLM_MODEL: my-model
+      # DOCQA_LLM_API_KEY: ${DOCQA_LLM_API_KEY:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 40s

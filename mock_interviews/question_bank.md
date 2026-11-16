@@ -6,7 +6,7 @@ Answer aloud first, then compare. Each answer names the modules it connects.
 The model outputs logits; softmax turns them into probabilities. Temperature divides logits before softmax; as it approaches 0 the top token dominates, so decoding becomes argmax (greedy) and is deterministic. Trade-off: repetitive, no diversity. (03 softmax, 04 logits, 05 sampling)
 
 **2. Your API runs out of memory with 4 Gunicorn workers. Why, and what do you do?**
-Each worker is a separate process that loads its own copy of the model. Memory = workers x model size. Fix: fewer workers, load once with `--preload` (copy-on-write helps only partly), quantize, or serve the model in one dedicated process/service. (04 params x bytes, 05 quantization, 09 workers)
+Each worker is a separate process that loads its own copy of the model. Memory = workers x model size. Fix: fewer workers, load once with `--preload` (copy-on-write helps only partly), quantize, or serve the model in one dedicated process/service. (04 params x bytes, 21 steps 03-04 memory and quantization, 09 workers)
 
 **3. WSGI vs ASGI?**
 WSGI is the synchronous Python web interface (Flask + Gunicorn); one request per worker at a time. ASGI supports async and websockets (FastAPI + Uvicorn); one worker can interleave many I/O-bound requests. CPU-bound model inference still blocks the event loop unless run in a thread/process pool. (09)
@@ -21,16 +21,16 @@ Constrain the prompt and schema, extract + validate (Pydantic), retry with the e
 `docker logs <id>`; check CMD path/syntax, missing dependency, app binding to 127.0.0.1 instead of 0.0.0.0, process running in background so PID 1 ends. (11, 01)
 
 **7. Why is generation slower for long outputs?**
-Attention cost grows with sequence length; the KV cache avoids recomputation but grows in memory per token. (04, 06, 02 Big-O)
+Attention cost grows with sequence length; the KV cache avoids recomputation but grows in memory per token. (04, 16 KV cache, 21 step 08, 02 Big-O)
 
 **8. How would you serve 100 requests/s?**
-Measure first. Batch requests, cache repeated inputs, quantize, scale replicas behind a load balancer, async I/O, queue for bursts, set timeouts. (06, 09, 10, 11)
+Measure first. Batch requests, cache repeated inputs, quantize, scale replicas behind a load balancer, async I/O, queue for bursts, set timeouts. (21 serving and batching, 09, 10, 11)
 
 **9. Fine-tune vs prompt vs LoRA?**
 Prompt first (cheapest, reversible). Fine-tune when behavior/style must change and you have data. LoRA trains small low-rank matrices: far less memory, swappable adapters; slightly less capacity than full fine-tuning. (06, 07)
 
 **10. Pickle/joblib model files: any concern?**
-Unpickling can execute arbitrary code: only load trusted files; prefer safetensors/ONNX for shared weights; pin library versions. (03, 10)
+Unpickling can execute arbitrary code: only load trusted files; prefer safetensors/ONNX for shared weights; pin library versions. (03, 10, 21 step 01 safetensors)
 
 **11. Learning rate too high vs too low?**
 Too high: loss oscillates/diverges. Too low: slow, may stall. Batch size trades gradient noise against memory and speed. (03, 05)
@@ -46,3 +46,6 @@ Walk input -> processing -> output, name each library call and its arguments, st
 
 **15. Batch vs real-time inference?**
 Batch: scheduled, high throughput, latency irrelevant. Real-time: per-request low latency, needs always-on serving. Pick by freshness need and cost. (10)
+
+---
+More questions: modules 15 to 21 (six question types per module, with worked numbers) are in [question_bank_15_to_21.md](question_bank_15_to_21.md).

@@ -179,7 +179,7 @@ New walls, new engineering:
 ## Why this repo is ordered the way it is
 `Phase 1` (loss, gradient descent) → `Phase 2` (math behind it: derivatives, softmax, entropy) → `Phase 3` (stack layers, backprop) → `Phase 4` (CNN: weight sharing in space) → `Phase 5` (RNN/LSTM: weight sharing in time) → `Phase 6` (tokens & embeddings) → `Phase 7` (attention) → `Phase 8–9` (a language model; training & inference) → `Phases 10–12` (agents, APIs, deployment) → `Phase 13` (interviews).
 
-You can read it right now at: [Phase 1](01_machine_learning/README.md) · [roadmap](LEARNING_ROADMAP.md). Each phase's `PHASE_RELATIONSHIP.md` repeats this story in precise technical detail.
+In this repo the same story runs through the modules in the recommended reading order: see the [root README](../../README.md) and the [ROADMAP](../../ROADMAP.md).
 
 ## Retell it yourself (best interview practice)
 Explain out loud, no notes, one sentence per arrow:

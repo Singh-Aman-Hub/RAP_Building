@@ -1,9 +1,9 @@
-# Terms — vLLM (Reference)
+# Terms — Serving engines landscape (vLLM reference, engine comparison)
 
-Folder: `06_llm_training_and_fast_inference/10_vllm_reference` · Files covered: `vllm_reference.py`, `WALKTHROUGH.md` (reference only, not executed; needs Linux and an NVIDIA GPU)
-Back to module: [06 README](../README.md)
+Folder: `21_llm_inference_engineering/15_serving_engines_landscape` · Files covered: `main.py` (runnable decision helper), `vllm_reference.py`, `sglang_reference.py`, `ollama_reference.py`, `llamacpp_reference.md`, `trtllm_reference.md`, `WALKTHROUGH.md` (the vLLM, SGLang and TensorRT-LLM files are reference only: they need Linux and an NVIDIA GPU)
+Back to module: [21 README](../README.md)
 
-**Terms in this folder:** [vLLM](#vllm) · [PagedAttention](#pagedattention) · [KV cache waste (fragmentation)](#kv-cache-waste-fragmentation) · [Continuous batching](#continuous-batching) · [Static batching](#static-batching) · [LLM (vllm class)](#llm-vllm-class) · [SamplingParams](#samplingparams) · [gpu_memory_utilization](#gpu_memory_utilization) · [max_model_len](#max_model_len) · [dtype="float16" and quantization="awq"](#dtypefloat16-and-quantizationawq) · [llm.generate (batch of prompts)](#llmgenerate-batch-of-prompts) · [outputs[0].outputs[0].text](#outputs00text) · [vllm serve](#vllm-serve) · [OpenAI-compatible API](#openai-compatible-api) · [curl with -H and -d](#curl-with--h-and--d) · [Transformers generate vs vLLM](#transformers-generate-vs-vllm)
+**Terms in this folder:** [vLLM](#vllm) · [PagedAttention](#pagedattention) · [KV cache waste (fragmentation)](#kv-cache-waste-fragmentation) · [Continuous batching](#continuous-batching) · [Static batching](#static-batching) · [LLM (vllm class)](#llm-vllm-class) · [SamplingParams](#samplingparams) · [gpu_memory_utilization](#gpu_memory_utilization) · [max_model_len](#max_model_len) · [dtype="float16" and quantization="awq"](#dtypefloat16-and-quantizationawq) · [llm.generate (batch of prompts)](#llmgenerate-batch-of-prompts) · [outputs[0].outputs[0].text](#outputs00text) · [vllm serve](#vllm-serve) · [OpenAI-compatible API](#openai-compatible-api) · [curl with -H and -d](#curl-with--h-and--d) · [Transformers generate vs vLLM](#transformers-generate-vs-vllm) · [Serving engine](#serving-engine) · [llama.cpp](#llamacpp) · [Ollama](#ollama) · [SGLang](#sglang) · [RadixAttention](#radixattention) · [TensorRT-LLM](#tensorrt-llm) · [TGI in maintenance mode](#tgi-in-maintenance-mode) · [recommend() decision helper](#recommend-decision-helper) · [Prefix caching vs RadixAttention](#prefix-caching-vs-radixattention)
 
 ---
 
@@ -108,3 +108,58 @@ curl http://localhost:8000/v1/chat/completions -H "Content-Type: application/jso
 **2. In plain words:** Use Transformers for learning and experiments, vLLM for serving many users. Limitation: vLLM needs a CUDA GPU server, and not every model or quantisation format is supported immediately.
 **3. Example to quote:** > "For a demo on my laptop I use Transformers; for production traffic I'd choose vLLM and accept the extra operations work."
 **Seen in:** `vllm_reference.py`, section C; `WALKTHROUGH.md`
+
+## Serving engine  `(concept)`
+**1. Definition:** Software that adds a scheduler, KV-cache manager, optimised kernels, quantization support and an API around a model.
+**2. In plain words:** The thing that turns weights into a service.
+**3. Example to quote:** > "An engine is more than generate(): it schedules, caches and serves."
+**Seen in:** `main.py`
+
+## llama.cpp  `(third-party: llama.cpp)`
+**1. Definition:** C/C++ engine on ggml running GGUF models on CPU, Metal, CUDA, Vulkan; `llama-server` gives an OpenAI-compatible API with parallel slots and continuous batching.
+**2. In plain words:** The local, portable engine.
+**3. Example to quote:** > "I use llama.cpp for laptops and CPU/GPU layer splits with -ngl."
+**Seen in:** `llamacpp_reference.md`
+
+## Ollama  `(third-party: ollama)`
+**1. Definition:** A daemon wrapping llama.cpp/ggml with a model registry and REST API on port 11434, plus an OpenAI-compatible /v1.
+**2. In plain words:** The easiest way to run a local model.
+**3. Example to quote:** > "Ollama is for convenience; vLLM is for concurrency."
+**Seen in:** `ollama_reference.py`
+
+## SGLang  `(third-party: sglang)`
+**1. Definition:** GPU engine with RadixAttention prefix caching, CPU-overlapped scheduler and strong structured output.
+**2. In plain words:** vLLM's closest rival, best with shared prefixes.
+**3. Example to quote:** > "For agent loops with shared prefixes I would try SGLang."
+**Seen in:** `sglang_reference.py`
+
+## RadixAttention  `(concept)`
+**1. Definition:** A radix tree over token prefixes indexing cached KV blocks so any shared prefix is reused, with LRU eviction.
+**2. In plain words:** Prefix cache as a tree.
+**3. Example to quote:** > "RadixAttention finds the longest cached prefix by walking a tree."
+**Seen in:** `sglang_reference.py`
+
+## TensorRT-LLM  `(third-party: tensorrt-llm)`
+**1. Definition:** NVIDIA's optimised inference library with fused kernels, in-flight batching, FP8/NVFP4 and trtllm-serve.
+**2. In plain words:** Peak speed on NVIDIA only.
+**3. Example to quote:** > "I would consider TensorRT-LLM if I am NVIDIA-only and optimising cost per token."
+**Seen in:** `trtllm_reference.md`
+
+## TGI in maintenance mode  `(concept)`
+**1. Definition:** Hugging Face Text Generation Inference is in maintenance mode; Hugging Face recommends vLLM or SGLang.
+**2. In plain words:** Do not start new projects on it.
+**3. Example to quote:** > "TGI is in maintenance mode, so for a new service I would pick vLLM."
+**Seen in:** `WALKTHROUGH.md`
+
+## recommend() decision helper  `(function)`
+**1. Definition:** Ordered if-rules mapping hardware, users and workload flags to an engine and a reason.
+**2. In plain words:** Executable engine-choice rules.
+**3. Example to quote:** > "The helper tests CPU before GPU so a laptop never gets vLLM."
+**Seen in:** `main.py` section S2
+
+## Prefix caching vs RadixAttention  `(concept)`
+**1. Definition:** vLLM hashes full KV blocks for reuse (automatic prefix caching); SGLang indexes arbitrary-length prefixes in a radix tree.
+**2. In plain words:** Two implementations of one idea.
+**3. Example to quote:** > "Both skip prefill for shared prompt prefixes."
+**Seen in:** `WALKTHROUGH.md`
+

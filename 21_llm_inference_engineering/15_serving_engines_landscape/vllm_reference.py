@@ -5,6 +5,9 @@ vLLM is a high-throughput LLM inference engine.  It runs on Linux + NVIDIA GPU (
 Mac/CPU path worth using, so read this file, then run it on a rented GPU or Colab if you want to see it live.
 
     pip install vllm
+    # Version note (Nov 2026, medium confidence from third-party release summaries): vLLM was around v0.33
+    # (CUDA-13-only wheels). The V1 engine is the default. Flag names below are stable concepts; if one errors,
+    # run `vllm serve --help` for your installed version.
 
 Two ideas make vLLM fast (see README.md in this module for the pictures):
 
@@ -30,6 +33,8 @@ llm = LLM(
     dtype="float16",                 # weights precision; quantised checkpoints also work (quantization="awq")
     gpu_memory_utilization=0.90,     # fraction of GPU memory vLLM may grab: weights + KV-cache blocks
     max_model_len=2048,              # longest prompt+output it will accept (bounds KV cache per sequence)
+    enable_prefix_caching=True,      # reuse KV blocks of shared prompt prefixes (hash of each block); step 12
+    kv_cache_dtype="fp8",            # fp8 (e4m3) KV cache: ~half the cache memory; step 07. "auto" = model dtype
 )
 
 prompts = ["Explain what a KV cache is.", "Write a haiku about GPUs.", "What is LoRA?"]
@@ -47,6 +52,13 @@ for out in outputs:
 #             "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 32}'
 #
 # Because the endpoint is OpenAI-compatible, your module 08 agent harness can use it with only a base-URL change.
+
+# ---------- B2) Useful server flags (shell) -----------------------------------------------------------------------------
+#   --tensor-parallel-size 4        split every layer over 4 GPUs (step 14)        --pipeline-parallel-size 2   across nodes
+#   --max-num-seqs 256              max concurrent sequences in one step           --max-num-batched-tokens 8192  per-step token budget
+#   --quantization fp8              or a pre-quantised AWQ/GPTQ/compressed-tensors checkpoint (steps 04-06)
+#   --speculative-config '{"method": "ngram", ...}'   speculative decoding (step 13; the config schema changes between versions)
+# Benchmark it with the tool shipped with vLLM:  vllm bench serve ...  (TTFT / ITL / throughput, see step 10)
 
 # ---------- C) Transformers vs vLLM in one line each ----------------------------------------------------------------
 # transformers.generate : simple, flexible, great for learning/experiments, one batch at a time, memory-hungry cache.

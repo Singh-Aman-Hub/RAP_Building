@@ -109,6 +109,17 @@ Exercises: [exercises.md](exercises.md). Answers: [solutions/](solutions/).
 - [ ] Used columns/tabs/sidebar; changed the theme
 - [ ] Can say how to run and share/deploy each
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Rerun model vs event callback | "Streamlit reruns the script", "Gradio calls a function" | No | Streamlit executes the whole script top to bottom on every interaction; Gradio calls your function once per event |
+| `st.session_state` vs `st.cache_resource` vs `st.cache_data` | memory, cache | No | `session_state` is per browser session; `cache_resource` shares one object (model) across sessions; `cache_data` caches returned data per argument |
+| `gr.Interface` vs `gr.Blocks` | high-level vs low-level Gradio | No | `Interface` wraps one function with inputs/outputs; `Blocks` lays out components and events freely |
+| Streamlit vs Gradio vs FastAPI | "UI", "demo", "API" | No | Streamlit/Gradio build interactive pages quickly; FastAPI serves a JSON API that a UI or another service calls |
+| `share=True` vs deployment | public Gradio link | No | `share=True` gives a temporary tunnel link (about a week, per the Gradio docs; check current terms) to your laptop; deployment hosts the app permanently (e.g. Spaces, a container) |
+| Widget key vs session state | `key="x"` | Related | A widget `key` stores that widget's value in `st.session_state["x"]` |
+
 ## Interview questions
 1. **How does Streamlit work?** It reruns the script top to bottom on each interaction; widgets return current values. Trade-off: need cache/session_state to avoid redoing work and losing data.
 2. **How does Gradio differ?** You declare components and a function; Gradio calls the function as a callback and maps return values to outputs. Trade-off: less layout freedom (Blocks helps), alignment of counts matters.

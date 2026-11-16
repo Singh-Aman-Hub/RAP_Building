@@ -10,7 +10,7 @@ The interview explicitly lists LeetCode on arrays and dictionaries. Interviewers
 - [../03_ml_foundations/](../03_ml_foundations/) — numpy arrays are "arrays" with vectorised operations; Counter/dict thinking returns in tokenization (word → id vocabularies, [../04_llm_fundamentals/](../04_llm_fundamentals/)).
 - [../08_agent_harness/](../08_agent_harness/) — tool registries are dicts (`{name: function}`), conversation history is a list, and trimming history is a sliding window.
 - [../09_api_development/](../09_api_development/) — JSON bodies are dicts/lists; validation = edge-case thinking.
-- Time & space complexity vocabulary reappears in [../06_llm_training_and_fast_inference/](../06_llm_training_and_fast_inference/) (latency/throughput/memory) and [../10_ml_system_architecture/](../10_ml_system_architecture/) (scalability).
+- Time & space complexity vocabulary reappears in [../06_llm_training_and_lora/](../06_llm_training_and_lora/) (latency/throughput/memory) and [../10_ml_system_architecture/](../10_ml_system_architecture/) (scalability).
 
 ## Concept map
 ```
@@ -71,6 +71,21 @@ Follow the day-by-day schedule in [DSA_PRACTICE_PLAN.md](DSA_PRACTICE_PLAN.md) a
 - **Key-value ops, frequency counting, lookup optimisation, complement lookup, grouping, counting occurrences, dict & set usage:** steps 02, 06, 08.
 - **Strings, loops, list operations:** 08 and [../00_python_foundations/](../00_python_foundations/).
 - **Complexity, brute vs optimised, edge cases & dry runs:** every step; origin in 01.
+
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| hash map | hash table, dict, dictionary, associative array | Same idea | Key -> value lookup in O(1) average. |
+| hash set | `set`, HashSet | Same idea | A hash map with keys only. |
+| subarray vs subsequence vs substring | contiguous vs not necessarily contiguous | No | Subarray and substring are contiguous; subsequence may skip items. |
+| two pointers vs sliding window | left/right index patterns | Related | Two pointers often converge from both ends; a sliding window keeps running state and moves in one direction. |
+| prefix sum | cumulative sum, running total | Same | `prefix[i]` is the sum of the first i items. |
+| frequency count | histogram, tally, `Counter` | Roughly | A dict from item to its number of occurrences. |
+| in-place | O(1) extra space, mutating | Roughly | The input is modified; it says nothing about speed. |
+| brute force | naive, exhaustive | Same | Try everything; the correctness baseline. |
+| time vs space complexity | runtime growth vs memory growth | No | Often traded against each other. |
+| `sorted()` vs `list.sort()` | new list vs in place | No | `sort()` returns `None`. |
 
 ## Common mistakes & gotchas
 - Using `max()`/`sorted()` when the interviewer wants you to implement it — ask.

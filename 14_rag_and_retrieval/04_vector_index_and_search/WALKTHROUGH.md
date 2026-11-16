@@ -43,6 +43,271 @@ cd 14_rag_and_retrieval/04_vector_index_and_search
 python main.py       # about 10 s on a laptop CPU (cached MiniLM); timings vary per run
 ```
 
+## Same thing, different names
+
+| Term you will hear | Also called / near-synonyms | Exactly the same? | Difference in one line |
+|---|---|---|---|
+| Flat index vs brute force vs exact search | `IndexFlatIP`, "kNN" | Same thing | Compare the query against every vector; 100 percent recall, cost grows with N |
+| Exact kNN vs ANN | approximate nearest neighbour | No | ANN (step 05) skips most vectors to be faster and may miss a true neighbour |
+| Pre-filter vs post-filter | metadata filtering | No | Pre: restrict rows first, then rank; post: rank top-k first, then drop non-matching (can return fewer than k) |
+| Upsert vs insert vs update | write to the index | Related | Upsert = insert or replace by id, so no duplicates |
+| Cosine vs dot vs L2 | metrics | Equivalent here | On unit vectors all three give the same ranking (`||a-b||^2 = 2 - 2cos`) |
+| Vector store vs vector database vs index | FAISS, Qdrant | No | Index = structure; store/DB = index plus persistence, filtering, CRUD and a server |
+
+## Code, step by step
+
+### 1. Docstring  (`main.py` lines 1–14)
+```python
+"""
+GOAL:  Build the thing a vector database is at its core: a "flat" index that stores vectors + metadata,
+       answers top-k queries exactly, filters by metadata, upserts/deletes by id, and saves to disk.
+       Then measure how brute force scales, and prove cosine / dot / L2 give the same ranking on unit vectors.
+
+RUN (from this step folder):  python main.py
+RUN (from repo root):         .venv/bin/python 14_rag_and_retrieval/04_vector_index_and_search/main.py
+EXPECTED OUTPUT (shortened):
+    index: 36 vectors x 384 dims
+    filtered to doc_id=loyalty_program: ...
+    brute force over 100,000 vectors: ~x ms per query (argpartition) vs ~y ms (full argsort)
+    rankings identical for cosine, dot and L2 on unit vectors: True
+NEEDS: torch, transformers (cached MiniLM), numpy.  ~10 s.
+"""
+```
+- **In simple words:** What this file builds: the core of a vector database in about 40 lines.
+- **Exactly:** A flat index with metadata, exact top-k, filtering, upsert, delete, save/load, a speed test, and a proof that three metrics agree.
+- **Why it is here:** A black box (a vector DB) becomes ordinary code.
+
+### 2. Imports  (`main.py` lines 16–25)
+```python
+import json
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from common import Embedder, build_chunks, chunk_for_embedding   # noqa: E402
+```
+- **In simple words:** Load the standard modules, numpy and our embedder.
+- **Exactly:** `json` and `Path` for saving; `tempfile` for a safe temporary folder; `time` for timing; `numpy` for matrices; `Embedder`, `build_chunks`, `chunk_for_embedding` from `common`.
+- **Why it is here:** Only what is needed, no vector DB library.
+
+### 3. FlatIndex: create an empty index  (`main.py` lines 28–34)
+```python
+class FlatIndex:
+    """Exact nearest-neighbour index. vectors: (n, dim) float32 unit rows; meta: one dict per row."""
+
+    def __init__(self, dim):
+        self.dim = dim
+        self.vectors = np.zeros((0, dim), dtype=np.float32)
+        self.meta = []
+```
+- **In simple words:** A table of vectors plus a list of facts, one per row.
+- **Exactly:** `vectors` is `(0, dim)` float32; `meta` is a list of dicts. Row `i` of `vectors` belongs to `meta[i]`.
+- **Why it is here:** Keeping the two aligned is the whole job of an index.
+
+### 4. upsert  (`main.py` lines 36–41)
+```python
+    def upsert(self, vectors, metas):
+        """Insert, or replace rows whose chunk_id already exists (documents change over time)."""
+        ids = {m["chunk_id"] for m in metas}
+        keep = [i for i, m in enumerate(self.meta) if m["chunk_id"] not in ids]   # drop old versions
+        self.vectors = np.vstack([self.vectors[keep], vectors.astype(np.float32)])
+        self.meta = [self.meta[i] for i in keep] + list(metas)
+```
+- **In simple words:** Add new rows or replace rows with the same `chunk_id`.
+- **Exactly:** `ids` is the set of incoming chunk ids; `keep` lists old rows not being replaced; `np.vstack([kept, new])`; meta is rebuilt in the same order. Real: after one upsert the count does not grow.
+- **Why it is here:** Documents change; without replace-by-id you get duplicates (a stale rule and a new one).
+
+### 5. delete by document  (`main.py` lines 43–45)
+```python
+    def delete(self, doc_id):
+        keep = [i for i, m in enumerate(self.meta) if m["doc_id"] != doc_id]
+        self.vectors, self.meta = self.vectors[keep], [self.meta[i] for i in keep]
+```
+- **In simple words:** Remove all chunks of a document.
+- **Exactly:** Keeps rows whose `doc_id` differs. Real: deleting `brewing_guide` removes 4 rows.
+- **Why it is here:** When a document is withdrawn it must disappear from answers.
+
+### 6. search with a metadata filter  (`main.py` lines 47–58)
+```python
+    def search(self, query_vec, k=3, where=None):
+        """Top-k by dot product. `where` = metadata filter applied BEFORE ranking (pre-filtering)."""
+        rows = np.arange(len(self.meta))
+        if where:
+            rows = np.array([i for i in rows if all(self.meta[i].get(f) == v for f, v in where.items())], dtype=int)
+        if len(rows) == 0:
+            return []
+        scores = self.vectors[rows] @ query_vec                      # (len(rows),)
+        k = min(k, len(rows))
+        top = np.argpartition(-scores, k - 1)[:k]                    # O(n): the k best, unordered
+        top = top[np.argsort(-scores[top])]                          # O(k log k): order just those
+        return [(float(scores[j]), self.meta[rows[j]]) for j in top]
+```
+- **In simple words:** Find the k closest vectors, optionally only among rows with given facts.
+- **Exactly:** `rows` are the candidate row numbers. `where={"doc_id": "x"}` keeps rows where every key equals the value (pre-filter). `scores = vectors[rows] @ query_vec` has shape `(len(rows),)`. `argpartition(-scores, k-1)[:k]` finds the k best in O(n); `argsort` orders only those k. Returns `(score, meta)` pairs.
+- **Why it is here:** Pre-filtering always returns k results when k exist; post-filtering can return fewer.
+
+### 7. save  (`main.py` lines 60–63)
+```python
+    def save(self, folder):
+        folder = Path(folder)
+        np.save(folder / "vectors.npy", self.vectors)                # binary float32 matrix
+        (folder / "meta.json").write_text(json.dumps(self.meta))     # metadata as JSON
+```
+- **In simple words:** Write the index to disk.
+- **Exactly:** `np.save` writes `vectors.npy` (binary float32); `meta.json` holds metadata. Real size: 59,176 bytes for 32 vectors.
+- **Why it is here:** A restart should not mean re-embedding everything.
+
+### 8. load  (`main.py` lines 65–71)
+```python
+    @classmethod
+    def load(cls, folder):
+        folder = Path(folder)
+        vectors = np.load(folder / "vectors.npy")
+        index = cls(vectors.shape[1])
+        index.vectors, index.meta = vectors, json.loads((folder / "meta.json").read_text())
+        return index
+```
+- **In simple words:** Read the index back from disk.
+- **Exactly:** `@classmethod` builds an instance without needing an existing object; dimension from `vectors.shape[1]`.
+- **Why it is here:** Round trip must give identical results (checked in section 4).
+
+### 9. Build the index from the knowledge base  (`main.py` lines 74–79)
+```python
+# ---- 1. Build the index from the knowledge base --------------------------------------------------------
+embedder = Embedder()
+chunks = build_chunks()
+index = FlatIndex(embedder.dim)
+index.upsert(embedder.encode([chunk_for_embedding(c) for c in chunks]), chunks)
+print(f"index: {len(index.meta)} vectors x {index.dim} dims")
+```
+- **In simple words:** Embed all 36 chunks and put them in.
+- **Exactly:** `Embedder()` (384-dim); `encode` returns `(36, 384)`; the chunks serve as metadata (each has `chunk_id`, `doc_id`, ...). Real: `index: 36 vectors x 384 dims`.
+- **Why it is here:** The same flow a vector DB does on `upsert`.
+
+### 10. First search  (`main.py` lines 81–84)
+```python
+q = embedder.encode(["Do my reward points run out?"])[0]
+print("\nQ: Do my reward points run out?")
+for score, m in index.search(q, k=3):
+    print(f"  {score:.3f}  {m['chunk_id']}")
+```
+- **In simple words:** Ask "Do my reward points run out?" and print the top 3.
+- **Exactly:** Real: `0.593 loyalty_program#Earning points`, `0.547 ...#Points expiry`, `0.531 ...#Redeeming points`. The "Points expiry" chunk is the exact answer but ranks second: a small embedding model is not always right; step 07 fixes the order.
+- **Why it is here:** Shows both that search works and that ranking is imperfect.
+
+### 11. Pre-filter versus post-filter  (`main.py` lines 86–93)
+```python
+# ---- 2. Metadata filtering -----------------------------------------------------------------------------
+print("\nsame query, filtered to doc_id=loyalty_program:")
+for score, m in index.search(q, k=3, where={"doc_id": "loyalty_program"}):
+    print(f"  {score:.3f}  {m['chunk_id']}")
+# POST-filtering (search top-k first, filter afterwards) can return FEWER than k results, or none:
+post = [r for r in index.search(q, k=3) if r[1]["doc_id"] == "brewing_guide"]
+pre = index.search(q, k=3, where={"doc_id": "brewing_guide"})
+print(f"filter doc_id=brewing_guide -> post-filter returns {len(post)} results, pre-filter returns {len(pre)}")
+```
+- **In simple words:** Restrict to one document, and compare two ways of filtering.
+- **Exactly:** Filtered to `loyalty_program` gives the same three hits. For `brewing_guide`: post-filter (search top 3 then keep brewing_guide) returns 0; pre-filter returns 3.
+- **Why it is here:** In production, filter before the nearest-neighbour search or you can lose all results.
+
+### 12. Upsert and delete in action  (`main.py` lines 95–100)
+```python
+# ---- 3. Upsert and delete: the knowledge base changes -------------------------------------------------
+new = dict(chunks[0], chunk_id="allergens_and_ingredients#Nuts",
+           text="UPDATED: From 2027 every blend, including Winter Kahwa, is nut free.")
+index.upsert(embedder.encode([chunk_for_embedding(new)]), [new])
+index.delete("brewing_guide")
+print(f"\nafter 1 upsert (replaced, not duplicated) and deleting brewing_guide: {len(index.meta)} vectors")
+```
+- **In simple words:** Replace one chunk's text and delete a document.
+- **Exactly:** `dict(chunks[0], chunk_id=..., text=...)` copies a dict with overrides. The upsert replaces the existing `allergens_and_ingredients#Nuts` row. 36 vectors minus 4 deleted = 32 (real output).
+- **Why it is here:** Proves the knowledge base can change without rebuilding.
+
+### 13. Save and reload round trip  (`main.py` lines 102–108)
+```python
+# ---- 4. Save / load round trip -------------------------------------------------------------------------
+with tempfile.TemporaryDirectory() as tmp:
+    index.save(tmp)
+    size = sum(p.stat().st_size for p in Path(tmp).iterdir())
+    again = FlatIndex.load(tmp)
+    same = again.search(q, k=1)[0][1]["chunk_id"] == index.search(q, k=1)[0][1]["chunk_id"]
+    print(f"saved to disk: {size:,} bytes | reloaded index gives the same top hit: {same}")
+```
+- **In simple words:** Save to a temporary folder, reload, and check the same answer comes back.
+- **Exactly:** `TemporaryDirectory()` deletes itself at the end. Real: `saved to disk: 59,176 bytes | reloaded index gives the same top hit: True`.
+- **Why it is here:** Persistence that is not tested is not persistence.
+
+### 14. A big random matrix  (`main.py` lines 110–116)
+```python
+# ---- 5. How brute force scales ------------------------------------------------------------------------
+rng = np.random.default_rng(0)
+N, D = 100_000, 384
+big = rng.normal(size=(N, D)).astype(np.float32)
+big /= np.linalg.norm(big, axis=1, keepdims=True)                   # unit rows, like real embeddings
+query = big[123] + 0.05 * rng.normal(size=D).astype(np.float32)
+query /= np.linalg.norm(query)
+```
+- **In simple words:** Make 100,000 random unit vectors to test speed.
+- **Exactly:** `default_rng(0)` seeds randomness. `big` has shape `(100000, 384)` float32 (154 MB). Rows divided by their norms to be unit length. `query` is vector 123 plus small noise, normalised.
+- **Why it is here:** Random unit vectors behave like embeddings for a timing test.
+
+### 15. Time the search  (`main.py` lines 118–128)
+```python
+def timed(fn, repeats=5):
+    fn()                                                            # warm-up
+    t0 = time.perf_counter()
+    for _ in range(repeats):
+        fn()
+    return (time.perf_counter() - t0) / repeats * 1000
+
+t_part = timed(lambda: np.argpartition(-(big @ query), 9)[:10])
+t_sort = timed(lambda: np.argsort(-(big @ query))[:10])
+print(f"\nbrute force over {N:,} vectors ({big.nbytes / 1e6:.0f} MB float32): {t_part:.1f} ms per query "
+      f"(argpartition) vs {t_sort:.1f} ms (full argsort)")
+```
+- **In simple words:** Measure how long one query takes.
+- **Exactly:** `timed` runs once as warm-up, then averages 5 runs in milliseconds. `argpartition` over `big @ query` takes 11.6 ms; full `argsort` takes 20.5 ms (your numbers vary).
+- **Why it is here:** The O(n) partition beats the O(n log n) sort, and both grow linearly with N.
+
+### 16. Extrapolate  (`main.py` lines 129–130)
+```python
+print(f"float16 storage would be {big.astype(np.float16).nbytes / 1e6:.0f} MB; "
+      f"10M vectors would be {10_000_000 * D * 4 / 1e9:.1f} GB float32 and ~{t_part * 100:.0f} ms per query -> ANN (step 05)")
+```
+- **In simple words:** Estimate what 10 million vectors would cost.
+- **Exactly:** float16 would halve memory (77 MB). 10M vectors is `10_000_000 * 384 * 4 / 1e9 = 15.4 GB` and about 1155 ms per query (100 times the time): too slow, so use ANN (step 05).
+- **Why it is here:** Motivates approximate search.
+
+### 17. Cosine, dot and L2 agree  (`main.py` lines 133–139)
+```python
+sample = big[:2000]
+cos = sample @ query / (np.linalg.norm(sample, axis=1) * np.linalg.norm(query))
+dot = sample @ query
+l2 = np.linalg.norm(sample - query, axis=1)                         # ||a-b||^2 = 2 - 2 cos(a,b) for unit vectors
+same_rank = (np.argsort(-cos)[:10] == np.argsort(-dot)[:10]).all() and (np.argsort(-cos)[:10] == np.argsort(l2)[:10]).all()
+print(f"rankings identical for cosine, dot and L2 on unit vectors: {bool(same_rank)}")
+print(f"check the identity on one row: ||a-b||^2 = {l2[0] ** 2:.4f}, 2 - 2cos = {2 - 2 * cos[0]:.4f}")
+```
+- **In simple words:** Prove the three similarity measures give the same ranking on unit vectors.
+- **Exactly:** `cos`, `dot` and `l2` over 2000 vectors; the top 10 by `-cos`, `-dot` and `+l2` are identical. Identity: `||a-b||^2 = 2 - 2cos(a,b)` for unit vectors; real check on one row: 2.0094 both.
+- **Why it is here:** Lets you choose dot product (cheapest) without worrying about the metric.
+
+### 18. Exercises as comments  (`main.py` lines 141–144)
+```python
+# TRY IT: N = 1_000_000 (needs ~1.5 GB RAM). Is the per-query time roughly 10x?
+# TRY IT: search with where={"doc_id": "product_catalog"} for "cheapest tea" and print all four results.
+# TRY IT: remove the `keep` logic in upsert and upsert the same chunk twice; search returns duplicates.
+# BREAK IT: skip the normalisation of `big` and compare argsort of cos and dot: the rankings now differ.
+```
+- **In simple words:** Ideas to try and break.
+- **Exactly:** BREAK IT: skip the normalisation and the rankings of cosine and dot differ.
+- **Why it is here:** Normalisation is what makes the metrics equivalent.
+
+
 ## Syntax explained
 | Syntax | Meaning | Tiny example |
 |---|---|---|

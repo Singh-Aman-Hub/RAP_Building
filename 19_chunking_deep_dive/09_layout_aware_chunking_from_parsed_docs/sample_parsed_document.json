@@ -1,0 +1,515 @@
+{
+ "doc_id": "lumen_q3_report",
+ "source_file": "lumen_q3_report.pdf",
+ "note": "Hand-written sample. The schema mirrors what Docling / Unstructured / layout parsers emit; module 18 (18_ocr_and_document_parsing/10_parsed_document_handoff/parsed_document.json) produces a similar element list. bbox = [x0, y0, x1, y1] in PDF points, origin top-left.",
+ "pages": [
+  {
+   "page": 1,
+   "width": 612,
+   "height": 792
+  },
+  {
+   "page": 2,
+   "width": 612,
+   "height": 792
+  },
+  {
+   "page": 3,
+   "width": 612,
+   "height": 792
+  }
+ ],
+ "elements": [
+  {
+   "id": "p1h",
+   "type": "page_header",
+   "text": "Lumen Cloud Q3 Infrastructure Report",
+   "page": 1,
+   "bbox": [
+    72,
+    30,
+    300,
+    46
+   ],
+   "reading_order": 0
+  },
+  {
+   "id": "e1",
+   "type": "title",
+   "text": "Q3 Infrastructure Report",
+   "page": 1,
+   "bbox": [
+    72,
+    70,
+    540,
+    104
+   ],
+   "reading_order": 1
+  },
+  {
+   "id": "e2",
+   "type": "section_header",
+   "level": 1,
+   "text": "1. Summary",
+   "page": 1,
+   "bbox": [
+    72,
+    130,
+    200,
+    150
+   ],
+   "reading_order": 2
+  },
+  {
+   "id": "e3",
+   "type": "text",
+   "text": "This report covers July to September. Overall uptime across all regions was 99.96 percent. The March checkout outage is not part of this period, but its follow-up work finished in Q3. It reduced queue-related incidents to zero.",
+   "page": 1,
+   "bbox": [
+    72,
+    156,
+    540,
+    214
+   ],
+   "reading_order": 3
+  },
+  {
+   "id": "e4",
+   "type": "section_header",
+   "level": 1,
+   "text": "2. Availability",
+   "page": 1,
+   "bbox": [
+    72,
+    240,
+    230,
+    260
+   ],
+   "reading_order": 4
+  },
+  {
+   "id": "e6",
+   "type": "table",
+   "text": "",
+   "page": 1,
+   "bbox": [
+    72,
+    290,
+    540,
+    400
+   ],
+   "reading_order": 6,
+   "table": {
+    "header": [
+     "Region",
+     "July",
+     "August",
+     "September"
+    ],
+    "rows": [
+     [
+      "Frankfurt",
+      "99.97",
+      "99.99",
+      "99.98"
+     ],
+     [
+      "Dublin",
+      "99.95",
+      "99.96",
+      "99.93"
+     ],
+     [
+      "Virginia",
+      "99.91",
+      "99.97",
+      "99.94"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "e5",
+   "type": "caption",
+   "text": "Table 1: Monthly uptime by region (percent)",
+   "page": 1,
+   "bbox": [
+    72,
+    270,
+    400,
+    286
+   ],
+   "reading_order": 5
+  },
+  {
+   "id": "e7",
+   "type": "text",
+   "text": "Virginia had the lowest uptime in July because of a network provider fault that lasted 41 minutes.",
+   "page": 1,
+   "bbox": [
+    72,
+    412,
+    540,
+    440
+   ],
+   "reading_order": 7
+  },
+  {
+   "id": "e8",
+   "type": "figure",
+   "text": "",
+   "page": 1,
+   "bbox": [
+    72,
+    452,
+    540,
+    640
+   ],
+   "reading_order": 8,
+   "figure": {
+    "alt": "line chart, queue depth per hour, flat near 20 jobs"
+   }
+  },
+  {
+   "id": "e9",
+   "type": "caption",
+   "text": "Figure 1: Deployment queue depth stayed near 20 jobs throughout the quarter.",
+   "page": 1,
+   "bbox": [
+    72,
+    646,
+    540,
+    662
+   ],
+   "reading_order": 9
+  },
+  {
+   "id": "p1f",
+   "type": "page_footer",
+   "text": "Confidential - page 1",
+   "page": 1,
+   "bbox": [
+    240,
+    750,
+    372,
+    764
+   ],
+   "reading_order": 99
+  },
+  {
+   "id": "p2h",
+   "type": "page_header",
+   "text": "Lumen Cloud Q3 Infrastructure Report",
+   "page": 2,
+   "bbox": [
+    72,
+    30,
+    300,
+    46
+   ],
+   "reading_order": 0
+  },
+  {
+   "id": "e10",
+   "type": "section_header",
+   "level": 1,
+   "text": "3. Costs",
+   "page": 2,
+   "bbox": [
+    72,
+    70,
+    170,
+    90
+   ],
+   "reading_order": 1
+  },
+  {
+   "id": "e11",
+   "type": "text",
+   "text": "Infrastructure cost grew by 8 percent compared with Q2. Most of the growth came from storage. The table below lists cost per service in thousands of euros.",
+   "page": 2,
+   "bbox": [
+    72,
+    96,
+    540,
+    144
+   ],
+   "reading_order": 2
+  },
+  {
+   "id": "e12",
+   "type": "caption",
+   "text": "Table 2: Cost per service in thousands of euros",
+   "page": 2,
+   "bbox": [
+    72,
+    156,
+    400,
+    172
+   ],
+   "reading_order": 3
+  },
+  {
+   "id": "e13",
+   "type": "table",
+   "text": "",
+   "page": 2,
+   "bbox": [
+    72,
+    176,
+    540,
+    330
+   ],
+   "reading_order": 4,
+   "table": {
+    "header": [
+     "Service",
+     "Q2",
+     "Q3",
+     "Change"
+    ],
+    "rows": [
+     [
+      "Compute",
+      "412",
+      "431",
+      "+5%"
+     ],
+     [
+      "Storage",
+      "188",
+      "221",
+      "+18%"
+     ],
+     [
+      "Network",
+      "95",
+      "97",
+      "+2%"
+     ],
+     [
+      "Support tools",
+      "40",
+      "41",
+      "+3%"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "e14",
+   "type": "section_header",
+   "level": 2,
+   "text": "3.1 Reserved capacity",
+   "page": 2,
+   "bbox": [
+    72,
+    350,
+    260,
+    368
+   ],
+   "reading_order": 5
+  },
+  {
+   "id": "e15",
+   "type": "text",
+   "text": "We reserved 60 percent of compute for twelve months. This lowers the price per hour. It also reduces the flexibility to move workloads between regions.",
+   "page": 2,
+   "bbox": [
+    72,
+    374,
+    540,
+    422
+   ],
+   "reading_order": 6
+  },
+  {
+   "id": "e16",
+   "type": "list_item",
+   "text": "Compute: 60 percent reserved",
+   "page": 2,
+   "bbox": [
+    90,
+    430,
+    400,
+    446
+   ],
+   "reading_order": 7
+  },
+  {
+   "id": "e17",
+   "type": "list_item",
+   "text": "Storage: no reservation yet",
+   "page": 2,
+   "bbox": [
+    90,
+    450,
+    400,
+    466
+   ],
+   "reading_order": 8
+  },
+  {
+   "id": "e18",
+   "type": "section_header",
+   "level": 1,
+   "text": "4. Roadmap",
+   "page": 2,
+   "bbox": [
+    72,
+    500,
+    190,
+    520
+   ],
+   "reading_order": 9
+  },
+  {
+   "id": "e19",
+   "type": "caption",
+   "text": "Table 3: Planned milestones",
+   "page": 2,
+   "bbox": [
+    72,
+    530,
+    300,
+    546
+   ],
+   "reading_order": 10
+  },
+  {
+   "id": "e20",
+   "type": "table",
+   "text": "",
+   "page": 2,
+   "bbox": [
+    72,
+    550,
+    540,
+    720
+   ],
+   "reading_order": 11,
+   "table": {
+    "header": [
+     "Milestone",
+     "Owner",
+     "Due"
+    ],
+    "rows": [
+     [
+      "Combined dashboard",
+      "Priya",
+      "5 April"
+     ],
+     [
+      "Async quota job",
+      "Tomas",
+      "11 April"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "p2f",
+   "type": "page_footer",
+   "text": "Confidential - page 2",
+   "page": 2,
+   "bbox": [
+    240,
+    750,
+    372,
+    764
+   ],
+   "reading_order": 99
+  },
+  {
+   "id": "p3h",
+   "type": "page_header",
+   "text": "Lumen Cloud Q3 Infrastructure Report",
+   "page": 3,
+   "bbox": [
+    72,
+    30,
+    300,
+    46
+   ],
+   "reading_order": 0
+  },
+  {
+   "id": "e21",
+   "type": "table",
+   "text": "",
+   "page": 3,
+   "bbox": [
+    72,
+    70,
+    540,
+    200
+   ],
+   "reading_order": 1,
+   "continued_from": "e20",
+   "table": {
+    "header": [
+     "Milestone",
+     "Owner",
+     "Due"
+    ],
+    "rows": [
+     [
+      "Multi-region failover test",
+      "Mira",
+      "30 June"
+     ],
+     [
+      "Storage reservation",
+      "Finance",
+      "1 September"
+     ],
+     [
+      "SAML self-service setup",
+      "Priya",
+      "15 October"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "e22",
+   "type": "text",
+   "text": "All milestones are reviewed in the monthly engineering meeting. The owner reports status and any risk to the due date.",
+   "page": 3,
+   "bbox": [
+    72,
+    216,
+    540,
+    264
+   ],
+   "reading_order": 2
+  },
+  {
+   "id": "e23",
+   "type": "footnote",
+   "text": "* Uptime is measured by external probes every 30 seconds.",
+   "page": 3,
+   "bbox": [
+    72,
+    700,
+    420,
+    716
+   ],
+   "reading_order": 3
+  },
+  {
+   "id": "p3f",
+   "type": "page_footer",
+   "text": "Confidential - page 3",
+   "page": 3,
+   "bbox": [
+    240,
+    750,
+    372,
+    764
+   ],
+   "reading_order": 99
+  }
+ ]
+}

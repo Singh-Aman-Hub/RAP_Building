@@ -1,0 +1,226 @@
+{
+ "doc_id": "chai_kitchen_report",
+ "source_file": "synthetic_report (sample_page1.png, sample_page2.png)",
+ "note": "Synthetic. Produced by module 18 (steps 03-07): template OCR + XY-cut reading order + ruling-line tables. bbox = [x0, y0, x1, y1] in PDF points (pixels x 0.75), origin top-left. Text is raw OCR output, errors included.",
+ "pages": [
+  {
+   "page": 1,
+   "width": 600.0,
+   "height": 480.0
+  },
+  {
+   "page": 2,
+   "width": 600.0,
+   "height": 480.0
+  }
+ ],
+ "elements": [
+  {
+   "id": "p1e0",
+   "page": 1,
+   "bbox": [
+    31.5,
+    23.2,
+    370.5,
+    48.0
+   ],
+   "type": "title",
+   "text": "Chai Kitchen Quarterly Report",
+   "reading_order": 0
+  },
+  {
+   "id": "p1e1",
+   "page": 1,
+   "bbox": [
+    32.2,
+    79.5,
+    153.8,
+    98.2
+   ],
+   "type": "section_header",
+   "level": 1,
+   "text": "Refund policy",
+   "reading_order": 1
+  },
+  {
+   "id": "p1e2",
+   "page": 1,
+   "bbox": [
+    30.8,
+    113.2,
+    297.0,
+    195.8
+   ],
+   "type": "text",
+   "text": "Refunds are issued within nine days of delivery. The money is returned to the original payment method. Opened tea tins cannot be returned.",
+   "reading_order": 2
+  },
+  {
+   "id": "p1e3",
+   "page": 1,
+   "bbox": [
+    315.8,
+    113.2,
+    562.5,
+    195.8
+   ],
+   "type": "text",
+   "text": "Shipping inside India takes three to five working days. Orders above 499 rupees ship free. We do not ship to a PO box.",
+   "reading_order": 3
+  },
+  {
+   "id": "p1e4",
+   "page": 1,
+   "bbox": [
+    30.0,
+    232.5,
+    556.5,
+    366.0
+   ],
+   "type": "table",
+   "text": "",
+   "table": {
+    "header": [
+     "Product",
+     "Price",
+     "Stock"
+    ],
+    "rows": [
+     [
+      "Masala Chai",
+      "250",
+      "120"
+     ],
+     [
+      "Green Tea",
+      "320",
+      "75"
+     ],
+     [
+      "Tulsi Blend",
+      "290",
+      "0"
+     ]
+    ]
+   },
+   "reading_order": 4
+  },
+  {
+   "id": "p1e5",
+   "page": 1,
+   "bbox": [
+    271.5,
+    441.0,
+    331.5,
+    452.2
+   ],
+   "type": "page_footer",
+   "text": "Page 1 cif 2",
+   "reading_order": 99
+  },
+  {
+   "id": "p2e0",
+   "page": 2,
+   "bbox": [
+    32.2,
+    23.2,
+    333.8,
+    48.0
+   ],
+   "type": "section_header",
+   "level": 1,
+   "text": "Loyalty and Support Notes",
+   "reading_order": 0
+  },
+  {
+   "id": "p2e1",
+   "page": 2,
+   "bbox": [
+    32.2,
+    80.2,
+    154.5,
+    98.2
+   ],
+   "type": "section_header",
+   "level": 2,
+   "text": "Loyalty points",
+   "reading_order": 1
+  },
+  {
+   "id": "p2e2",
+   "page": 2,
+   "bbox": [
+    30.8,
+    113.2,
+    279.8,
+    192.8
+   ],
+   "type": "text",
+   "text": "Members earn one point for every ten rupees spent. One hundred points are worth ten rupees off a later order.",
+   "reading_order": 2
+  },
+  {
+   "id": "p2e3",
+   "page": 2,
+   "bbox": [
+    315.8,
+    113.2,
+    546.8,
+    195.8
+   ],
+   "type": "text",
+   "text": "Support is open from nine to six on weekdays. Replies to email arrive within one working day. Phone support is not offered.",
+   "reading_order": 3
+  },
+  {
+   "id": "p2e4",
+   "page": 2,
+   "bbox": [
+    30.0,
+    232.5,
+    556.5,
+    366.0
+   ],
+   "type": "table",
+   "text": "",
+   "table": {
+    "header": [
+     "Plan",
+     "Points",
+     "Fee"
+    ],
+    "rows": [
+     [
+      "Basic",
+      "1",
+      "0"
+     ],
+     [
+      "Silver",
+      "2",
+      "499"
+     ],
+     [
+      "Gold",
+      "3",
+      "999"
+     ]
+    ]
+   },
+   "reading_order": 4
+  },
+  {
+   "id": "p2e5",
+   "page": 2,
+   "bbox": [
+    271.5,
+    441.0,
+    331.5,
+    452.2
+   ],
+   "type": "page_footer",
+   "text": "Page 2 cif 2",
+   "reading_order": 99
+  }
+ ]
+}
