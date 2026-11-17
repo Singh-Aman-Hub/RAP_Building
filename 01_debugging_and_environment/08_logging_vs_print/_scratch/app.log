@@ -1,0 +1,9 @@
+2026-11-14 15:53:16,289 INFO     inference:38  service starting
+2026-11-14 15:53:16,290 WARNING  inference:32  empty input, returning default
+2026-11-14 15:53:16,290 ERROR    inference:46  prediction failed
+Traceback (most recent call last):
+  File "/Users/aman/Desktop/Project_resume/RAP_interview/01_debugging_and_environment/08_logging_vs_print/main.py", line 44, in <module>
+    1 / 0
+    ~~^~~
+ZeroDivisionError: division by zero
+2026-11-14 15:53:16,291 INFO     inference:48  done; see /Users/aman/Desktop/Project_resume/RAP_interview/01_debugging_and_environment/08_logging_vs_print/_scratch/app.log

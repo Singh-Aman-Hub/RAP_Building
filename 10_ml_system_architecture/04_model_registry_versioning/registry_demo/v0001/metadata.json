@@ -1,0 +1,14 @@
+{
+  "version": "v0001",
+  "created_at": "2026-11-14T10:28:00+00:00",
+  "metrics": {
+    "accuracy": 1.0,
+    "log_loss": 0.671
+  },
+  "params": {
+    "n": 20,
+    "C": 0.1
+  },
+  "data_fingerprint": "6ebb39635e9d",
+  "sklearn_version": "1.9.1"
+}
